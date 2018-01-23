@@ -1,0 +1,28 @@
+// CBOR-lite Exception class test cases
+#include "../include/cbor-lite/cbor.h"
+#include <boost/test/unit_test.hpp>
+
+BOOST_AUTO_TEST_SUITE(cbor)
+BOOST_AUTO_TEST_SUITE(exception)
+
+BOOST_AUTO_TEST_CASE(basic) {
+    BOOST_CHECK_EXCEPTION(throw CborLite::Exception(), CborLite::Exception,
+        [](CborLite::Exception const& e) { return e.what() == std::string("CBOR Exception"); });
+
+    BOOST_CHECK_EXCEPTION(throw CborLite::Exception("cstring"), CborLite::Exception,
+        [](CborLite::Exception const& e) { return e.what() == std::string("CBOR Exception: cstring"); });
+
+    BOOST_CHECK_EXCEPTION(throw CborLite::Exception(std::string("string")), CborLite::Exception,
+        [](CborLite::Exception const& e) { return e.what() == std::string("CBOR Exception: string"); });
+
+    CborLite::Exception ex("another string");
+    BOOST_CHECK_EXCEPTION(throw CborLite::Exception(ex), CborLite::Exception,
+        [](CborLite::Exception const& caught) { return caught.what() == std::string("CBOR Exception: another string"); });
+    BOOST_CHECK_EQUAL(ex.what(), std::string("CBOR Exception: another string"));
+    BOOST_CHECK_EXCEPTION(throw CborLite::Exception(std::move(ex)), CborLite::Exception,
+        [](CborLite::Exception const& caught) { return caught.what() == std::string("CBOR Exception: another string"); });
+    BOOST_CHECK_EQUAL(ex.what(), std::string("")); // note the odd state, CborLite::Exception not expected to be reused after move
+}
+
+BOOST_AUTO_TEST_SUITE_END()
+BOOST_AUTO_TEST_SUITE_END()
