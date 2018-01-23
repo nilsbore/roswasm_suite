@@ -9,6 +9,6 @@ target_include_directories(cbor-lite INTERFACE include/)
 file(GLOB_RECURSE ALL_SOURCE_FILES *.cpp *.h)
 add_custom_target(reformat COMMAND clang-format -i ${ALL_SOURCE_FILES})
 
-add_custom_target(junit COMMAND mkdir -p test-results && ./unit/unit -f JUNIT -k test-results/results.xml)
+add_custom_target(junit COMMAND mkdir -p test-results && ./unit/unit --logger=JUNIT,warning,test-results/results.xml)
 
 add_subdirectory (unit)
