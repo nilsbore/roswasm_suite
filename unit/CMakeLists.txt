@@ -1,7 +1,7 @@
 enable_testing()
 
-set(Boost_ADDITIONAL_VERSIONS "1.65" "1.65.0")
-find_package(Boost 1.65 REQUIRED COMPONENTS unit_test_framework)
+set(Boost_ADDITIONAL_VERSIONS "1.62" "1.62.0")
+find_package(Boost 1.62 REQUIRED COMPONENTS unit_test_framework)
 
 add_executable(unit unit-main.cpp basic.cpp canon.cpp exception.cpp)
 
