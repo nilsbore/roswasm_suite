@@ -1,5 +1,5 @@
 // CBOR-lite Exception class test cases
-#include "../include/cbor-lite/cbor.h"
+#include "../include/cbor-lite/codec.h"
 #include <boost/test/unit_test.hpp>
 
 BOOST_AUTO_TEST_SUITE(cbor)

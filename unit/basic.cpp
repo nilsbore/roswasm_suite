@@ -1,5 +1,5 @@
 // CBOR-lite Test Cases
-#include "../include/cbor-lite/cbor.h"
+#include "../include/cbor-lite/codec.h"
 #include <boost/test/unit_test.hpp>
 #include <cmath>
 #include <iomanip>
