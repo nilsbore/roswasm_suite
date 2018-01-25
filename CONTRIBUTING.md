@@ -10,11 +10,11 @@ Coding guidelines
 * Use only standard language/library features available in C++ 14.
 * Provide and run unit tests.
 * Generally follow [Modern C++ Guidelines](https://github.com/isocpp/CppCoreGuidelines/blob/master/CppCoreGuidelines.md), except:
- - naming (follow conventions of existing code)
- - formatting (use 'reformat' build rule)
- - no GSL.
+  - naming (follow conventions of existing code)
+  - formatting (use 'reformat' build rule)
+  - no GSL.
 * Additonal coding guidelines
- - avoid #ifdefs
+  - avoid #ifdefs
 
 Source Code Access and Branch Flow
 ----------------------------------
