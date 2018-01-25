@@ -1,7 +1,9 @@
 #pragma once
-// This file is part of CBOR-lite which is copyright Isode Limited and released
-// under a MIT license. For details, see the COPYRIGHT.md file in the top-level
-// folder of the CBOR-lite software distribution.
+// This file is part of CBOR-lite which is copyright Isode Limited
+// and others and released under a MIT license. For details, see the
+// COPYRIGHT.md file in the top-level folder of the CBOR-lite software
+// distribution.
+
 #include <exception>
 #include <iterator>
 #include <string>
