@@ -67,6 +67,9 @@ constexpr Tag False = 20u;
 constexpr Tag True = 21u;
 constexpr Tag null = 22u;
 constexpr Tag undefined = 23u;
+constexpr Tag halfFloat = 25u;
+constexpr Tag singleFloat = 26u;
+constexpr Tag doubleFloat = 27u;
 
 constexpr Tag dataTime = 0u;
 constexpr Tag epochDataTime = 1u;
@@ -429,6 +432,139 @@ typename std::enable_if<std::is_class<InputIterator>::value, size_t>::type decod
     if (tag != Major::map) throw Exception("Not a Map");
     t = value;
     return len;
+}
+
+namespace ByteOrder {
+#ifdef __BYTE_ORDER__
+constexpr bool isLittleEndian = __BYTE_ORDER__ == __ORDER_LITTLE_ENDIAN__;
+constexpr bool isBigEndian = __BYTE_ORDER__ == __ORDER_BIG_ENDIAN__;
+constexpr bool isNetwork = isBigEndian;
+#else
+const int endianTest = 1;
+const bool isLittleEndian = *reinterpret_cast<const char*>(&endianTest);
+const bool isBigEndian = !isLittleEndian;
+const bool isNetwork = isBigEndian;
+#endif
+}
+
+template <typename Buffer, typename Type>
+typename std::enable_if<std::is_class<Buffer>::value && std::is_floating_point<Type>::value, size_t>::type encodeSingleFloat(
+    Buffer& buffer, const Type& t) {
+    static_assert(sizeof(float) == 4, "sizeof(float) expected to be 4");
+    auto len = encodeTagAndAdditional(buffer, Major::floatingPoint, Minor::singleFloat);
+    const char* p;
+    float ft;
+    if (size_t(t) == sizeof(ft)) {
+        p = reinterpret_cast<const char*>(&t);
+    } else {
+        ft = t;
+        p = reinterpret_cast<char*>(&ft);
+    }
+    if (ByteOrder::isNetwork) {
+        for (auto i = 0u; i < sizeof(ft); ++i) {
+            buffer.push_back(p[i]);
+        }
+    } else {
+        for (auto i = 1u; i <= sizeof(ft); ++i) {
+            buffer.push_back(p[sizeof(ft) - i]);
+        }
+    }
+    return len + sizeof(ft);
+}
+
+template <typename Buffer, typename Type>
+typename std::enable_if<std::is_class<Buffer>::value && std::is_floating_point<Type>::value, size_t>::type encodeDoubleFloat(
+    Buffer& buffer, const Type& t) {
+    static_assert(sizeof(double) == 8, "sizeof(double) expected to be 8");
+    auto len = encodeTagAndAdditional(buffer, Major::floatingPoint, Minor::doubleFloat);
+    const char* p;
+    double ft;
+    if (size_t(t) == sizeof(ft)) {
+        p = reinterpret_cast<const char*>(&t);
+    } else {
+        ft = t;
+        p = reinterpret_cast<char*>(&ft);
+    }
+    if (ByteOrder::isNetwork) {
+        for (auto i = 0u; i < sizeof(ft); ++i) {
+            buffer.push_back(p[i]);
+        }
+    } else {
+        for (auto i = 1u; i <= sizeof(ft); ++i) {
+            buffer.push_back(p[sizeof(ft) - i]);
+        }
+    }
+    return len + sizeof(ft);
+}
+
+template <typename InputIterator, typename Type>
+typename std::enable_if<std::is_class<InputIterator>::value && std::is_floating_point<Type>::value, size_t>::type decodeSingleFloat(
+    InputIterator& pos, InputIterator end, Type& t, Flags flags = Flag::none) {
+    static_assert(!std::is_const<Type>::value, "Type must not be const");
+    static_assert(sizeof(float) == 4, "sizeof(float) expected to be 4");
+
+    auto tag = undefined;
+    auto value = undefined;
+    auto len = decodeTagAndAdditional(pos, end, tag, value, flags);
+    if (tag != Major::floatingPoint) throw Exception("Not a floating point number");
+    if (value != Minor::singleFloat) throw Exception("Not a single-precision floating point number");
+    if (std::distance(pos, end) < static_cast<int>(sizeof(float))) throw Exception("not enough input");
+
+    char* p;
+    float ft;
+    if (size_t(t) == sizeof(ft)) {
+        p = reinterpret_cast<char*>(&t);
+    } else {
+        ft = t;
+        p = reinterpret_cast<char*>(&ft);
+    }
+
+    if (ByteOrder::isNetwork) {
+        for (auto i = 0u; i < sizeof(ft); ++i) {
+            p[i] = *(pos++);
+        }
+    } else {
+        for (auto i = 1u; i <= sizeof(ft); ++i) {
+            p[sizeof(ft) - i] = *(pos++);
+        }
+    }
+    if (size_t(t) != sizeof(ft)) t = ft;
+    return len + sizeof(ft);
+}
+
+template <typename InputIterator, typename Type>
+typename std::enable_if<std::is_class<InputIterator>::value && std::is_floating_point<Type>::value, size_t>::type decodeDoubleFloat(
+    InputIterator& pos, InputIterator end, Type& t, Flags flags = Flag::none) {
+    static_assert(!std::is_const<Type>::value, "Type must not be const");
+    static_assert(sizeof(double) == 8, "sizeof(float) expected to be 8");
+
+    auto tag = undefined;
+    auto value = undefined;
+    auto len = decodeTagAndAdditional(pos, end, tag, value, flags);
+    if (tag != Major::floatingPoint) throw Exception("Not a floating point number");
+    if (value != Minor::doubleFloat) throw Exception("Not a double-precision floating point number");
+    if (std::distance(pos, end) < static_cast<int>(sizeof(double))) throw Exception("not enough input");
+
+    char* p;
+    double ft;
+    if (size_t(t) == sizeof(ft)) {
+        p = reinterpret_cast<char*>(&t);
+    } else {
+        ft = t;
+        p = reinterpret_cast<char*>(&ft);
+    }
+
+    if (ByteOrder::isNetwork) {
+        for (auto i = 0u; i < sizeof(ft); ++i) {
+            p[i] = *(pos++);
+        }
+    } else {
+        for (auto i = 1u; i <= sizeof(ft); ++i) {
+            p[sizeof(ft) - i] = *(pos++);
+        }
+    }
+    if (size_t(t) != sizeof(ft)) t = ft;
+    return len + sizeof(ft);
 }
 
 } // namespace CborLite
