@@ -32,7 +32,7 @@ The following aspects of CBOR are supported:
 * Map of Data Items (major type 5)
 * Semantic Tagging (major type 6), namely Encoded CBOR data item (Tag 24)
 * True/False (major type 7, value 20 and 21)
-* Single- and Double-precision float point numbers (major type 7, value 25 and 26)
+* Single- and Double-precision float point numbers (major type 7, value 26 and 27)
 
 CBOR-lite supports rejection of non-minimal encodings of types 0
 through 3.  Other aspects of Canonical CBOR, as well as Strict Mode,
