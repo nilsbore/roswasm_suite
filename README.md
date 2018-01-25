@@ -45,7 +45,8 @@ The following aspects of CBOR are not supported:
 CBOR-lite is not intended to be a generic decoder as described in
 [Section 3.2 of RFC 7049](https://tools.ietf.org/html/rfc7049#section-3.2).
 
-CBOR-lite is open-source. Community contributions are welcomed.
+CBOR-lite is open-source. Community contributions are welcomed. See
+[contributing guidelines](CONTRIBUTING.md) for more information.
 
 More information about CBOR-lite is available at [https://bitbucket.org/isode/cbor-lite/wiki/Home](https://bitbucket.org/isode/cbor-lite/wiki/Home).
 

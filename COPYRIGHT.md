@@ -1,10 +1,10 @@
 Copyright
 =========
 
-The following notice applies to this work.
+This work is copyright Isode Limited and made available as follows:
 
 ```
-Copyright 2018, Isode Limited.
+Copyright 2018 Isode Limited.
 All rights reserved.
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -24,4 +24,34 @@ AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
+```
+
+Contributors
+------------
+
+None (yet). See [Contributing Guideings](./CONTRIBUTING.md).
+
+Acknowledgements
+----------------
+
+This work is an implementation of the Concise Binary Object Representation (CBOR)
+as specified in [RFC 7049](https://tools.ietf.org/html/rfc7049), authored by C. Bormann
+and P. Hoffman and is a product of the [IETF](https://ietf.org). This work may
+quote portions of this technical specification. It also incorporates test cases
+published in this technical specification. RFC 7049 is published with the following
+notice:
+
+```
+Copyright (c) 2013 IETF Trust and the persons identified as the
+document authors.  All rights reserved.
+
+This document is subject to BCP 78 and the IETF Trust's Legal
+Provisions Relating to IETF Documents
+(http://trustee.ietf.org/license-info) in effect on the date of
+publication of this document.  Please review these documents
+carefully, as they describe your rights and restrictions with respect
+to this document.  Code Components extracted from this document must
+include Simplified BSD License text as described in Section 4.e of
+the Trust Legal Provisions and are provided without warranty as
+described in the Simplified BSD License.
 ```
