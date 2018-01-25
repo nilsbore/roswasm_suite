@@ -2,6 +2,21 @@ cmake_minimum_required (VERSION 2.8.11)
 project (cbor-lite)
 
 set(CMAKE_CXX_STANDARD 14)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+
+if(NOT CMAKE_BUILD_TYPE)
+  set(CMAKE_BUILD_TYPE "Debug" CACHE STRING "Build type" FORCE)
+endif()
+
+add_compile_options(-O0)
+add_compile_options(-Wall -Wextra -pedantic -Wold-style-cast)
+
+set(Boost_ADDITIONAL_VERSIONS "1.62" "1.62.0" "1.62.1")
+set(Boost_USE_STATIC_LIB ON)
+find_package(Boost 1.62 REQUIRED COMPONENTS unit_test_framework)
+
+add_definitions(-DBOOST_NO_AUTO_PTR)
+include_directories(SYSTEM ${Boost_INCLUDE_DIRS})
 
 add_library(cbor-lite INTERFACE)
 target_include_directories(cbor-lite INTERFACE include/)
