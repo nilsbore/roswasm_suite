@@ -295,7 +295,7 @@ typename std::enable_if<std::is_class<InputIterator>::value, size_t>::type decod
     static_assert(!std::is_const<Type>::value, "Type must not be const");
     auto tag = undefined;
     auto value = undefined;
-    auto len = decodeTagAndAdditional(pos, end, tag, value, flags);
+    auto len = decodeTagAndValue(pos, end, tag, value, flags);
     if (tag == Major::simple) {
         if (value == Minor::True) {
             t = true;
@@ -334,7 +334,7 @@ typename std::enable_if<std::is_class<InputIterator>::value, size_t>::type decod
 template <typename Buffer, typename Type>
 typename std::enable_if<std::is_class<Buffer>::value, size_t>::type encodeEncodedBytesPrefix(Buffer& buffer, const Type& t) {
     static_assert(std::is_unsigned<Type>::value, "Type must be unsigned");
-    return encodeTagAndAdditional(buffer, Major::semantic, Minor::cborEncodedData) +
+    return encodeTagAndValue(buffer, Major::semantic, Minor::cborEncodedData) +
         encodeTagAndValue(buffer, Major::byteString, t);
 }
 
@@ -344,7 +344,7 @@ typename std::enable_if<std::is_class<InputIterator>::value, size_t>::type decod
     static_assert(!std::is_const<Type>::value, "Type must not be const");
     auto tag = undefined;
     auto value = undefined;
-    auto len = decodeTagAndAdditional(pos, end, tag, value, flags);
+    auto len = decodeTagAndValue(pos, end, tag, value, flags);
     if (tag != Major::semantic || value != Minor::cborEncodedData) {
         throw Exception("Not a CBOR Encoded Data");
     }
@@ -357,7 +357,7 @@ typename std::enable_if<std::is_class<InputIterator>::value, size_t>::type decod
 
 template <typename Buffer, typename Type>
 typename std::enable_if<std::is_class<Buffer>::value, size_t>::type encodeEncodedBytes(Buffer& buffer, const Type& t) {
-    return encodeTagAndAdditional(buffer, Major::semantic, Minor::cborEncodedData) + encodeBytes(buffer, t);
+    return encodeTagAndValue(buffer, Major::semantic, Minor::cborEncodedData) + encodeBytes(buffer, t);
 }
 
 template <typename InputIterator, typename Type>
@@ -366,7 +366,7 @@ typename std::enable_if<std::is_class<InputIterator>::value, size_t>::type decod
     static_assert(!std::is_const<Type>::value, "Type must not be const");
     auto tag = undefined;
     auto value = undefined;
-    auto len = decodeTagAndAdditional(pos, end, tag, value, flags);
+    auto len = decodeTagAndValue(pos, end, tag, value, flags);
     if (tag != Major::semantic || value != Minor::cborEncodedData) {
         throw Exception("Not a CBOR Encoded Data");
     }
