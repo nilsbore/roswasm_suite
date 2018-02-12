@@ -167,6 +167,54 @@ BOOST_AUTO_TEST_CASE(bytes) {
     }
 }
 
+BOOST_AUTO_TEST_CASE(encodedBytes) {
+    const std::vector<std::pair<std::string, std::string>> cases{
+        {"", "\xd8\x18\x40"},
+        {"a", "\xd8\x18\x41\x61"},
+        {"A", "\xd8\x18\x41\x41"},
+        {"IETF", "\xd8\x18\x44\x49\x45\x54\x46"},
+        {"\"\\", "\xd8\x18\x42\x22\x5c"},
+        {"\xc3\xbc", "\xd8\x18\x42\xc3\xbc"},
+        {"\xe6\xb0\xb4", "\xd8\x18\x43\xe6\xb0\xb4"},
+        {"\xf0\x90\x85\x91", "\xd8\x18\x44\xf0\x90\x85\x91"},
+        {"\x01\x02\x03\x04", "\xd8\x18\x44\x01\x02\x03\x04"},
+        {"@@@@", "\xd8\x18\x44\x40\x40\x40\x40"},
+    };
+    for (const auto& test : cases) {
+        std::string buffer;
+        auto len = CborLite::encodeEncodedBytes(buffer, test.first);
+        BOOST_CHECK_EQUAL(len, test.second.size());
+        BOOST_CHECK_EQUAL(buffer, test.second);
+
+        buffer.clear();
+        len = CborLite::encodeEncodedBytesPrefix(buffer, test.first.length());
+        BOOST_CHECK_EQUAL(len, 3);
+        BOOST_CHECK_EQUAL(buffer, test.second.substr(0, 3));
+
+        std::string value;
+        auto pos = std::begin(test.second);
+        len = CborLite::decodeEncodedBytes(pos, std::end(test.second), value);
+        BOOST_CHECK(pos == std::end(test.second));
+        BOOST_CHECK_EQUAL(len, test.second.size());
+        BOOST_CHECK_EQUAL(value, test.first);
+
+        size_t got = 0;
+        pos = std::begin(test.second);
+        len = CborLite::decodeEncodedBytesPrefix(pos, pos + 3, got);
+        BOOST_CHECK_EQUAL(len, 3);
+        BOOST_CHECK_EQUAL(got, test.first.length());
+    }
+    {
+        std::vector<char> buffer;
+        std::string input = "@@@@";
+        std::vector<char> payload(std::begin(input), std::end(input));
+        auto len = CborLite::encodeEncodedBytes(buffer, payload);
+        std::string expect = "\xd8\x18\x44\x40\x40\x40\x40";
+        BOOST_CHECK_EQUAL(len, expect.length());
+        BOOST_CHECK_EQUAL(std::string(std::begin(buffer), std::end(buffer)), expect);
+    }
+}
+
 BOOST_AUTO_TEST_CASE(strings) {
     const std::vector<std::pair<std::string, std::string>> cases{
         {"", "\x60"},
