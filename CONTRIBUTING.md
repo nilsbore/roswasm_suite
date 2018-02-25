@@ -27,10 +27,11 @@ checked out using
 git clone https://isode@bitbucket.org/isode/cbor-lite.git
 ```
 
-'master' is the main development branch. New features should be
-developed against it, on a 'feature' branch.  'production' is the
-main production (or *stable*) branch. Bug fixes should generally
-be developed against it, on a 'bugfix' branch.
+'master' is the main development branch. New features, as well as
+bug fixes in not yet released features, should be developed against
+it, on a 'feature' branch.  'production' is the main production (or
+*stable*) branch. Bug fixes should generally be developed against
+it, on a 'bugfix' branch.
 
 
 Submission guidelines
