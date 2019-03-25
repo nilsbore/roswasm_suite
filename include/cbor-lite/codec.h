@@ -325,7 +325,8 @@ typename std::enable_if<std::is_class<InputIterator>::value, size_t>::type decod
     auto len = decodeTagAndValue(pos, end, tag, value, flags);
     if (tag != Major::byteString) throw Exception("Not Bytes");
 
-    if (std::distance(pos, end) < static_cast<ssize_t>(value)) throw Exception("not enough input");
+    auto dist = std::distance(pos, end);
+    if (dist < static_cast<decltype(dist)>(value)) throw Exception("not enough input");
     t.insert(std::end(t), pos, pos + value);
     std::advance(pos, value);
     return len + value;
@@ -389,7 +390,8 @@ typename std::enable_if<std::is_class<InputIterator>::value, size_t>::type decod
     auto len = decodeTagAndValue(pos, end, tag, value, flags);
     if (tag != Major::textString) throw Exception("Not text");
 
-    if (std::distance(pos, end) < static_cast<ssize_t>(value)) throw Exception("not enough input");
+    auto dist = std::distance(pos, end);
+    if (dist < static_cast<decltype(dist)>(value)) throw Exception("not enough input");
     t.insert(std::end(t), pos, pos + value);
     std::advance(pos, value);
     return len + value;
