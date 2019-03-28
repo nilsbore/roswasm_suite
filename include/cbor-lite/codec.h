@@ -99,7 +99,7 @@ using Flags = unsigned long;
 namespace Flag {
 constexpr Flags none = 0;
 constexpr Flags requireMinimalEncoding = 1 << 0;
-}; // namespace Flag
+} // namespace Flag
 
 template <typename Type>
 typename std::enable_if<std::is_unsigned<Type>::value, size_t>::type length(Type val) {
