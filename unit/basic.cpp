@@ -33,7 +33,7 @@ BOOST_AUTO_TEST_CASE(base) {
 }
 
 BOOST_AUTO_TEST_CASE(non_negative) {
-    const std::vector<std::pair<unsigned long, std::string>> cases{
+    const std::vector<std::pair<std::uint_fast64_t, std::string>> cases{
         {0u, std::string("\x00", 1)},
         {1u, "\x01"},
         {10u, "\x0a"},
@@ -61,7 +61,7 @@ BOOST_AUTO_TEST_CASE(non_negative) {
 }
 
 BOOST_AUTO_TEST_CASE(negative) {
-    const std::vector<std::pair<unsigned long, std::string>> cases{
+    const std::vector<std::pair<std::uint_fast64_t, std::string>> cases{
         {0, "\x20"},
         {9, "\x29"},
         {99, "\x38\x63"},
@@ -72,7 +72,7 @@ BOOST_AUTO_TEST_CASE(negative) {
         auto len = CborLite::encodeNegative(buffer, test.first);
         BOOST_CHECK_EQUAL(len, test.second.size());
         BOOST_CHECK_EQUAL(buffer, test.second);
-        unsigned long long value = 0;
+        std::uint_fast64_t value = 0;
         auto pos = std::begin(test.second);
         len = CborLite::decodeNegative(pos, std::end(test.second), value);
         BOOST_CHECK(pos == std::end(test.second));
@@ -82,7 +82,7 @@ BOOST_AUTO_TEST_CASE(negative) {
 }
 
 BOOST_AUTO_TEST_CASE(integer) {
-    const std::vector<std::pair<long, std::string>> cases{
+    const std::vector<std::pair<std::int_fast64_t, std::string>> cases{
         {0, std::string("\x00", 1)},
         {1, "\x01"},
         {10, "\x0a"},
@@ -103,7 +103,7 @@ BOOST_AUTO_TEST_CASE(integer) {
         auto len = CborLite::encodeInteger(buffer, test.first);
         BOOST_CHECK_EQUAL(len, test.second.size());
         BOOST_CHECK_EQUAL(buffer, test.second);
-        long long value = 0;
+        std::int_fast64_t value = 0;
         auto pos = std::begin(test.second);
         len = CborLite::decodeInteger(pos, std::end(test.second), value);
         BOOST_CHECK(pos == std::end(test.second));
@@ -242,7 +242,7 @@ BOOST_AUTO_TEST_CASE(strings) {
 }
 
 BOOST_AUTO_TEST_CASE(array) {
-    const std::vector<std::pair<unsigned long, std::string>> cases{
+    const std::vector<std::pair<std::uint_fast64_t, std::string>> cases{
         {0u, "\x80"},
         {1u, "\x81"},
         {10u, "\x8a"},
@@ -270,7 +270,7 @@ BOOST_AUTO_TEST_CASE(array) {
 }
 
 BOOST_AUTO_TEST_CASE(map) {
-    const std::vector<std::pair<unsigned long, std::string>> cases{
+    const std::vector<std::pair<std::uint_fast64_t, std::string>> cases{
         {0u, "\xa0"},
         {1u, "\xa1"},
         {10u, "\xaa"},
@@ -299,21 +299,23 @@ BOOST_AUTO_TEST_CASE(map) {
 
 BOOST_AUTO_TEST_CASE(singlef) {
     const std::vector<std::pair<float, std::string>> cases{
-        {0.0, std::string("\xfa\x00\x00\x00\x00", 5)},
-        {-0.0, std::string("\xfa\x80\x00\x00\x00", 5)},
-        {1.0, std::string("\xfa\x3f\x80\x00\x00", 5)},
-        {1.1, std::string("\xfa\x3f\x8c\xcc\xcd", 5)},
-        {1.5, std::string("\xfa\x3f\xc0\x00\x00", 5)},
-        {65504.0, std::string("\xfa\x47\x7f\xe0\x00", 5)},
-        {3.4028234663852886e+38, std::string("\xfa\x7f\x7f\xff\xff", 5)},
-        {1.0e+300, std::string("\xfa\x7f\x80\x00\x00", 5)},
-        {5.960464477539063e-8, std::string("\xfa\x33\x80\x00\x00", 5)},
-        {0.00006103515625, std::string("\xfa\x38\x80\x00\x00", 5)},
-        {-4.0, std::string("\xfa\xc0\x80\x00\x00", 5)},
-        {-4.1, std::string("\xfa\xc0\x83\x33\x33", 5)},
-        {std::numeric_limits<double>::infinity(), std::string("\xfa\x7f\x80\x00\x00", 5)},
-        {std::numeric_limits<double>::quiet_NaN(), std::string("\xfa\x7f\xc0\x00\x00", 5)},
-        {-std::numeric_limits<double>::infinity(), std::string("\xfa\xff\x80\x00\x00", 5)},
+        {0.0f, std::string("\xfa\x00\x00\x00\x00", 5)},
+        {-0.0f, std::string("\xfa\x80\x00\x00\x00", 5)},
+        {1.0f, std::string("\xfa\x3f\x80\x00\x00", 5)},
+        {1.1f, std::string("\xfa\x3f\x8c\xcc\xcd", 5)},
+        {1.5f, std::string("\xfa\x3f\xc0\x00\x00", 5)},
+        {65504.0f, std::string("\xfa\x47\x7f\xe0\x00", 5)},
+        {3.4028234663852886e+38f, std::string("\xfa\x7f\x7f\xff\xff", 5)},
+#if 0
+        {1.0e+300f, std::string("\xfa\x7f\x80\x00\x00", 5)},
+#endif
+        {5.960464477539063e-8f, std::string("\xfa\x33\x80\x00\x00", 5)},
+        {0.00006103515625f, std::string("\xfa\x38\x80\x00\x00", 5)},
+        {-4.0f, std::string("\xfa\xc0\x80\x00\x00", 5)},
+        {-4.1f, std::string("\xfa\xc0\x83\x33\x33", 5)},
+        {std::numeric_limits<float>::infinity(), std::string("\xfa\x7f\x80\x00\x00", 5)},
+        {std::numeric_limits<float>::quiet_NaN(), std::string("\xfa\x7f\xc0\x00\x00", 5)},
+        {-std::numeric_limits<float>::infinity(), std::string("\xfa\xff\x80\x00\x00", 5)},
     };
     for (const auto& test : cases) {
         std::string buffer;
