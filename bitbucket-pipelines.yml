@@ -1,4 +1,4 @@
-image: cvkurt/gcxp:latest
+image: cvkurt/cbor-lite:latest
 pipelines:
   default:
     - step:
