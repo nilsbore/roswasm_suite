@@ -10,7 +10,7 @@
 BOOST_AUTO_TEST_SUITE(canon)
 
 BOOST_AUTO_TEST_CASE(toolong) {
-    unsigned long small = 23u;
+    std::int_fast64_t small = 23u;
     const std::vector<std::string> cases{
         "\x18\x17",
         std::string("\x19\x00\x17", 3),
@@ -18,7 +18,7 @@ BOOST_AUTO_TEST_CASE(toolong) {
         std::string("\x1b\x00\x00\x00\x00\x00\x00\x00\x17", 9),
     };
     for (const auto& encoding : cases) {
-        unsigned long value = 0u;
+        std::uint_fast64_t value = 0u;
         auto pos = std::begin(encoding);
         auto len = CborLite::decodeUnsigned(pos, std::end(encoding), value);
         BOOST_CHECK(pos == std::end(encoding));

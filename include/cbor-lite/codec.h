@@ -44,7 +44,7 @@ private:
     std::string what_ = "CBOR Exception";
 };
 
-using Tag = unsigned long;
+using Tag = std::uint_fast64_t;
 
 namespace Major {
 constexpr Tag unsignedInteger = 0u;
@@ -95,7 +95,7 @@ constexpr Tag mask = 0x1fu;
 
 constexpr Tag undefined = Major::semantic + Minor::undefined;
 
-using Flags = unsigned long;
+using Flags = unsigned;
 namespace Flag {
 constexpr Flags none = 0;
 constexpr Flags requireMinimalEncoding = 1 << 0;
@@ -113,7 +113,7 @@ typename std::enable_if<std::is_unsigned<Type>::value, size_t>::type length(Type
 template <typename Buffer>
 typename std::enable_if<std::is_class<Buffer>::value, size_t>::type encodeTagAndAdditional(
     Buffer& buffer, Tag tag, Tag additional) {
-    buffer.push_back(tag + additional);
+    buffer.push_back(static_cast<char>(tag + additional));
     return 1;
 }
 
@@ -269,7 +269,7 @@ typename std::enable_if<std::is_class<InputIterator>::value, size_t>::type decod
         t = val;
         break;
     case Major::negativeInteger:
-        t = -val - 1;
+        t = -1 - static_cast<long long>(val);
         break;
     default:
         throw Exception("Not a integer");
