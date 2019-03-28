@@ -11,9 +11,7 @@ endif()
 add_compile_options(-O0)
 add_compile_options(-Wall -Wextra -pedantic -Wold-style-cast)
 
-set(Boost_ADDITIONAL_VERSIONS "1.62" "1.62.0" "1.62.1")
-set(Boost_USE_STATIC_LIB ON)
-find_package(Boost 1.62 REQUIRED COMPONENTS unit_test_framework)
+find_package(Boost REQUIRED COMPONENTS unit_test_framework)
 
 add_definitions(-DBOOST_NO_AUTO_PTR)
 include_directories(SYSTEM ${Boost_INCLUDE_DIRS})
