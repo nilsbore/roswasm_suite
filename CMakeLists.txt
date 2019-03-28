@@ -8,8 +8,15 @@ if(NOT CMAKE_BUILD_TYPE)
   set(CMAKE_BUILD_TYPE "Debug" CACHE STRING "Build type" FORCE)
 endif()
 
-add_compile_options(-O0)
-add_compile_options(-Wall -Wextra -pedantic -Wold-style-cast)
+message(STATUS "C++ compiler is ${CMAKE_CXX_COMPILER_ID}")
+
+if(NOT CMAKE_CXX_COMPILER_ID MATCHES "MSVC")
+    add_compile_options(-O0)
+    add_compile_options(-Wall -Wextra -pedantic -Wold-style-cast)
+    if(CMAKE_CXX_COMPILER_ID MATCHES "GNU")
+        add_compile_options(-Wno-implicit-fallthrough)
+    endif()
+endif()
 
 find_package(Boost REQUIRED COMPONENTS unit_test_framework)
 
