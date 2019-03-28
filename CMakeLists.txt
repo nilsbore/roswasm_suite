@@ -4,6 +4,10 @@ project (cbor-lite)
 set(CMAKE_CXX_STANDARD 14)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
+if(NOT CMAKE_SIZEOF_VOID_P EQUAL 8)
+    message(WARNING "Not a 64-bit system! YMMV")
+endif()
+
 if(NOT CMAKE_BUILD_TYPE)
   set(CMAKE_BUILD_TYPE "Debug" CACHE STRING "Build type" FORCE)
 endif()
