@@ -24,7 +24,7 @@ The primary source repository is hosted at
 checked out using
 
 ```
-git clone https://isode@bitbucket.org/isode/cbor-lite.git
+git clone https://bitbucket.org/isode/cbor-lite.git
 ```
 
 'master' is the main development branch. New features, as well as
@@ -46,4 +46,6 @@ git format-patch branch
 where branch is the appropriate upstream branch (see Branch Flow
 discussion above). Then attach the patch to a new [issue
 report](https://bitbucket.org/isode/cbor-lite/issues).
+
+Alternatively, submit a pull request.
 
