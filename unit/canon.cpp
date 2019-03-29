@@ -20,7 +20,8 @@ BOOST_AUTO_TEST_CASE(toolong) {
     for (const auto& encoding : cases) {
         std::uint_fast64_t value = 0u;
         auto pos = std::begin(encoding);
-        auto len = CborLite::decodeUnsigned(pos, std::end(encoding), value);
+		std::size_t len;
+		BOOST_CHECK_NO_THROW(len = CborLite::decodeUnsigned(pos, std::end(encoding), value));
         BOOST_CHECK(pos == std::end(encoding));
         BOOST_CHECK_EQUAL(len, encoding.size());
         BOOST_CHECK_EQUAL(value, small);
