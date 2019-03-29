@@ -335,7 +335,8 @@ typename std::enable_if<std::is_class<InputIterator>::value, std::size_t>::type 
 template <typename Buffer, typename Type>
 typename std::enable_if<std::is_class<Buffer>::value, std::size_t>::type encodeEncodedBytesPrefix(Buffer& buffer, const Type& t) {
     static_assert(std::is_unsigned<Type>::value, "Type must be unsigned");
-    return encodeTagAndValue(buffer, Major::semantic, Minor::cborEncodedData) + encodeTagAndValue(buffer, Major::byteString, t);
+    auto len = encodeTagAndValue(buffer, Major::semantic, Minor::cborEncodedData);
+    return len + encodeTagAndValue(buffer, Major::byteString, t);
 }
 
 template <typename InputIterator, typename Type>
@@ -357,7 +358,8 @@ typename std::enable_if<std::is_class<InputIterator>::value, std::size_t>::type 
 
 template <typename Buffer, typename Type>
 typename std::enable_if<std::is_class<Buffer>::value, std::size_t>::type encodeEncodedBytes(Buffer& buffer, const Type& t) {
-    return encodeTagAndValue(buffer, Major::semantic, Minor::cborEncodedData) + encodeBytes(buffer, t);
+    auto len = encodeTagAndValue(buffer, Major::semantic, Minor::cborEncodedData);
+    return len + encodeBytes(buffer, t);
 }
 
 template <typename InputIterator, typename Type>
