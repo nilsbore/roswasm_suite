@@ -14,7 +14,7 @@
 BOOST_AUTO_TEST_SUITE(cbor)
 
 BOOST_AUTO_TEST_CASE(base) {
-    std::vector<std::pair<size_t, size_t>> cases{
+    std::vector<std::pair<std::size_t, std::size_t>> cases{
         {0, 0},
         {1, 0},
         {23, 0},
@@ -198,7 +198,7 @@ BOOST_AUTO_TEST_CASE(encodedBytes) {
         BOOST_CHECK_EQUAL(len, test.second.size());
         BOOST_CHECK_EQUAL(value, test.first);
 
-        size_t got = 0;
+        std::size_t got = 0u;
         pos = std::begin(test.second);
         len = CborLite::decodeEncodedBytesPrefix(pos, pos + 3, got);
         BOOST_CHECK_EQUAL(len, 3);
