@@ -448,7 +448,7 @@ const bool isLittleEndian = *reinterpret_cast<const char*>(&endianTest);
 const bool isBigEndian = !isLittleEndian;
 const bool isNetwork = isBigEndian;
 #endif
-}
+} // namespace ByteOrder
 
 template <typename Buffer, typename Type>
 typename std::enable_if<std::is_class<Buffer>::value && std::is_floating_point<Type>::value, std::size_t>::type encodeSingleFloat(
@@ -501,8 +501,8 @@ typename std::enable_if<std::is_class<Buffer>::value && std::is_floating_point<T
 }
 
 template <typename InputIterator, typename Type>
-typename std::enable_if<std::is_class<InputIterator>::value && std::is_floating_point<Type>::value, std::size_t>::type decodeSingleFloat(
-    InputIterator& pos, InputIterator end, Type& t, Flags flags = Flag::none) {
+typename std::enable_if<std::is_class<InputIterator>::value && std::is_floating_point<Type>::value, std::size_t>::type
+decodeSingleFloat(InputIterator& pos, InputIterator end, Type& t, Flags flags = Flag::none) {
     static_assert(!std::is_const<Type>::value, "Type must not be const");
     static_assert(sizeof(float) == 4, "sizeof(float) expected to be 4");
 
@@ -536,8 +536,8 @@ typename std::enable_if<std::is_class<InputIterator>::value && std::is_floating_
 }
 
 template <typename InputIterator, typename Type>
-typename std::enable_if<std::is_class<InputIterator>::value && std::is_floating_point<Type>::value, std::size_t>::type decodeDoubleFloat(
-    InputIterator& pos, InputIterator end, Type& t, Flags flags = Flag::none) {
+typename std::enable_if<std::is_class<InputIterator>::value && std::is_floating_point<Type>::value, std::size_t>::type
+decodeDoubleFloat(InputIterator& pos, InputIterator end, Type& t, Flags flags = Flag::none) {
     static_assert(!std::is_const<Type>::value, "Type must not be const");
     static_assert(sizeof(double) == 8, "sizeof(float) expected to be 8");
 
