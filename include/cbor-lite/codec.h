@@ -462,7 +462,7 @@ typename std::enable_if<std::is_class<Buffer>::value && std::is_floating_point<T
     if (std::size_t(t) == sizeof(ft)) {
         p = reinterpret_cast<const char*>(&t);
     } else {
-        ft = t;
+        ft = static_cast<decltype(ft)>(t);
         p = reinterpret_cast<char*>(&ft);
     }
     if (ByteOrder::isNetwork) {
@@ -520,7 +520,7 @@ decodeSingleFloat(InputIterator& pos, InputIterator end, Type& t, Flags flags = 
     if (std::size_t(t) == sizeof(ft)) {
         p = reinterpret_cast<char*>(&t);
     } else {
-        ft = t;
+        ft = static_cast<decltype(ft)>(t);
         p = reinterpret_cast<char*>(&ft);
     }
 
