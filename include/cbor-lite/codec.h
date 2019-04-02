@@ -130,7 +130,6 @@ typename std::enable_if<std::is_class<InputIterator>::value, std::size_t>::type 
 template <typename Buffer, typename Type>
 typename std::enable_if<std::is_class<Buffer>::value && std::is_unsigned<Type>::value, std::size_t>::type encodeTagAndValue(
     Buffer& buffer, Tag tag, const Type t) {
-    static_assert(std::is_unsigned<Type>::value, "Type must be unsigned");
     auto len = length(t);
     buffer.reserve(buffer.size() + len + 1);
 
@@ -174,7 +173,6 @@ typename std::enable_if<std::is_class<Buffer>::value && std::is_unsigned<Type>::
 template <typename InputIterator, typename Type>
 typename std::enable_if<std::is_class<InputIterator>::value && std::is_unsigned<Type>::value, std::size_t>::type decodeTagAndValue(
     InputIterator& pos, InputIterator end, Tag& tag, Type& t, Flags flags = Flag::none) {
-    static_assert(std::is_unsigned<Type>::value, "Type must be unsigned");
     if (pos == end) throw Exception("not enough input");
     auto additional = Minor::undefined;
     auto len = decodeTagAndAdditional(pos, end, tag, additional, flags);
@@ -219,10 +217,9 @@ typename std::enable_if<std::is_class<Buffer>::value, std::size_t>::type encodeU
 }
 
 template <typename InputIterator, typename Type>
-typename std::enable_if<std::is_class<InputIterator>::value, std::size_t>::type decodeUnsigned(
-    InputIterator& pos, InputIterator end, Type& t, Flags flags = Flag::none) {
-    static_assert(std::is_unsigned<Type>::value, "Type must be unsigned");
-    static_assert(!std::is_const<Type>::value, "Type must not be const");
+typename std::enable_if<std::is_class<InputIterator>::value && std::is_unsigned<Type>::value && !std::is_const<Type>::value,
+    std::size_t>::type
+decodeUnsigned(InputIterator& pos, InputIterator end, Type& t, Flags flags = Flag::none) {
     auto tag = undefined;
     auto len = decodeTagAndValue(pos, end, tag, t, flags);
     if (tag != Major::unsignedInteger) throw Exception("Not a Unsigned");
@@ -235,10 +232,9 @@ typename std::enable_if<std::is_class<Buffer>::value, std::size_t>::type encodeN
 }
 
 template <typename InputIterator, typename Type>
-typename std::enable_if<std::is_class<InputIterator>::value, std::size_t>::type decodeNegative(
-    InputIterator& pos, InputIterator end, Type& t, Flags flags = Flag::none) {
-    static_assert(std::is_unsigned<Type>::value, "Type must be unsigned");
-    static_assert(!std::is_const<Type>::value, "Type must not be const");
+typename std::enable_if<std::is_class<InputIterator>::value && std::is_unsigned<Type>::value && !std::is_const<Type>::value,
+    std::size_t>::type
+decodeNegative(InputIterator& pos, InputIterator end, Type& t, Flags flags = Flag::none) {
     auto tag = undefined;
     auto len = decodeTagAndValue(pos, end, tag, t, flags);
     if (tag != Major::negativeInteger) throw Exception("Not a Unsigned");
@@ -257,10 +253,9 @@ typename std::enable_if<std::is_class<Buffer>::value, std::size_t>::type encodeI
 }
 
 template <typename InputIterator, typename Type>
-typename std::enable_if<std::is_class<InputIterator>::value, std::size_t>::type decodeInteger(
-    InputIterator& pos, InputIterator end, Type& t, Flags flags = Flag::none) {
-    static_assert(std::is_signed<Type>::value, "Type must be signed");
-    static_assert(!std::is_const<Type>::value, "Type must not be const");
+typename std::enable_if<std::is_class<InputIterator>::value && std::is_signed<Type>::value && !std::is_const<Type>::value,
+    std::size_t>::type
+decodeInteger(InputIterator& pos, InputIterator end, Type& t, Flags flags = Flag::none) {
     auto tag = undefined;
     unsigned long long val;
     auto len = decodeTagAndValue(pos, end, tag, val, flags);
@@ -278,8 +273,8 @@ typename std::enable_if<std::is_class<InputIterator>::value, std::size_t>::type 
 }
 
 template <typename Buffer, typename Type>
-typename std::enable_if<std::is_class<Buffer>::value, std::size_t>::type encodeBool(Buffer& buffer, const Type& t) {
-    static_assert((std::is_same<bool, Type>::value), "Type must be bool");
+typename std::enable_if<std::is_class<Buffer>::value && std::is_same<bool, Type>::value, std::size_t>::type encodeBool(
+    Buffer& buffer, const Type& t) {
     if (t) {
         encodeTagAndAdditional(buffer, Major::simple, Minor::True);
     } else {
@@ -289,10 +284,9 @@ typename std::enable_if<std::is_class<Buffer>::value, std::size_t>::type encodeB
 }
 
 template <typename InputIterator, typename Type>
-typename std::enable_if<std::is_class<InputIterator>::value, std::size_t>::type decodeBool(
-    InputIterator& pos, InputIterator end, Type& t, Flags flags = Flag::none) {
-    static_assert((std::is_same<bool, Type>::value), "Type must be bool");
-    static_assert(!std::is_const<Type>::value, "Type must not be const");
+typename std::enable_if<std::is_class<InputIterator>::value && std::is_same<bool, Type>::value && !std::is_const<Type>::value,
+    std::size_t>::type
+decodeBool(InputIterator& pos, InputIterator end, Type& t, Flags flags = Flag::none) {
     auto tag = undefined;
     auto value = undefined;
     auto len = decodeTagAndValue(pos, end, tag, value, flags);
@@ -316,10 +310,8 @@ typename std::enable_if<std::is_class<Buffer>::value, std::size_t>::type encodeB
 }
 
 template <typename InputIterator, typename Type>
-typename std::enable_if<std::is_class<InputIterator>::value, std::size_t>::type decodeBytes(
+typename std::enable_if<std::is_class<InputIterator>::value && !std::is_const<Type>::value, std::size_t>::type decodeBytes(
     InputIterator& pos, InputIterator end, Type& t, Flags flags = Flag::none) {
-    static_assert(!std::is_const<Type>::value, "Type must not be const");
-
     auto tag = undefined;
     auto value = undefined;
     auto len = decodeTagAndValue(pos, end, tag, value, flags);
@@ -333,15 +325,15 @@ typename std::enable_if<std::is_class<InputIterator>::value, std::size_t>::type 
 }
 
 template <typename Buffer, typename Type>
-typename std::enable_if<std::is_class<Buffer>::value, std::size_t>::type encodeEncodedBytesPrefix(Buffer& buffer, const Type& t) {
-    static_assert(std::is_unsigned<Type>::value, "Type must be unsigned");
-    return encodeTagAndValue(buffer, Major::semantic, Minor::cborEncodedData) + encodeTagAndValue(buffer, Major::byteString, t);
+typename std::enable_if<std::is_class<Buffer>::value && std::is_unsigned<Type>::value, std::size_t>::type encodeEncodedBytesPrefix(
+    Buffer& buffer, const Type& t) {
+    auto len = encodeTagAndValue(buffer, Major::semantic, Minor::cborEncodedData);
+    return len + encodeTagAndValue(buffer, Major::byteString, t);
 }
 
 template <typename InputIterator, typename Type>
-typename std::enable_if<std::is_class<InputIterator>::value, std::size_t>::type decodeEncodedBytesPrefix(
-    InputIterator& pos, InputIterator end, Type& t, Flags flags = Flag::none) {
-    static_assert(!std::is_const<Type>::value, "Type must not be const");
+typename std::enable_if<std::is_class<InputIterator>::value && !std::is_const<Type>::value, std::size_t>::type
+decodeEncodedBytesPrefix(InputIterator& pos, InputIterator end, Type& t, Flags flags = Flag::none) {
     auto tag = undefined;
     auto value = undefined;
     auto len = decodeTagAndValue(pos, end, tag, value, flags);
@@ -357,13 +349,13 @@ typename std::enable_if<std::is_class<InputIterator>::value, std::size_t>::type 
 
 template <typename Buffer, typename Type>
 typename std::enable_if<std::is_class<Buffer>::value, std::size_t>::type encodeEncodedBytes(Buffer& buffer, const Type& t) {
-    return encodeTagAndValue(buffer, Major::semantic, Minor::cborEncodedData) + encodeBytes(buffer, t);
+    auto len = encodeTagAndValue(buffer, Major::semantic, Minor::cborEncodedData);
+    return len + encodeBytes(buffer, t);
 }
 
 template <typename InputIterator, typename Type>
-typename std::enable_if<std::is_class<InputIterator>::value, std::size_t>::type decodeEncodedBytes(
+typename std::enable_if<std::is_class<InputIterator>::value && !std::is_const<Type>::value, std::size_t>::type decodeEncodedBytes(
     InputIterator& pos, InputIterator end, Type& t, Flags flags = Flag::none) {
-    static_assert(!std::is_const<Type>::value, "Type must not be const");
     auto tag = undefined;
     auto value = undefined;
     auto len = decodeTagAndValue(pos, end, tag, value, flags);
@@ -381,10 +373,8 @@ typename std::enable_if<std::is_class<Buffer>::value, std::size_t>::type encodeT
 }
 
 template <typename InputIterator, typename Type>
-typename std::enable_if<std::is_class<InputIterator>::value, std::size_t>::type decodeText(
+typename std::enable_if<std::is_class<InputIterator>::value && !std::is_const<Type>::value, std::size_t>::type decodeText(
     InputIterator& pos, InputIterator end, Type& t, Flags flags = Flag::none) {
-    static_assert(!std::is_const<Type>::value, "Type must not be const");
-
     auto tag = undefined;
     auto value = undefined;
     auto len = decodeTagAndValue(pos, end, tag, value, flags);
@@ -398,17 +388,15 @@ typename std::enable_if<std::is_class<InputIterator>::value, std::size_t>::type 
 }
 
 template <typename Buffer, typename Type>
-typename std::enable_if<std::is_class<Buffer>::value, std::size_t>::type encodeArraySize(Buffer& buffer, const Type& t) {
-    static_assert(std::is_unsigned<Type>::value, "Type must be unsigned");
+typename std::enable_if<std::is_class<Buffer>::value && std::is_unsigned<Type>::value, std::size_t>::type encodeArraySize(
+    Buffer& buffer, const Type& t) {
     return encodeTagAndValue(buffer, Major::array, t);
 }
 
 template <typename InputIterator, typename Type>
-typename std::enable_if<std::is_class<InputIterator>::value, std::size_t>::type decodeArraySize(
-    InputIterator& pos, InputIterator end, Type& t, Flags flags = Flag::none) {
-    static_assert(!std::is_const<Type>::value, "Type must not be const");
-    static_assert(std::is_unsigned<Type>::value, "Type must be unsigned");
-
+typename std::enable_if<std::is_class<InputIterator>::value && !std::is_const<Type>::value && std::is_unsigned<Type>::value,
+    std::size_t>::type
+decodeArraySize(InputIterator& pos, InputIterator end, Type& t, Flags flags = Flag::none) {
     auto tag = undefined;
     auto value = undefined;
     auto len = decodeTagAndValue(pos, end, tag, value, flags);
@@ -418,17 +406,15 @@ typename std::enable_if<std::is_class<InputIterator>::value, std::size_t>::type 
 }
 
 template <typename Buffer, typename Type>
-typename std::enable_if<std::is_class<Buffer>::value, std::size_t>::type encodeMapSize(Buffer& buffer, const Type& t) {
-    static_assert(std::is_unsigned<Type>::value, "Type must be unsigned");
+typename std::enable_if<std::is_class<Buffer>::value && std::is_unsigned<Type>::value, std::size_t>::type encodeMapSize(
+    Buffer& buffer, const Type& t) {
     return encodeTagAndValue(buffer, Major::map, t);
 }
 
 template <typename InputIterator, typename Type>
-typename std::enable_if<std::is_class<InputIterator>::value, std::size_t>::type decodeMapSize(
-    InputIterator& pos, InputIterator end, Type& t, Flags flags = Flag::none) {
-    static_assert(!std::is_const<Type>::value, "Type must not be const");
-    static_assert(std::is_unsigned<Type>::value, "Type must be unsigned");
-
+typename std::enable_if<std::is_class<InputIterator>::value && !std::is_const<Type>::value && std::is_unsigned<Type>::value,
+    std::size_t>::type
+decodeMapSize(InputIterator& pos, InputIterator end, Type& t, Flags flags = Flag::none) {
     auto tag = undefined;
     auto value = undefined;
     auto len = decodeTagAndValue(pos, end, tag, value, flags);
@@ -448,7 +434,7 @@ const bool isLittleEndian = *reinterpret_cast<const char*>(&endianTest);
 const bool isBigEndian = !isLittleEndian;
 const bool isNetwork = isBigEndian;
 #endif
-}
+} // namespace ByteOrder
 
 template <typename Buffer, typename Type>
 typename std::enable_if<std::is_class<Buffer>::value && std::is_floating_point<Type>::value, std::size_t>::type encodeSingleFloat(
@@ -460,7 +446,7 @@ typename std::enable_if<std::is_class<Buffer>::value && std::is_floating_point<T
     if (std::size_t(t) == sizeof(ft)) {
         p = reinterpret_cast<const char*>(&t);
     } else {
-        ft = t;
+        ft = static_cast<decltype(ft)>(t);
         p = reinterpret_cast<char*>(&ft);
     }
     if (ByteOrder::isNetwork) {
@@ -501,11 +487,10 @@ typename std::enable_if<std::is_class<Buffer>::value && std::is_floating_point<T
 }
 
 template <typename InputIterator, typename Type>
-typename std::enable_if<std::is_class<InputIterator>::value && std::is_floating_point<Type>::value, std::size_t>::type decodeSingleFloat(
-    InputIterator& pos, InputIterator end, Type& t, Flags flags = Flag::none) {
-    static_assert(!std::is_const<Type>::value, "Type must not be const");
+typename std::enable_if<std::is_class<InputIterator>::value && std::is_floating_point<Type>::value && !std::is_const<Type>::value,
+    std::size_t>::type
+decodeSingleFloat(InputIterator& pos, InputIterator end, Type& t, Flags flags = Flag::none) {
     static_assert(sizeof(float) == 4, "sizeof(float) expected to be 4");
-
     auto tag = undefined;
     auto value = undefined;
     auto len = decodeTagAndAdditional(pos, end, tag, value, flags);
@@ -518,7 +503,7 @@ typename std::enable_if<std::is_class<InputIterator>::value && std::is_floating_
     if (std::size_t(t) == sizeof(ft)) {
         p = reinterpret_cast<char*>(&t);
     } else {
-        ft = t;
+        ft = static_cast<decltype(ft)>(t);
         p = reinterpret_cast<char*>(&ft);
     }
 
@@ -536,11 +521,10 @@ typename std::enable_if<std::is_class<InputIterator>::value && std::is_floating_
 }
 
 template <typename InputIterator, typename Type>
-typename std::enable_if<std::is_class<InputIterator>::value && std::is_floating_point<Type>::value, std::size_t>::type decodeDoubleFloat(
-    InputIterator& pos, InputIterator end, Type& t, Flags flags = Flag::none) {
-    static_assert(!std::is_const<Type>::value, "Type must not be const");
-    static_assert(sizeof(double) == 8, "sizeof(float) expected to be 8");
-
+typename std::enable_if<std::is_class<InputIterator>::value && std::is_floating_point<Type>::value && !std::is_const<Type>::value,
+    std::size_t>::type
+decodeDoubleFloat(InputIterator& pos, InputIterator end, Type& t, Flags flags = Flag::none) {
+    static_assert(sizeof(double) == 8, "sizeof(double) expected to be 8");
     auto tag = undefined;
     auto value = undefined;
     auto len = decodeTagAndAdditional(pos, end, tag, value, flags);

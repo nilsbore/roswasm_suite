@@ -27,8 +27,10 @@ BOOST_AUTO_TEST_CASE(base) {
         {4294967296, 8},
     };
     for (const auto& test : cases) {
-        auto len = CborLite::length(test.first);
-        BOOST_TEST(len == test.second, "CBOR length for " << test.first << " is " << len << " not " << test.second);
+        BOOST_CHECK_NO_THROW({
+            auto len = CborLite::length(test.first);
+            BOOST_TEST(len == test.second, "CBOR length for " << test.first << " is " << len << " not " << test.second);
+        });
     }
 }
 
@@ -47,16 +49,18 @@ BOOST_AUTO_TEST_CASE(non_negative) {
         {18446744073709551615u, std::string("\x1b\xff\xff\xff\xff\xff\xff\xff\xff", 9)},
     };
     for (const auto& test : cases) {
-        std::string buffer;
-        auto len = CborLite::encodeUnsigned(buffer, test.first);
-        BOOST_CHECK_EQUAL(len, test.second.size());
-        BOOST_CHECK_EQUAL(buffer, test.second);
-        unsigned long long value = 0;
-        auto pos = std::begin(test.second);
-        len = CborLite::decodeUnsigned(pos, std::end(test.second), value);
-        BOOST_CHECK(pos == std::end(test.second));
-        BOOST_CHECK_EQUAL(len, test.second.size());
-        BOOST_CHECK_EQUAL(value, test.first);
+        BOOST_CHECK_NO_THROW({
+            std::string buffer;
+            auto len = CborLite::encodeUnsigned(buffer, test.first);
+            BOOST_CHECK_EQUAL(len, test.second.size());
+            BOOST_CHECK_EQUAL(buffer, test.second);
+            std::uint_fast64_t value = 0u;
+            auto pos = std::begin(test.second);
+            len = CborLite::decodeUnsigned(pos, std::end(test.second), value);
+            BOOST_CHECK(pos == std::end(test.second));
+            BOOST_CHECK_EQUAL(len, test.second.size());
+            BOOST_CHECK_EQUAL(value, test.first);
+        });
     }
 }
 
@@ -68,16 +72,18 @@ BOOST_AUTO_TEST_CASE(negative) {
         {999, "\x39\x03\xe7"},
     };
     for (const auto& test : cases) {
-        std::string buffer;
-        auto len = CborLite::encodeNegative(buffer, test.first);
-        BOOST_CHECK_EQUAL(len, test.second.size());
-        BOOST_CHECK_EQUAL(buffer, test.second);
-        std::uint_fast64_t value = 0;
-        auto pos = std::begin(test.second);
-        len = CborLite::decodeNegative(pos, std::end(test.second), value);
-        BOOST_CHECK(pos == std::end(test.second));
-        BOOST_CHECK_EQUAL(len, test.second.size());
-        BOOST_CHECK_EQUAL(value, test.first);
+        BOOST_CHECK_NO_THROW({
+            std::string buffer;
+            auto len = CborLite::encodeNegative(buffer, test.first);
+            BOOST_CHECK_EQUAL(len, test.second.size());
+            BOOST_CHECK_EQUAL(buffer, test.second);
+            std::uint_fast64_t value = 0u;
+            auto pos = std::begin(test.second);
+            len = CborLite::decodeNegative(pos, std::end(test.second), value);
+            BOOST_CHECK(pos == std::end(test.second));
+            BOOST_CHECK_EQUAL(len, test.second.size());
+            BOOST_CHECK_EQUAL(value, test.first);
+        });
     }
 }
 
@@ -99,16 +105,18 @@ BOOST_AUTO_TEST_CASE(integer) {
         {-1000, "\x39\x03\xe7"},
     };
     for (const auto& test : cases) {
-        std::string buffer;
-        auto len = CborLite::encodeInteger(buffer, test.first);
-        BOOST_CHECK_EQUAL(len, test.second.size());
-        BOOST_CHECK_EQUAL(buffer, test.second);
-        std::int_fast64_t value = 0;
-        auto pos = std::begin(test.second);
-        len = CborLite::decodeInteger(pos, std::end(test.second), value);
-        BOOST_CHECK(pos == std::end(test.second));
-        BOOST_CHECK_EQUAL(len, test.second.size());
-        BOOST_CHECK_EQUAL(value, test.first);
+        BOOST_CHECK_NO_THROW({
+            std::string buffer;
+            auto len = CborLite::encodeInteger(buffer, test.first);
+            BOOST_CHECK_EQUAL(len, test.second.size());
+            BOOST_CHECK_EQUAL(buffer, test.second);
+            std::int_fast64_t value = 0;
+            auto pos = std::begin(test.second);
+            len = CborLite::decodeInteger(pos, std::end(test.second), value);
+            BOOST_CHECK(pos == std::end(test.second));
+            BOOST_CHECK_EQUAL(len, test.second.size());
+            BOOST_CHECK_EQUAL(value, test.first);
+        });
     }
 }
 
@@ -118,16 +126,18 @@ BOOST_AUTO_TEST_CASE(no_content) {
         {true, "\xf5"},
     };
     for (const auto& test : cases) {
-        std::string buffer;
-        auto len = CborLite::encodeBool(buffer, test.first);
-        BOOST_CHECK_EQUAL(len, test.second.size());
-        BOOST_CHECK_EQUAL(buffer, test.second);
-        auto value = false;
-        auto pos = std::begin(test.second);
-        len = CborLite::decodeBool(pos, std::end(test.second), value);
-        BOOST_CHECK(pos == std::end(test.second));
-        BOOST_CHECK_EQUAL(len, test.second.size());
-        BOOST_CHECK_EQUAL(value, test.first);
+        BOOST_CHECK_NO_THROW({
+            std::string buffer;
+            auto len = CborLite::encodeBool(buffer, test.first);
+            BOOST_CHECK_EQUAL(len, test.second.size());
+            BOOST_CHECK_EQUAL(buffer, test.second);
+            auto value = false;
+            auto pos = std::begin(test.second);
+            len = CborLite::decodeBool(pos, std::end(test.second), value);
+            BOOST_CHECK(pos == std::end(test.second));
+            BOOST_CHECK_EQUAL(len, test.second.size());
+            BOOST_CHECK_EQUAL(value, test.first);
+        });
     }
 }
 
@@ -145,18 +155,20 @@ BOOST_AUTO_TEST_CASE(bytes) {
         {"@@@@", "\x44\x40\x40\x40\x40"},
     };
     for (const auto& test : cases) {
-        std::string buffer;
-        auto len = CborLite::encodeBytes(buffer, test.first);
-        BOOST_CHECK_EQUAL(len, test.second.size());
-        BOOST_CHECK_EQUAL(buffer, test.second);
-        std::string value;
-        auto pos = std::begin(test.second);
-        len = CborLite::decodeBytes(pos, std::end(test.second), value);
-        BOOST_CHECK(pos == std::end(test.second));
-        BOOST_CHECK_EQUAL(len, test.second.size());
-        BOOST_CHECK_EQUAL(value, test.first);
+        BOOST_CHECK_NO_THROW({
+            std::string buffer;
+            auto len = CborLite::encodeBytes(buffer, test.first);
+            BOOST_CHECK_EQUAL(len, test.second.size());
+            BOOST_CHECK_EQUAL(buffer, test.second);
+            std::string value;
+            auto pos = std::begin(test.second);
+            len = CborLite::decodeBytes(pos, std::end(test.second), value);
+            BOOST_CHECK(pos == std::end(test.second));
+            BOOST_CHECK_EQUAL(len, test.second.size());
+            BOOST_CHECK_EQUAL(value, test.first);
+        });
     }
-    {
+    BOOST_CHECK_NO_THROW({
         std::vector<char> buffer;
         std::string input = "@@@@";
         std::vector<char> payload(std::begin(input), std::end(input));
@@ -164,7 +176,7 @@ BOOST_AUTO_TEST_CASE(bytes) {
         std::string expect = "\x44\x40\x40\x40\x40";
         BOOST_CHECK_EQUAL(len, expect.length());
         BOOST_CHECK_EQUAL(std::string(std::begin(buffer), std::end(buffer)), expect);
-    }
+    });
 }
 
 BOOST_AUTO_TEST_CASE(encodedBytes) {
@@ -181,30 +193,32 @@ BOOST_AUTO_TEST_CASE(encodedBytes) {
         {"@@@@", "\xd8\x18\x44\x40\x40\x40\x40"},
     };
     for (const auto& test : cases) {
-        std::string buffer;
-        auto len = CborLite::encodeEncodedBytes(buffer, test.first);
-        BOOST_CHECK_EQUAL(len, test.second.size());
-        BOOST_CHECK_EQUAL(buffer, test.second);
+        BOOST_CHECK_NO_THROW({
+            std::string buffer;
+            auto len = CborLite::encodeEncodedBytes(buffer, test.first);
+            BOOST_CHECK_EQUAL(len, test.second.size());
+            BOOST_CHECK_EQUAL(buffer, test.second);
 
-        buffer.clear();
-        len = CborLite::encodeEncodedBytesPrefix(buffer, test.first.length());
-        BOOST_CHECK_EQUAL(len, 3);
-        BOOST_CHECK_EQUAL(buffer, test.second.substr(0, 3));
+            buffer.clear();
+            len = CborLite::encodeEncodedBytesPrefix(buffer, test.first.length());
+            BOOST_CHECK_EQUAL(len, 3);
+            BOOST_CHECK_EQUAL(buffer, test.second.substr(0, 3));
 
-        std::string value;
-        auto pos = std::begin(test.second);
-        len = CborLite::decodeEncodedBytes(pos, std::end(test.second), value);
-        BOOST_CHECK(pos == std::end(test.second));
-        BOOST_CHECK_EQUAL(len, test.second.size());
-        BOOST_CHECK_EQUAL(value, test.first);
+            std::string value;
+            auto pos = std::begin(test.second);
+            len = CborLite::decodeEncodedBytes(pos, std::end(test.second), value);
+            BOOST_CHECK(pos == std::end(test.second));
+            BOOST_CHECK_EQUAL(len, test.second.size());
+            BOOST_CHECK_EQUAL(value, test.first);
 
-        std::size_t got = 0u;
-        pos = std::begin(test.second);
-        len = CborLite::decodeEncodedBytesPrefix(pos, pos + 3, got);
-        BOOST_CHECK_EQUAL(len, 3);
-        BOOST_CHECK_EQUAL(got, test.first.length());
+            std::size_t got = 0u;
+            pos = std::begin(test.second);
+            len = CborLite::decodeEncodedBytesPrefix(pos, pos + 3, got);
+            BOOST_CHECK_EQUAL(len, 3);
+            BOOST_CHECK_EQUAL(got, test.first.length());
+        });
     }
-    {
+    BOOST_CHECK_NO_THROW({
         std::vector<char> buffer;
         std::string input = "@@@@";
         std::vector<char> payload(std::begin(input), std::end(input));
@@ -212,7 +226,7 @@ BOOST_AUTO_TEST_CASE(encodedBytes) {
         std::string expect = "\xd8\x18\x44\x40\x40\x40\x40";
         BOOST_CHECK_EQUAL(len, expect.length());
         BOOST_CHECK_EQUAL(std::string(std::begin(buffer), std::end(buffer)), expect);
-    }
+    });
 }
 
 BOOST_AUTO_TEST_CASE(strings) {
@@ -228,16 +242,18 @@ BOOST_AUTO_TEST_CASE(strings) {
         {"\x01\x02\x03\x04", "\x64\x01\x02\x03\x04"},
     };
     for (const auto& test : cases) {
-        std::string buffer;
-        auto len = CborLite::encodeText(buffer, test.first);
-        BOOST_CHECK_EQUAL(len, test.second.size());
-        BOOST_CHECK_EQUAL(buffer, test.second);
-        std::string value;
-        auto pos = std::begin(test.second);
-        len = CborLite::decodeText(pos, std::end(test.second), value);
-        BOOST_CHECK(pos == std::end(test.second));
-        BOOST_CHECK_EQUAL(len, test.second.size());
-        BOOST_CHECK_EQUAL(value, test.first);
+        BOOST_CHECK_NO_THROW({
+            std::string buffer;
+            auto len = CborLite::encodeText(buffer, test.first);
+            BOOST_CHECK_EQUAL(len, test.second.size());
+            BOOST_CHECK_EQUAL(buffer, test.second);
+            std::string value;
+            auto pos = std::begin(test.second);
+            len = CborLite::decodeText(pos, std::end(test.second), value);
+            BOOST_CHECK(pos == std::end(test.second));
+            BOOST_CHECK_EQUAL(len, test.second.size());
+            BOOST_CHECK_EQUAL(value, test.first);
+        });
     }
 }
 
@@ -256,16 +272,18 @@ BOOST_AUTO_TEST_CASE(array) {
         {18446744073709551615u, std::string("\x9b\xff\xff\xff\xff\xff\xff\xff\xff", 9)},
     };
     for (const auto& test : cases) {
-        std::string buffer;
-        auto len = CborLite::encodeArraySize(buffer, test.first);
-        BOOST_CHECK_EQUAL(len, test.second.size());
-        BOOST_CHECK_EQUAL(buffer, test.second);
-        unsigned long long value = 0;
-        auto pos = std::begin(test.second);
-        len = CborLite::decodeArraySize(pos, std::end(test.second), value);
-        BOOST_CHECK(pos == std::end(test.second));
-        BOOST_CHECK_EQUAL(len, test.second.size());
-        BOOST_CHECK_EQUAL(value, test.first);
+        BOOST_CHECK_NO_THROW({
+            std::string buffer;
+            auto len = CborLite::encodeArraySize(buffer, test.first);
+            BOOST_CHECK_EQUAL(len, test.second.size());
+            BOOST_CHECK_EQUAL(buffer, test.second);
+            unsigned long long value = 0;
+            auto pos = std::begin(test.second);
+            len = CborLite::decodeArraySize(pos, std::end(test.second), value);
+            BOOST_CHECK(pos == std::end(test.second));
+            BOOST_CHECK_EQUAL(len, test.second.size());
+            BOOST_CHECK_EQUAL(value, test.first);
+        });
     }
 }
 
@@ -284,63 +302,95 @@ BOOST_AUTO_TEST_CASE(map) {
         {18446744073709551615u, std::string("\xbb\xff\xff\xff\xff\xff\xff\xff\xff", 9)},
     };
     for (const auto& test : cases) {
-        std::string buffer;
-        auto len = CborLite::encodeMapSize(buffer, test.first);
-        BOOST_CHECK_EQUAL(len, test.second.size());
-        BOOST_CHECK_EQUAL(buffer, test.second);
-        unsigned long long value = 0;
-        auto pos = std::begin(test.second);
-        len = CborLite::decodeMapSize(pos, std::end(test.second), value);
-        BOOST_CHECK(pos == std::end(test.second));
-        BOOST_CHECK_EQUAL(len, test.second.size());
-        BOOST_CHECK_EQUAL(value, test.first);
+        BOOST_CHECK_NO_THROW({
+            std::string buffer;
+            auto len = CborLite::encodeMapSize(buffer, test.first);
+            BOOST_CHECK_EQUAL(len, test.second.size());
+            BOOST_CHECK_EQUAL(buffer, test.second);
+            unsigned long long value = 0;
+            auto pos = std::begin(test.second);
+            len = CborLite::decodeMapSize(pos, std::end(test.second), value);
+            BOOST_CHECK(pos == std::end(test.second));
+            BOOST_CHECK_EQUAL(len, test.second.size());
+            BOOST_CHECK_EQUAL(value, test.first);
+        });
     }
 }
 
 BOOST_AUTO_TEST_CASE(singlef) {
-    const std::vector<std::pair<float, std::string>> cases{
-        {0.0f, std::string("\xfa\x00\x00\x00\x00", 5)},
-        {-0.0f, std::string("\xfa\x80\x00\x00\x00", 5)},
-        {1.0f, std::string("\xfa\x3f\x80\x00\x00", 5)},
-        {1.1f, std::string("\xfa\x3f\x8c\xcc\xcd", 5)},
-        {1.5f, std::string("\xfa\x3f\xc0\x00\x00", 5)},
-        {65504.0f, std::string("\xfa\x47\x7f\xe0\x00", 5)},
-        {3.4028234663852886e+38f, std::string("\xfa\x7f\x7f\xff\xff", 5)},
+    const std::vector<std::pair<float, std::string>> cases {
+        {0.0f, std::string("\xfa\x00\x00\x00\x00", 5)}, {-0.0f, std::string("\xfa\x80\x00\x00\x00", 5)},
+            {1.0f, std::string("\xfa\x3f\x80\x00\x00", 5)}, {1.1f, std::string("\xfa\x3f\x8c\xcc\xcd", 5)},
+            {1.5f, std::string("\xfa\x3f\xc0\x00\x00", 5)}, {65504.0f, std::string("\xfa\x47\x7f\xe0\x00", 5)},
+            {3.4028234663852886e+38f, std::string("\xfa\x7f\x7f\xff\xff", 5)},
 #if 0
-        {1.0e+300f, std::string("\xfa\x7f\x80\x00\x00", 5)},
+            {1.0e+300f, std::string("\xfa\x7f\x80\x00\x00", 5)}, // too large for single
 #endif
-        {5.960464477539063e-8f, std::string("\xfa\x33\x80\x00\x00", 5)},
-        {0.00006103515625f, std::string("\xfa\x38\x80\x00\x00", 5)},
-        {-4.0f, std::string("\xfa\xc0\x80\x00\x00", 5)},
-        {-4.1f, std::string("\xfa\xc0\x83\x33\x33", 5)},
-        {std::numeric_limits<float>::infinity(), std::string("\xfa\x7f\x80\x00\x00", 5)},
-        {std::numeric_limits<float>::quiet_NaN(), std::string("\xfa\x7f\xc0\x00\x00", 5)},
-        {-std::numeric_limits<float>::infinity(), std::string("\xfa\xff\x80\x00\x00", 5)},
+            {5.960464477539063e-8f, std::string("\xfa\x33\x80\x00\x00", 5)},
+            {0.00006103515625f, std::string("\xfa\x38\x80\x00\x00", 5)}, {-4.0f, std::string("\xfa\xc0\x80\x00\x00", 5)},
+            {-4.1f, std::string("\xfa\xc0\x83\x33\x33", 5)},
+            {std::numeric_limits<float>::infinity(), std::string("\xfa\x7f\x80\x00\x00", 5)},
+            {std::numeric_limits<float>::quiet_NaN(), std::string("\xfa\x7f\xc0\x00\x00", 5)},
+            {-std::numeric_limits<float>::infinity(), std::string("\xfa\xff\x80\x00\x00", 5)},
     };
     for (const auto& test : cases) {
-        std::string buffer;
-        auto len = CborLite::encodeSingleFloat(buffer, test.first);
-        BOOST_CHECK_EQUAL(len, test.second.size());
-#if 0
-        std::cout << "Encoding: ";
-        for (unsigned ch : buffer) {
-            std::cout << "\\x" << std::hex << std::setw(2) << std::setfill('0') << (ch&0xFFu);
-        }
-        std::cout << std::endl;
-#endif
-        BOOST_CHECK_EQUAL(buffer, test.second);
-        float value = 0;
-        auto pos = std::begin(test.second);
-        len = CborLite::decodeSingleFloat(pos, std::end(test.second), value);
-        BOOST_CHECK(pos == std::end(test.second));
-        BOOST_CHECK_EQUAL(len, test.second.size());
-        if (std::isnan(test.first)) {
-            BOOST_CHECK(std::isnan(value));
-        } else {
-            BOOST_CHECK_EQUAL(value, test.first);
-        }
+        BOOST_CHECK_NO_THROW({
+            std::string buffer;
+            auto len = CborLite::encodeSingleFloat(buffer, test.first);
+            BOOST_CHECK_EQUAL(len, test.second.size());
+            BOOST_CHECK_EQUAL(buffer, test.second);
+            float value = 0;
+            auto pos = std::begin(test.second);
+            len = CborLite::decodeSingleFloat(pos, std::end(test.second), value);
+            BOOST_CHECK(pos == std::end(test.second));
+            BOOST_CHECK_EQUAL(len, test.second.size());
+            if (std::isnan(test.first)) {
+                BOOST_CHECK(std::isnan(value));
+            } else {
+                BOOST_CHECK_EQUAL(value, test.first);
+            }
+        });
     }
 }
+
+BOOST_AUTO_TEST_CASE(singlefdouble) {
+    const std::vector<std::pair<double, std::string>> cases{
+        {0.0, std::string("\xfa\x00\x00\x00\x00", 5)},
+        {-0.0, std::string("\xfa\x80\x00\x00\x00", 5)},
+        {1.0, std::string("\xfa\x3f\x80\x00\x00", 5)},
+        {1.1f, std::string("\xfa\x3f\x8c\xcc\xcd", 5)},
+        {1.5, std::string("\xfa\x3f\xc0\x00\x00", 5)},
+        {65504.0, std::string("\xfa\x47\x7f\xe0\x00", 5)},
+        {3.4028234663852886e+38, std::string("\xfa\x7f\x7f\xff\xff", 5)},
+        {1.0e+300, std::string("\xfa\x7f\x80\x00\x00", 5)},
+        {5.960464477539063e-8, std::string("\xfa\x33\x80\x00\x00", 5)},
+        {0.00006103515625, std::string("\xfa\x38\x80\x00\x00", 5)},
+        {-4.0, std::string("\xfa\xc0\x80\x00\x00", 5)},
+        {-4.1, std::string("\xfa\xc0\x83\x33\x33", 5)},
+        {std::numeric_limits<double>::infinity(), std::string("\xfa\x7f\x80\x00\x00", 5)},
+        {std::numeric_limits<double>::quiet_NaN(), std::string("\xfa\x7f\xc0\x00\x00", 5)},
+        {-std::numeric_limits<double>::infinity(), std::string("\xfa\xff\x80\x00\x00", 5)},
+    };
+    for (const auto& test : cases) {
+        BOOST_CHECK_NO_THROW({
+            std::string buffer;
+            auto len = CborLite::encodeSingleFloat(buffer, test.first);
+            BOOST_CHECK_EQUAL(len, test.second.size());
+            BOOST_CHECK_EQUAL(buffer, test.second);
+            float value = 0;
+            auto pos = std::begin(test.second);
+            len = CborLite::decodeSingleFloat(pos, std::end(test.second), value);
+            BOOST_CHECK(pos == std::end(test.second));
+            BOOST_CHECK_EQUAL(len, test.second.size());
+            if (std::isnan(test.first)) {
+                BOOST_CHECK(std::isnan(value));
+            } else {
+                BOOST_CHECK_EQUAL(value, static_cast<float>(test.first));
+            }
+        });
+    }
+}
+
 BOOST_AUTO_TEST_CASE(doublef) {
     const std::vector<std::pair<double, std::string>> cases{
         {0.0, std::string("\xfb\x00\x00\x00\x00\x00\x00\x00\x00", 9)},
@@ -360,27 +410,22 @@ BOOST_AUTO_TEST_CASE(doublef) {
         {-std::numeric_limits<double>::infinity(), std::string("\xfb\xff\xf0\x00\x00\x00\x00\x00\x00", 9)},
     };
     for (const auto& test : cases) {
-        std::string buffer;
-        auto len = CborLite::encodeDoubleFloat(buffer, test.first);
-        BOOST_CHECK_EQUAL(len, test.second.size());
-#if 0
-        std::cout << "Encoding: ";
-        for (unsigned ch : buffer) {
-            std::cout << "\\x" << std::hex << std::setw(2) << std::setfill('0') << (ch&0xFFu);
-        }
-        std::cout << std::endl;
-#endif
-        BOOST_CHECK_EQUAL(buffer, test.second);
-        double value = 0;
-        auto pos = std::begin(test.second);
-        len = CborLite::decodeDoubleFloat(pos, std::end(test.second), value);
-        BOOST_CHECK(pos == std::end(test.second));
-        BOOST_CHECK_EQUAL(len, test.second.size());
-        if (std::isnan(test.first)) {
-            BOOST_CHECK(std::isnan(value));
-        } else {
-            BOOST_CHECK_EQUAL(value, test.first);
-        }
+        BOOST_CHECK_NO_THROW({
+            std::string buffer;
+            auto len = CborLite::encodeDoubleFloat(buffer, test.first);
+            BOOST_CHECK_EQUAL(len, test.second.size());
+            BOOST_CHECK_EQUAL(buffer, test.second);
+            double value = 0;
+            auto pos = std::begin(test.second);
+            len = CborLite::decodeDoubleFloat(pos, std::end(test.second), value);
+            BOOST_CHECK(pos == std::end(test.second));
+            BOOST_CHECK_EQUAL(len, test.second.size());
+            if (std::isnan(test.first)) {
+                BOOST_CHECK(std::isnan(value));
+            } else {
+                BOOST_CHECK_EQUAL(value, test.first);
+            }
+        });
     }
 }
 
