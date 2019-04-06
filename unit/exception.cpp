@@ -29,8 +29,8 @@ BOOST_AUTO_TEST_CASE(basic) {
 }
 
 BOOST_AUTO_TEST_CASE(inheritance) {
-    // CborLite::Exception doesn't (publicly) inherit from std::exception
-    BOOST_CHECK_THROW(try { throw CborLite::Exception(); } catch (const std::exception&) {}, CborLite::Exception);
+    BOOST_CHECK_NO_THROW(try { throw CborLite::Exception(); } catch (
+        const std::exception& e) { BOOST_CHECK_EQUAL(e.what(), std::string("CBOR Exception")); });
 }
 
 BOOST_AUTO_TEST_SUITE_END()
