@@ -13,7 +13,7 @@
 
 BOOST_AUTO_TEST_SUITE(cbor)
 
-BOOST_AUTO_TEST_CASE(base) {
+BOOST_AUTO_TEST_CASE(length) {
     std::vector<std::pair<std::size_t, std::size_t>> cases{
         {0, 0},
         {1, 0},
@@ -323,8 +323,8 @@ BOOST_AUTO_TEST_CASE(singlef) {
             {1.0f, std::string("\xfa\x3f\x80\x00\x00", 5)}, {1.1f, std::string("\xfa\x3f\x8c\xcc\xcd", 5)},
             {1.5f, std::string("\xfa\x3f\xc0\x00\x00", 5)}, {65504.0f, std::string("\xfa\x47\x7f\xe0\x00", 5)},
             {3.4028234663852886e+38f, std::string("\xfa\x7f\x7f\xff\xff", 5)},
-#if 0
-            {1.0e+300f, std::string("\xfa\x7f\x80\x00\x00", 5)}, // too large for single
+#if 0 // too large for single
+            {1.0e+300f, std::string("\xfa\x7f\x80\x00\x00", 5)},
 #endif
             {5.960464477539063e-8f, std::string("\xfa\x33\x80\x00\x00", 5)},
             {0.00006103515625f, std::string("\xfa\x38\x80\x00\x00", 5)}, {-4.0f, std::string("\xfa\xc0\x80\x00\x00", 5)},
@@ -362,7 +362,7 @@ BOOST_AUTO_TEST_CASE(singlefdouble) {
         {1.5, std::string("\xfa\x3f\xc0\x00\x00", 5)},
         {65504.0, std::string("\xfa\x47\x7f\xe0\x00", 5)},
         {3.4028234663852886e+38, std::string("\xfa\x7f\x7f\xff\xff", 5)},
-        {1.0e+300, std::string("\xfa\x7f\x80\x00\x00", 5)},
+        {1.0e+300, std::string("\xfa\x7f\x80\x00\x00", 5)}, // encodes as infinity
         {5.960464477539063e-8, std::string("\xfa\x33\x80\x00\x00", 5)},
         {0.00006103515625, std::string("\xfa\x38\x80\x00\x00", 5)},
         {-4.0, std::string("\xfa\xc0\x80\x00\x00", 5)},

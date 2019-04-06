@@ -28,5 +28,10 @@ BOOST_AUTO_TEST_CASE(basic) {
     BOOST_CHECK_EQUAL(ex.what(), std::string("")); // note the odd state, CborLite::Exception not expected to be reused after move
 }
 
+BOOST_AUTO_TEST_CASE(inheritance) {
+    // CborLite::Exception doesn't (publicly) inherit from std::exception
+    BOOST_CHECK_THROW(try { throw CborLite::Exception(); } catch (const std::exception&) {}, CborLite::Exception);
+}
+
 BOOST_AUTO_TEST_SUITE_END()
 BOOST_AUTO_TEST_SUITE_END()
