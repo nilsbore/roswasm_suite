@@ -34,9 +34,6 @@ include_directories(SYSTEM ${Boost_INCLUDE_DIRS})
 add_library(cbor-lite INTERFACE)
 target_include_directories(cbor-lite INTERFACE include/)
 
-add_custom_target(unit-test COMMAND ./unit/unit --log_level=warning)
-add_custom_target(junit COMMAND mkdir -p test-results && ./unit/unit --logger=JUNIT,warning,test-results/results.xml)
-
 add_subdirectory (unit)
 
 file(GLOB_RECURSE ALL_SOURCE_FILES *.cpp *.h)
