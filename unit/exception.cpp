@@ -6,7 +6,7 @@
 #include "../include/cbor-lite/codec.h"
 #include <boost/test/unit_test.hpp>
 
-BOOST_AUTO_TEST_SUITE(cbor)
+BOOST_AUTO_TEST_SUITE(cbor_lite)
 BOOST_AUTO_TEST_SUITE(exception)
 
 BOOST_AUTO_TEST_CASE(basic) {
