@@ -11,7 +11,7 @@ BOOST_AUTO_TEST_SUITE(canon)
 
 BOOST_AUTO_TEST_CASE(toolong) {
     std::int_fast64_t small = 23u;
-    const std::vector<std::string> cases{
+    const std::vector<const std::string> cases{
         "\x18\x17",
         std::string("\x19\x00\x17", 3),
         std::string("\x1a\x00\x00\00\x17", 5),
