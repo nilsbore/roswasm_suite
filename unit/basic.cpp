@@ -10,7 +10,7 @@ BOOST_AUTO_TEST_SUITE(cbor_lite)
 BOOST_AUTO_TEST_SUITE(basic)
 
 BOOST_AUTO_TEST_CASE(length) {
-    const std::vector<const std::pair<std::size_t, std::size_t>> cases{
+    const std::vector<std::pair<std::size_t, std::size_t>> cases{
         {0, 0},
         {1, 0},
         {23, 0},

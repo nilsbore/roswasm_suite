@@ -11,7 +11,7 @@ BOOST_AUTO_TEST_SUITE(cbor_lite)
 BOOST_AUTO_TEST_SUITE(codec)
 
 BOOST_AUTO_TEST_CASE(non_negative) {
-    const std::vector<const std::pair<std::uint_fast64_t, const std::string>> cases{
+    const std::vector<std::pair<std::uint_fast64_t, const std::string>> cases{
         {0u, std::string("\x00", 1)},
         {1u, "\x01"},
         {10u, "\x0a"},
@@ -41,7 +41,7 @@ BOOST_AUTO_TEST_CASE(non_negative) {
 }
 
 BOOST_AUTO_TEST_CASE(negative) {
-    const std::vector<const std::pair<std::uint_fast64_t, const std::string>> cases{
+    const std::vector<std::pair<std::uint_fast64_t, const std::string>> cases{
         {0, "\x20"},
         {9, "\x29"},
         {99, "\x38\x63"},
@@ -64,7 +64,7 @@ BOOST_AUTO_TEST_CASE(negative) {
 }
 
 BOOST_AUTO_TEST_CASE(integer) {
-    const std::vector<const std::pair<std::int_fast64_t, const std::string>> cases{
+    const std::vector<std::pair<std::int_fast64_t, const std::string>> cases{
         {0, std::string("\x00", 1)},
         {1, "\x01"},
         {10, "\x0a"},
@@ -97,7 +97,7 @@ BOOST_AUTO_TEST_CASE(integer) {
 }
 
 BOOST_AUTO_TEST_CASE(boolean) {
-    const std::vector<const std::pair<bool, const std::string>> cases{
+    const std::vector<std::pair<bool, const std::string>> cases{
         {false, "\xf4"},
         {true, "\xf5"},
     };
@@ -156,7 +156,7 @@ BOOST_AUTO_TEST_CASE(bytes) {
 }
 
 BOOST_AUTO_TEST_CASE(encodedBytes) {
-    const std::vector<const std::pair<const std::string, const std::string>> cases{
+    const std::vector<std::pair<const std::string, const std::string>> cases{
         {"", "\xd8\x18\x40"},
         {"a", "\xd8\x18\x41\x61"},
         {"A", "\xd8\x18\x41\x41"},
@@ -206,7 +206,7 @@ BOOST_AUTO_TEST_CASE(encodedBytes) {
 }
 
 BOOST_AUTO_TEST_CASE(strings) {
-    const std::vector<const std::pair<const std::string, const std::string>> cases{
+    const std::vector<std::pair<const std::string, const std::string>> cases{
         {"", "\x60"},
         {"a", "\x61\x61"},
         {"A", "\x61\x41"},
@@ -234,7 +234,7 @@ BOOST_AUTO_TEST_CASE(strings) {
 }
 
 BOOST_AUTO_TEST_CASE(array) {
-    const std::vector<const std::pair<std::uint_fast64_t, const std::string>> cases{
+    const std::vector<std::pair<std::uint_fast64_t, const std::string>> cases{
         {0u, "\x80"},
         {1u, "\x81"},
         {10u, "\x8a"},
@@ -264,7 +264,7 @@ BOOST_AUTO_TEST_CASE(array) {
 }
 
 BOOST_AUTO_TEST_CASE(map) {
-    const std::vector<const std::pair<std::uint_fast64_t, const std::string>> cases{
+    const std::vector<std::pair<std::uint_fast64_t, const std::string>> cases{
         {0u, "\xa0"},
         {1u, "\xa1"},
         {10u, "\xaa"},
@@ -294,7 +294,7 @@ BOOST_AUTO_TEST_CASE(map) {
 }
 
 BOOST_AUTO_TEST_CASE(singlef) {
-    const std::vector<const std::pair<float, const std::string>> cases {
+    const std::vector<std::pair<float, const std::string>> cases {
         {0.0f, std::string("\xfa\x00\x00\x00\x00", 5)}, {-0.0f, std::string("\xfa\x80\x00\x00\x00", 5)},
             {1.0f, std::string("\xfa\x3f\x80\x00\x00", 5)}, {1.1f, std::string("\xfa\x3f\x8c\xcc\xcd", 5)},
             {1.5f, std::string("\xfa\x3f\xc0\x00\x00", 5)}, {65504.0f, std::string("\xfa\x47\x7f\xe0\x00", 5)},
@@ -330,7 +330,7 @@ BOOST_AUTO_TEST_CASE(singlef) {
 }
 
 BOOST_AUTO_TEST_CASE(singlefdouble) {
-    const std::vector<const std::pair<double, const std::string>> cases{
+    const std::vector<std::pair<double, const std::string>> cases{
         {0.0, std::string("\xfa\x00\x00\x00\x00", 5)},
         {-0.0, std::string("\xfa\x80\x00\x00\x00", 5)},
         {1.0, std::string("\xfa\x3f\x80\x00\x00", 5)},
@@ -368,7 +368,7 @@ BOOST_AUTO_TEST_CASE(singlefdouble) {
 }
 
 BOOST_AUTO_TEST_CASE(doublef) {
-    const std::vector<const std::pair<double, const std::string>> cases{
+    const std::vector<std::pair<double, const std::string>> cases{
         {0.0, std::string("\xfb\x00\x00\x00\x00\x00\x00\x00\x00", 9)},
         {-0.0, std::string("\xfb\x80\x00\x00\x00\x00\x00\x00\x00", 9)},
         {1.0, std::string("\xfb\x3f\xf0\x00\x00\x00\x00\x00\x00", 9)},
