@@ -52,24 +52,24 @@ constexpr Tag negativeInteger = 1u << 5;
 constexpr Tag byteString = 2u << 5;
 constexpr Tag textString = 3u << 5;
 constexpr Tag array = 4u << 5;
-constexpr Tag map = 5u << 5; // not implemented
+constexpr Tag map = 5u << 5;
 constexpr Tag semantic = 6u << 5;
-constexpr Tag floatingPoint = 7u << 5; // not implemented
+constexpr Tag floatingPoint = 7u << 5;
 constexpr Tag simple = 7u << 5;
 constexpr Tag mask = 0xe0u;
 } // namespace Major
 
 namespace Minor {
-constexpr Tag l1 = 24u;
-constexpr Tag l2 = 25u;
-constexpr Tag l4 = 26u;
-constexpr Tag l8 = 27u;
+constexpr Tag length1 = 24u;
+constexpr Tag length2 = 25u;
+constexpr Tag length4 = 26u;
+constexpr Tag length8 = 27u;
 
 constexpr Tag False = 20u;
 constexpr Tag True = 21u;
 constexpr Tag null = 22u;
 constexpr Tag undefined = 23u;
-constexpr Tag halfFloat = 25u;
+constexpr Tag halfFloat = 25u; // not implemented
 constexpr Tag singleFloat = 26u;
 constexpr Tag doubleFloat = 27u;
 
@@ -135,16 +135,16 @@ typename std::enable_if<std::is_class<Buffer>::value && std::is_unsigned<Type>::
 
     switch (len) {
     case 8:
-        encodeTagAndAdditional(buffer, tag, Minor::l8);
+        encodeTagAndAdditional(buffer, tag, Minor::length8);
         break;
     case 4:
-        encodeTagAndAdditional(buffer, tag, Minor::l4);
+        encodeTagAndAdditional(buffer, tag, Minor::length4);
         break;
     case 2:
-        encodeTagAndAdditional(buffer, tag, Minor::l2);
+        encodeTagAndAdditional(buffer, tag, Minor::length2);
         break;
     case 1:
-        encodeTagAndAdditional(buffer, tag, Minor::l1);
+        encodeTagAndAdditional(buffer, tag, Minor::length1);
         break;
     case 0:
         return encodeTagAndAdditional(buffer, tag, t);
@@ -176,13 +176,13 @@ typename std::enable_if<std::is_class<InputIterator>::value && std::is_unsigned<
     if (pos == end) throw Exception("not enough input");
     auto additional = Minor::undefined;
     auto len = decodeTagAndAdditional(pos, end, tag, additional, flags);
-    if (additional < Minor::l1) {
+    if (additional < Minor::length1) {
         t = additional;
         return len;
     }
     t = 0u;
     switch (additional) {
-    case Minor::l8:
+    case Minor::length8:
         if (std::distance(pos, end) < 8) throw Exception("not enough input");
         t |= static_cast<Type>(reinterpret_cast<const unsigned char&>(*(pos++))) << 56;
         t |= static_cast<Type>(reinterpret_cast<const unsigned char&>(*(pos++))) << 48;
@@ -190,25 +190,25 @@ typename std::enable_if<std::is_class<InputIterator>::value && std::is_unsigned<
         t |= static_cast<Type>(reinterpret_cast<const unsigned char&>(*(pos++))) << 32;
         len += 4;
         if ((flags & Flag::requireMinimalEncoding) && !t) throw Exception("encoding not minimal");
-    case Minor::l4:
+    case Minor::length4:
         if (std::distance(pos, end) < 4) throw Exception("not enough input");
         t |= static_cast<Type>(reinterpret_cast<const unsigned char&>(*(pos++))) << 24;
         t |= static_cast<Type>(reinterpret_cast<const unsigned char&>(*(pos++))) << 16;
         len += 2;
         if ((flags & Flag::requireMinimalEncoding) && !t) throw Exception("encoding not minimal");
-    case Minor::l2:
+    case Minor::length2:
         if (std::distance(pos, end) < 2) throw Exception("not enough input");
         t |= static_cast<Type>(reinterpret_cast<const unsigned char&>(*(pos++))) << 8;
         len++;
         if ((flags & Flag::requireMinimalEncoding) && !t) throw Exception("encoding not minimal");
-    case Minor::l1:
+    case Minor::length1:
         if (std::distance(pos, end) < 1) throw Exception("not enough input");
         t |= static_cast<Type>(reinterpret_cast<const unsigned char&>(*(pos++)));
         len++;
         if ((flags & Flag::requireMinimalEncoding) && t < 24) throw Exception("encoding not minimal");
         return len;
     }
-    throw Exception("decodeTagAndValue: bad additional value");
+    throw Exception("bad additional value");
 }
 
 template <typename Buffer, typename Type>
@@ -222,7 +222,7 @@ typename std::enable_if<std::is_class<InputIterator>::value && std::is_unsigned<
 decodeUnsigned(InputIterator& pos, InputIterator end, Type& t, Flags flags = Flag::none) {
     auto tag = undefined;
     auto len = decodeTagAndValue(pos, end, tag, t, flags);
-    if (tag != Major::unsignedInteger) throw Exception("Not a Unsigned");
+    if (tag != Major::unsignedInteger) throw Exception("not Unsigned");
     return len;
 }
 
@@ -237,7 +237,7 @@ typename std::enable_if<std::is_class<InputIterator>::value && std::is_unsigned<
 decodeNegative(InputIterator& pos, InputIterator end, Type& t, Flags flags = Flag::none) {
     auto tag = undefined;
     auto len = decodeTagAndValue(pos, end, tag, t, flags);
-    if (tag != Major::negativeInteger) throw Exception("Not a Unsigned");
+    if (tag != Major::negativeInteger) throw Exception("not Unsigned");
     return len;
 }
 
@@ -267,7 +267,7 @@ decodeInteger(InputIterator& pos, InputIterator end, Type& t, Flags flags = Flag
         t = -1 - static_cast<long long>(val);
         break;
     default:
-        throw Exception("Not a integer");
+        throw Exception("not integer");
     }
     return len;
 }
@@ -275,12 +275,7 @@ decodeInteger(InputIterator& pos, InputIterator end, Type& t, Flags flags = Flag
 template <typename Buffer, typename Type>
 typename std::enable_if<std::is_class<Buffer>::value && std::is_same<bool, Type>::value, std::size_t>::type encodeBool(
     Buffer& buffer, const Type& t) {
-    if (t) {
-        encodeTagAndAdditional(buffer, Major::simple, Minor::True);
-    } else {
-        encodeTagAndAdditional(buffer, Major::simple, Minor::False);
-    }
-    return 1;
+    return encodeTagAndAdditional(buffer, Major::simple, t ? Minor::True : Minor::False);
 }
 
 template <typename InputIterator, typename Type>
@@ -298,8 +293,9 @@ decodeBool(InputIterator& pos, InputIterator end, Type& t, Flags flags = Flag::n
             t = false;
             return len;
         }
+        throw Exception("not Boolean");
     }
-    throw Exception("Not a Boolean");
+    throw Exception("not Simple");
 }
 
 template <typename Buffer, typename Type>
@@ -315,7 +311,7 @@ typename std::enable_if<std::is_class<InputIterator>::value && !std::is_const<Ty
     auto tag = undefined;
     auto value = undefined;
     auto len = decodeTagAndValue(pos, end, tag, value, flags);
-    if (tag != Major::byteString) throw Exception("Not Bytes");
+    if (tag != Major::byteString) throw Exception("not ByteString");
 
     auto dist = std::distance(pos, end);
     if (dist < static_cast<decltype(dist)>(value)) throw Exception("not enough input");
@@ -338,11 +334,11 @@ decodeEncodedBytesPrefix(InputIterator& pos, InputIterator end, Type& t, Flags f
     auto value = undefined;
     auto len = decodeTagAndValue(pos, end, tag, value, flags);
     if (tag != Major::semantic || value != Minor::cborEncodedData) {
-        throw Exception("Not a CBOR Encoded Data");
+        throw Exception("not CBOR Encoded Data");
     }
     tag = undefined;
     len += decodeTagAndValue(pos, end, tag, value, flags);
-    if (tag != Major::byteString) throw Exception("Not Bytes");
+    if (tag != Major::byteString) throw Exception("not ByteString");
     t = value;
     return len;
 }
@@ -360,7 +356,7 @@ typename std::enable_if<std::is_class<InputIterator>::value && !std::is_const<Ty
     auto value = undefined;
     auto len = decodeTagAndValue(pos, end, tag, value, flags);
     if (tag != Major::semantic || value != Minor::cborEncodedData) {
-        throw Exception("Not a CBOR Encoded Data");
+        throw Exception("not CBOR Encoded Data");
     }
     return len + decodeBytes(pos, end, t, flags);
 }
@@ -378,7 +374,7 @@ typename std::enable_if<std::is_class<InputIterator>::value && !std::is_const<Ty
     auto tag = undefined;
     auto value = undefined;
     auto len = decodeTagAndValue(pos, end, tag, value, flags);
-    if (tag != Major::textString) throw Exception("Not text");
+    if (tag != Major::textString) throw Exception("not TextString");
 
     auto dist = std::distance(pos, end);
     if (dist < static_cast<decltype(dist)>(value)) throw Exception("not enough input");
@@ -400,7 +396,7 @@ decodeArraySize(InputIterator& pos, InputIterator end, Type& t, Flags flags = Fl
     auto tag = undefined;
     auto value = undefined;
     auto len = decodeTagAndValue(pos, end, tag, value, flags);
-    if (tag != Major::array) throw Exception("Not an Array");
+    if (tag != Major::array) throw Exception("not Array");
     t = value;
     return len;
 }
@@ -418,140 +414,9 @@ decodeMapSize(InputIterator& pos, InputIterator end, Type& t, Flags flags = Flag
     auto tag = undefined;
     auto value = undefined;
     auto len = decodeTagAndValue(pos, end, tag, value, flags);
-    if (tag != Major::map) throw Exception("Not a Map");
+    if (tag != Major::map) throw Exception("not Map");
     t = value;
     return len;
-}
-
-namespace ByteOrder {
-#ifdef __BYTE_ORDER__
-constexpr bool isLittleEndian = __BYTE_ORDER__ == __ORDER_LITTLE_ENDIAN__;
-constexpr bool isBigEndian = __BYTE_ORDER__ == __ORDER_BIG_ENDIAN__;
-constexpr bool isNetwork = isBigEndian;
-#else
-const int endianTest = 1;
-const bool isLittleEndian = *reinterpret_cast<const char*>(&endianTest);
-const bool isBigEndian = !isLittleEndian;
-const bool isNetwork = isBigEndian;
-#endif
-} // namespace ByteOrder
-
-template <typename Buffer, typename Type>
-typename std::enable_if<std::is_class<Buffer>::value && std::is_floating_point<Type>::value, std::size_t>::type encodeSingleFloat(
-    Buffer& buffer, const Type& t) {
-    static_assert(sizeof(float) == 4, "sizeof(float) expected to be 4");
-    auto len = encodeTagAndAdditional(buffer, Major::floatingPoint, Minor::singleFloat);
-    const char* p;
-    float ft;
-    if (std::size_t(t) == sizeof(ft)) {
-        p = reinterpret_cast<const char*>(&t);
-    } else {
-        ft = static_cast<decltype(ft)>(t);
-        p = reinterpret_cast<char*>(&ft);
-    }
-    if (ByteOrder::isNetwork) {
-        for (auto i = 0u; i < sizeof(ft); ++i) {
-            buffer.push_back(p[i]);
-        }
-    } else {
-        for (auto i = 1u; i <= sizeof(ft); ++i) {
-            buffer.push_back(p[sizeof(ft) - i]);
-        }
-    }
-    return len + sizeof(ft);
-}
-
-template <typename Buffer, typename Type>
-typename std::enable_if<std::is_class<Buffer>::value && std::is_floating_point<Type>::value, std::size_t>::type encodeDoubleFloat(
-    Buffer& buffer, const Type& t) {
-    static_assert(sizeof(double) == 8, "sizeof(double) expected to be 8");
-    auto len = encodeTagAndAdditional(buffer, Major::floatingPoint, Minor::doubleFloat);
-    const char* p;
-    double ft;
-    if (std::size_t(t) == sizeof(ft)) {
-        p = reinterpret_cast<const char*>(&t);
-    } else {
-        ft = t;
-        p = reinterpret_cast<char*>(&ft);
-    }
-    if (ByteOrder::isNetwork) {
-        for (auto i = 0u; i < sizeof(ft); ++i) {
-            buffer.push_back(p[i]);
-        }
-    } else {
-        for (auto i = 1u; i <= sizeof(ft); ++i) {
-            buffer.push_back(p[sizeof(ft) - i]);
-        }
-    }
-    return len + sizeof(ft);
-}
-
-template <typename InputIterator, typename Type>
-typename std::enable_if<std::is_class<InputIterator>::value && std::is_floating_point<Type>::value && !std::is_const<Type>::value,
-    std::size_t>::type
-decodeSingleFloat(InputIterator& pos, InputIterator end, Type& t, Flags flags = Flag::none) {
-    static_assert(sizeof(float) == 4, "sizeof(float) expected to be 4");
-    auto tag = undefined;
-    auto value = undefined;
-    auto len = decodeTagAndAdditional(pos, end, tag, value, flags);
-    if (tag != Major::floatingPoint) throw Exception("Not a floating point number");
-    if (value != Minor::singleFloat) throw Exception("Not a single-precision floating point number");
-    if (std::distance(pos, end) < static_cast<int>(sizeof(float))) throw Exception("not enough input");
-
-    char* p;
-    float ft;
-    if (std::size_t(t) == sizeof(ft)) {
-        p = reinterpret_cast<char*>(&t);
-    } else {
-        ft = static_cast<decltype(ft)>(t);
-        p = reinterpret_cast<char*>(&ft);
-    }
-
-    if (ByteOrder::isNetwork) {
-        for (auto i = 0u; i < sizeof(ft); ++i) {
-            p[i] = *(pos++);
-        }
-    } else {
-        for (auto i = 1u; i <= sizeof(ft); ++i) {
-            p[sizeof(ft) - i] = *(pos++);
-        }
-    }
-    if (std::size_t(t) != sizeof(ft)) t = ft;
-    return len + sizeof(ft);
-}
-
-template <typename InputIterator, typename Type>
-typename std::enable_if<std::is_class<InputIterator>::value && std::is_floating_point<Type>::value && !std::is_const<Type>::value,
-    std::size_t>::type
-decodeDoubleFloat(InputIterator& pos, InputIterator end, Type& t, Flags flags = Flag::none) {
-    static_assert(sizeof(double) == 8, "sizeof(double) expected to be 8");
-    auto tag = undefined;
-    auto value = undefined;
-    auto len = decodeTagAndAdditional(pos, end, tag, value, flags);
-    if (tag != Major::floatingPoint) throw Exception("Not a floating point number");
-    if (value != Minor::doubleFloat) throw Exception("Not a double-precision floating point number");
-    if (std::distance(pos, end) < static_cast<int>(sizeof(double))) throw Exception("not enough input");
-
-    char* p;
-    double ft;
-    if (std::size_t(t) == sizeof(ft)) {
-        p = reinterpret_cast<char*>(&t);
-    } else {
-        ft = t;
-        p = reinterpret_cast<char*>(&ft);
-    }
-
-    if (ByteOrder::isNetwork) {
-        for (auto i = 0u; i < sizeof(ft); ++i) {
-            p[i] = *(pos++);
-        }
-    } else {
-        for (auto i = 1u; i <= sizeof(ft); ++i) {
-            p[sizeof(ft) - i] = *(pos++);
-        }
-    }
-    if (std::size_t(t) != sizeof(ft)) t = ft;
-    return len + sizeof(ft);
 }
 
 } // namespace CborLite

@@ -7,6 +7,7 @@
 #include <boost/test/unit_test.hpp>
 #include <tuple>
 
+BOOST_AUTO_TEST_SUITE(cbor_lite)
 BOOST_AUTO_TEST_SUITE(canon)
 
 BOOST_AUTO_TEST_CASE(toolong) {
@@ -36,4 +37,5 @@ BOOST_AUTO_TEST_CASE(toolong) {
     }
 }
 
+BOOST_AUTO_TEST_SUITE_END()
 BOOST_AUTO_TEST_SUITE_END()
