@@ -20,7 +20,6 @@ endif()
 
 if(CMAKE_CXX_COMPILER_ID MATCHES "MSVC")
     add_definitions(/D__ORDER_LITTLE_ENDIAN__=1 /D__ORDER_BIG_ENDIAN__=0 /D__BYTE_ORDER__=1)
-    add_compile_options(/Od)
 else()
     add_compile_options(-O0)
     add_compile_options(-Wall -Wextra -pedantic -Wold-style-cast)
@@ -29,10 +28,10 @@ else()
     endif()
 endif()
 
+add_definitions(-DBOOST_NO_AUTO_PTR)
 find_package(Boost REQUIRED COMPONENTS unit_test_framework)
 
-add_definitions(-DBOOST_NO_AUTO_PTR)
-include_directories(SYSTEM ${CMAKE_SOURCE_DIR}/include ${Boost_INCLUDE_DIRS})
+include_directories(SYSTEM ${CMAKE_SOURCE_DIR}/include Boost::boost)
 
 add_library(cbor-lite INTERFACE)
 target_include_directories(cbor-lite INTERFACE include/)
