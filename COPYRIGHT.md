@@ -4,7 +4,7 @@ Copyright
 This work is copyright Isode Limited and made available as follows:
 
 ```
-Copyright 2018 Isode Limited.
+Copyright 2018-2019 Isode Limited.
 All rights reserved.
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -29,7 +29,7 @@ SOFTWARE.
 Contributors
 ------------
 
-None (yet). See [Contributing Guideings](./CONTRIBUTING.md).
+None (yet). See [Contributing Guidelines](./CONTRIBUTING.md).
 
 Acknowledgements
 ----------------
