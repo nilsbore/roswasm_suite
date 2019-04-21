@@ -19,6 +19,7 @@ if(NOT CMAKE_BUILD_TYPE)
 endif()
 
 if(CMAKE_CXX_COMPILER_ID MATCHES "MSVC")
+    add_compile_options(/permissive-)
     add_definitions(/D__ORDER_LITTLE_ENDIAN__=1 /D__ORDER_BIG_ENDIAN__=0 /D__BYTE_ORDER__=1)
 else()
     add_compile_options(-O0)
