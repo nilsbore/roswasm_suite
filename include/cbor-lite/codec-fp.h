@@ -12,7 +12,6 @@
 #error __BYTE_ORDER__ neither __ORDER_BIG_ENDIAN__ nor __ORDER_LITTLE_ENDIAN__
 #endif
 
-
 namespace CborLite {
 
 template <typename Buffer, typename Type>

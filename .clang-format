@@ -14,7 +14,7 @@ PointerAlignment: Left
 IncludeCategories:
   - Regex:           '^<boost/'
     Priority:        50
-  - Regex:           '^.cbor/'
+  - Regex:           '^.cbor-lite/'
     Priority:        10
   - Regex:           '^<'
     Priority:        100
