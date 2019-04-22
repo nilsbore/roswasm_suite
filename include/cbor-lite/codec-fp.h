@@ -21,7 +21,7 @@ typename std::enable_if<std::is_class<Buffer>::value && std::is_floating_point<T
     auto len = encodeTagAndAdditional(buffer, Major::floatingPoint, Minor::singleFloat);
     const char* p;
     float ft;
-    if (std::size_t(t) == sizeof(ft)) {
+    if (sizeof(t) == sizeof(ft)) {
         p = reinterpret_cast<const char*>(&t);
     } else {
         ft = static_cast<decltype(ft)>(t);
@@ -46,7 +46,7 @@ typename std::enable_if<std::is_class<Buffer>::value && std::is_floating_point<T
     auto len = encodeTagAndAdditional(buffer, Major::floatingPoint, Minor::doubleFloat);
     const char* p;
     double ft;
-    if (std::size_t(t) == sizeof(ft)) {
+    if (sizeof(t) == sizeof(ft)) {
         p = reinterpret_cast<const char*>(&t);
     } else {
         ft = t;
@@ -78,7 +78,7 @@ decodeSingleFloat(InputIterator& pos, InputIterator end, Type& t, Flags flags = 
 
     char* p;
     float ft;
-    if (std::size_t(t) == sizeof(ft)) {
+    if (sizeof(t) == sizeof(ft)) {
         p = reinterpret_cast<char*>(&t);
     } else {
         ft = static_cast<decltype(ft)>(t);
@@ -94,7 +94,7 @@ decodeSingleFloat(InputIterator& pos, InputIterator end, Type& t, Flags flags = 
         p[sizeof(ft) - i] = *(pos++);
     }
 #endif
-    if (std::size_t(t) != sizeof(ft)) t = ft;
+    if (sizeof(t) != sizeof(ft)) t = ft;
     return len + sizeof(ft);
 }
 
@@ -112,7 +112,7 @@ decodeDoubleFloat(InputIterator& pos, InputIterator end, Type& t, Flags flags = 
 
     char* p;
     double ft;
-    if (std::size_t(t) == sizeof(ft)) {
+    if (sizeof(t) == sizeof(ft)) {
         p = reinterpret_cast<char*>(&t);
     } else {
         ft = t;
@@ -129,7 +129,7 @@ decodeDoubleFloat(InputIterator& pos, InputIterator end, Type& t, Flags flags = 
     }
 #endif
 
-    if (std::size_t(t) != sizeof(ft)) t = ft;
+    if (sizeof(t) != sizeof(ft)) t = ft;
     return len + sizeof(ft);
 }
 
