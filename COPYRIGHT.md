@@ -1,10 +1,10 @@
 Copyright
 =========
 
-This work is copyright Isode Limited and made available as follows:
+This work is copyright [Isode Limited](https://isode.com) and made available as follows:
 
 ```
-Copyright 2018 Isode Limited.
+Copyright 2018-2019 Isode Limited.
 All rights reserved.
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -29,17 +29,12 @@ SOFTWARE.
 Contributors
 ------------
 
-None (yet). See [Contributing Guideings](./CONTRIBUTING.md).
+None (yet). See [Contributing Guidelines](./CONTRIBUTING.md).
 
 Acknowledgements
 ----------------
 
-This work is an implementation of the Concise Binary Object Representation (CBOR)
-as specified in [RFC 7049](https://tools.ietf.org/html/rfc7049), authored by C. Bormann
-and P. Hoffman and is a product of the [IETF](https://ietf.org). This work may
-quote portions of this technical specification. It also incorporates test cases
-published in this technical specification. RFC 7049 is published with the following
-notice:
+This work is an implementation of the [Concise Binary Object Representation](https://cbor.io) (CBOR) as specified in [RFC 7049](https://tools.ietf.org/html/rfc7049), authored by C. Bormann and P. Hoffman and is a product of the [IETF](https://ietf.org).  This work may quote portions of this technical specification. It also incorporates test cases published in this technical specification. RFC 7049 is published with the following notice:
 
 ```
 Copyright (c) 2013 IETF Trust and the persons identified as the

@@ -1,4 +1,3 @@
-// CBOR-lite Test Cases
 // This file is part of CBOR-lite which is copyright Isode Limited
 // and others and released under a MIT license. For details, see the
 // COPYRIGHT.md file in the top-level folder of the CBOR-lite software
@@ -7,6 +6,7 @@
 #include <boost/test/unit_test.hpp>
 #include <tuple>
 
+BOOST_AUTO_TEST_SUITE(cbor_lite)
 BOOST_AUTO_TEST_SUITE(canon)
 
 BOOST_AUTO_TEST_CASE(toolong) {
@@ -36,4 +36,5 @@ BOOST_AUTO_TEST_CASE(toolong) {
     }
 }
 
+BOOST_AUTO_TEST_SUITE_END()
 BOOST_AUTO_TEST_SUITE_END()
