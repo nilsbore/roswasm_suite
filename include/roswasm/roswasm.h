@@ -8,6 +8,7 @@
 #include <unordered_map>
 #include <ros/serialization.h>
 #include "cbor-lite/include/cbor-lite/codec.h"
+#include "roscpp_json_serialize/include/roscpp_json/serialize.h"
 
 namespace ros
 {
@@ -78,7 +79,40 @@ class Subscriber {
 
 };
 
-class Publisher;
+class PublisherImplBase
+{
+    public:
+    virtual ~PublisherImplBase() {}
+};
+
+template <typename MSG>
+class PublisherImpl : public PublisherImplBase
+{
+    public:
+    void publish(const MSG& msg, const std::string& topic);
+
+    PublisherImpl() {}
+    ~PublisherImpl() {}
+};
+
+class Publisher {
+    public:
+
+    PublisherImplBase* impl;
+    std::string topic;
+
+    template <typename MSG>
+    void publish(const MSG& msg)
+    {
+        // this basically allows us to check that advertise was called with correct template
+        PublisherImpl<MSG>* value = dynamic_cast<PublisherImpl<MSG>*>(impl);
+        value->publish(msg, topic);
+    }
+
+    Publisher(PublisherImplBase* new_impl, const std::string& new_topic) : impl(new_impl), topic(new_topic) {}
+
+    Publisher() : impl(nullptr) {}
+};
 
 struct NodeHandle
 {
@@ -86,7 +120,7 @@ struct NodeHandle
     static std::list<std::string> message_queue;
     static bool socket_open;
     static std::unordered_map<std::string, Subscriber*> subscribers;
-    //static std::unordered_map<std::string, Publisher*> publishers;
+    static std::unordered_map<std::string, Publisher*> publishers;
 
     /*
     void advertise(const std::string& client_name, const std::string& topic, const std::string& type, const std::string& id = "")
@@ -154,7 +188,7 @@ struct NodeHandle
     template <typename MSG>
     Publisher* advertise(const std::string& topic, const std::string& id="")
     {
-        std::string message = "\"op\":\"advertise\", \"topic\":\"" + topic + "\", \"compression\":\"cbor-raw\"";
+        std::string message = "\"op\":\"advertise\", \"topic\":\"" + topic + "\"";
         message += ", \"type\": \"" + std::string(ros::message_traits::DataType<MSG>::value()) + "\"";
         if (id.compare("") != 0)
         {
@@ -162,6 +196,17 @@ struct NodeHandle
         }
         message = "{" + message + "}";
 
+        if (socket_open) {
+            emscripten_websocket_send_utf8_text(socket, message.c_str());
+        }
+        else {
+            message_queue.push_back(message);
+        }
+
+        Publisher* publisher = new Publisher(new PublisherImpl<MSG>(), topic);
+
+        publishers[topic] = publisher;
+        return publisher;
     }
 
     static EM_BOOL WebSocketOpen(int eventType, const EmscriptenWebSocketOpenEvent *e, void *userData)
@@ -375,39 +420,27 @@ struct NodeHandle
     */
 };
 
-class PublisherImplBase
-{
-
-};
-
 template <typename MSG>
-class PublisherImpl : PublisherImplBase
+void PublisherImpl<MSG>::publish(const MSG& msg, const std::string& topic)
 {
-    void publish(const MSG& msg)
-    {
-        std::string message;
+    roscpp_json::JSONStream stream;
+    ros::message_operations::Printer<MSG>::stream(stream, "", msg);
+    std::string message = "\"op\":\"publish\", \"topic\":\"" + topic + "\", \"msg\":" + stream.str();
+    message = std::string("{ ") + message + " }";
+    //emscripten_websocket_send_utf8_text(NodeHandle::socket, message.c_str());
+    if (NodeHandle::socket_open) {
         emscripten_websocket_send_utf8_text(NodeHandle::socket, message.c_str());
     }
-};
-
-class Publisher {
-    public:
-
-    PublisherImplBase* impl;
-
-    template <typename MSG>
-    void publish(const MSG& msg)
-    {
-        // this basically allows us to check that advertise was called with correct template
-        PublisherImpl<MSG>* value = dynamic_cast<PublisherImpl<MSG>*>(impl);
-        value->publish(msg);
+    else {
+        NodeHandle::message_queue.push_back(message);
     }
-};
+}
 
 std::list<std::string> NodeHandle::message_queue = {};
 bool NodeHandle::socket_open = false;
 EMSCRIPTEN_WEBSOCKET_T NodeHandle::socket = NULL;
 std::unordered_map<std::string, Subscriber*> NodeHandle::subscribers;
+std::unordered_map<std::string, Publisher*> NodeHandle::publishers;
 
 } // namespace wasmros
 
