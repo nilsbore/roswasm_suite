@@ -23,9 +23,10 @@ class JSONStream {
     size_t current_indent;
     size_t initial_indent;
     bool indent_needs_handling;
+    bool output_service_list;
     std::list<ParsingContext> contexts;
 
-    JSONStream() : current_indent(0), initial_indent(0), indent_needs_handling(false)
+    JSONStream(bool output_service_list=false) : current_indent(0), initial_indent(0), indent_needs_handling(false), output_service_list(output_service_list)
     {
         contexts.push_back(ParsingContext());
     }
@@ -43,7 +44,12 @@ class JSONStream {
     std::string str()
     {
         exit_context(0);
-        return std::string("{ ") + stream().str() + " }";
+        if (output_service_list) {
+            return std::string("[ ") + stream().str() + " ]";
+        }
+        else {
+            return std::string("{ ") + stream().str() + " }";
+        }
     }
 
     void enter_dict()
@@ -80,7 +86,13 @@ class JSONStream {
         else {
             add_delimiter();
         }
-        add_key_value_impl(key, value);
+
+        if (output_service_list && contexts.size() == 1) {
+            add_list_value_impl(value);
+        }
+        else {
+            add_key_value_impl(key, value);
+        }
     }
 
     template <typename T>
