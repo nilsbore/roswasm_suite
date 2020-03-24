@@ -37,7 +37,7 @@ template <typename MSG>
 class SubscriberImpl : public SubscriberImplBase {
     public:
 
-    std::function<void(const MSG& msg)> impl_callback;
+    std::function<void(const MSG&)> impl_callback;
     
     void callback(std::vector<uint8_t>& buffer)
     {
@@ -50,7 +50,7 @@ class SubscriberImpl : public SubscriberImplBase {
         impl_callback(msg);
     }
 
-    SubscriberImpl(std::function<void(const MSG& msg)> cb) : impl_callback(cb)
+    SubscriberImpl(std::function<void(const MSG&)> cb) : impl_callback(cb)
     {
 
     }
@@ -76,6 +76,64 @@ class Subscriber {
     Subscriber(SubscriberImplBase* new_impl) : impl(new_impl) {}
 
     Subscriber() : impl(nullptr) {}
+
+};
+
+class ServiceClientImplBase {
+    public:
+
+    virtual void callback(const std::string& buffer) = 0;
+    virtual ~ServiceClientImplBase() {}
+
+};
+
+template <typename SRV>
+class ServiceClientImpl : public ServiceClientImplBase {
+    public:
+
+    std::function<void(const typename SRV::Response&)> impl_callback;
+
+    void call(const typename SRV::Request& req, const std::string& service_name);
+    
+    void callback(const std::string& buffer)
+    {
+        std::cout << "Got service response: " << buffer << std::endl;
+    }
+
+    ServiceClientImpl(std::function<void(const typename SRV::Response&)> cb) : impl_callback(cb)
+    {
+
+    }
+    ~ServiceClientImpl() {}
+
+};
+
+class ServiceClient {
+    public:
+
+    ServiceClientImplBase* impl;
+    std::string service_name;
+
+    void callback(const std::string& buffer)
+    {
+        if (impl != nullptr) {
+            impl->callback(buffer);
+        }
+        else {
+            printf("ServiceClient callback not initialized!\n");
+        }
+    }
+
+    template <typename SRV>
+    void call(const typename SRV::Request& req)
+    {
+        ServiceClientImpl<SRV>* value = dynamic_cast<ServiceClientImpl<SRV>*>(impl);
+        value->call(req, service_name);
+    }
+
+    ServiceClient(ServiceClientImplBase* new_impl, const std::string& new_service_name) : impl(new_impl), service_name(new_service_name) {}
+
+    ServiceClient() : impl(nullptr) {}
 
 };
 
@@ -121,6 +179,7 @@ struct NodeHandle
     static bool socket_open;
     static std::unordered_map<std::string, Subscriber*> subscribers;
     static std::unordered_map<std::string, Publisher*> publishers;
+    static std::unordered_map<std::string, ServiceClient*> service_clients;
 
     /*
     void advertise(const std::string& client_name, const std::string& topic, const std::string& type, const std::string& id = "")
@@ -207,6 +266,15 @@ struct NodeHandle
 
         publishers[topic] = publisher;
         return publisher;
+    }
+
+    template <typename SRV>
+    ServiceClient* serviceClient(const std::string& service_name, std::function<void(const typename SRV::Response&)> callback)
+    {
+        ServiceClient* service_client = new ServiceClient(new ServiceClientImpl<SRV>(callback), service_name);
+
+        service_clients[service_name] = service_client;
+        return service_client;
     }
 
     static EM_BOOL WebSocketOpen(int eventType, const EmscriptenWebSocketOpenEvent *e, void *userData)
@@ -436,11 +504,28 @@ void PublisherImpl<MSG>::publish(const MSG& msg, const std::string& topic)
     }
 }
 
+template <typename SRV>
+void ServiceClientImpl<SRV>::call(const typename SRV::Request& req, const std::string& service_name)
+{
+    roscpp_json::JSONStream stream(false);
+    ros::message_operations::Printer<typename SRV::Request>::stream(stream, "", req);
+    std::string message = "\"op\":\"call_service\", \"service\":\"" + service_name + "\", \"args\":" + stream.str();
+    message = std::string("{ ") + message + " }";
+    //emscripten_websocket_send_utf8_text(NodeHandle::socket, message.c_str());
+    if (NodeHandle::socket_open) {
+        emscripten_websocket_send_utf8_text(NodeHandle::socket, message.c_str());
+    }
+    else {
+        NodeHandle::message_queue.push_back(message);
+    }
+}
+
 std::list<std::string> NodeHandle::message_queue = {};
 bool NodeHandle::socket_open = false;
 EMSCRIPTEN_WEBSOCKET_T NodeHandle::socket = NULL;
 std::unordered_map<std::string, Subscriber*> NodeHandle::subscribers;
 std::unordered_map<std::string, Publisher*> NodeHandle::publishers;
+std::unordered_map<std::string, ServiceClient*> NodeHandle::service_clients;
 
 } // namespace wasmros
 
