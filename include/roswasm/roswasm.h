@@ -181,31 +181,6 @@ struct NodeHandle
     static std::unordered_map<std::string, Publisher*> publishers;
     static std::unordered_map<std::string, ServiceClient*> service_clients;
 
-    /*
-    void advertise(const std::string& client_name, const std::string& topic, const std::string& type, const std::string& id = "")
-    {
-        std::unordered_map<std::string, std::shared_ptr<WsClient>>::iterator it = client_map.find(client_name);
-        if (it != client_map.end())
-        {
-        std::string message = "\"op\":\"advertise\", \"topic\":\"" + topic + "\", \"type\":\"" + type + "\"";
-
-        if (id.compare("") != 0)
-        {
-        message += ", \"id\":\"" + id + "\"";
-        }
-        message = "{" + message + "}";
-
-        start(client_name, it->second, message);
-        }
-#ifdef DEBUG
-        else
-        {
-        std::cerr << client_name << "has not been created" << std::endl;
-        }
-#endif
-    }
-    */
-
     template <typename MSG>
     Subscriber* subscribe(const std::string& topic, std::function<void(const MSG&)> callback, const std::string& id = "", int throttle_rate = -1, int queue_length = -1, int fragment_size = -1, const std::string& compression = "")
     {
@@ -288,14 +263,7 @@ struct NodeHandle
             emscripten_websocket_send_utf8_text(socket, message.c_str());
         }
         message_queue.clear();
-        //emscripten_websocket_send_utf8_text(socket, "hello on the other side\r\n\r\n");
-        //emscripten_websocket_send_utf8_text(socket, "\r\n\r\n");
 
-
-        //char data[] = { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10 };
-        //emscripten_websocket_send_binary(e->socket, data, sizeof(data));
-
-        //emscripten_websocket_close(e->socket, 0, 0);
         return 0;
     }
 
@@ -328,24 +296,15 @@ struct NodeHandle
                 printf(" %02X", e->data[i]);
             printf("\n");
 
-
             CborLite::Flags flags = CborLite::Flag::none;
-            size_t nItems = 3; //0;
-            //uint8_t* pos = e->data;
-            //uint8_t* end = e->data+e->numBytes;
             std::vector<uint8_t> buff_vec(e->data, e->data+e->numBytes);
             auto vpos = buff_vec.begin();
             auto vend = buff_vec.end();
+            size_t nItems;
             CborLite::Tag tag, additional;
-            //len += CborLite::decodeTagAndAdditional(vpos, vend, tag, additional, flags);
-            //assert(tag == CborLite::Major::map);
             size_t len = CborLite::decodeMapSize(vpos, vend, nItems, flags);
 
-            //size_t len = 0;
-            //auto len = CborLite::decodeArraySize(vpos, vend, nItems, flags);
-            //if (nItems != 4) throw Exception("not the right number of items");
             printf("Number items: %zu\n", nItems);
-            //vector<pair<string, string> > tag_values;
             for (int i = 0; i < nItems; ++i) {
                 std::string key;
                 len += CborLite::decodeText(vpos, vend, key, flags);
@@ -382,22 +341,10 @@ struct NodeHandle
                             printf("Text: %s\n", text.c_str());
                         }
                         else if (tag == CborLite::Major::byteString) {
-                            //std::string text;
                             len += CborLite::decodeBytes(vpos, vend, buffer, flags);
                             printf("Tag: %llu\n", tag);
                             printf("Additional: %llu\n", additional);
-                            //printf("Text: %s\n", text.c_str());
                             printf("Bytes len: %zu\n", buffer.size());
-                            /*
-                            namespace ser = ros::serialization;
-
-                            std_msgs::String msg;
-                            uint32_t serial_size = ros::serialization::serializationLength(msg);
-                            // Fill buffer with a serialized UInt32
-                            ser::IStream stream(&buffer[0], buffer.size());
-                            ser::deserialize(stream, msg);
-                            printf("Message deserialized: %s\n", msg.data.c_str());
-                            */
                         }
                         else if (tag == CborLite::Major::unsignedInteger) {
                             unsigned int value;
@@ -420,18 +367,6 @@ struct NodeHandle
                 printf("Buffer size: %zu, calling subscriber callback\n", buffer.size());
                 subscribers[topic]->callback(buffer);
             }
-            /*
-            unsigned long type;
-            len += CborLite::decodeUnsigned(pos, end, type, flags);
-            m.type = static_cast<Message::Type>(type);
-            len += CborLite::decodeBool(pos, end, m.accepted, flags);
-            len += CborLite::decodeBytes(pos, end, m.id);
-            len += CborLite::decodeText(pos, end, m.payload, flags);
-            return len;
-            */
-
-            //emscripten_websocket_delete(e->socket);
-            //exit(0);
         }
         return 0;
     }
@@ -454,7 +389,6 @@ struct NodeHandle
         EmscriptenWebSocketCreateAttributes attr;
         emscripten_websocket_init_create_attributes(&attr);
 
-        //attr.url = "ws://localhost:9090/";
         attr.url = "ws://127.0.0.1:9090/";
         attr.createOnMainThread = true;
 
@@ -467,11 +401,9 @@ struct NodeHandle
 
         int urlLength = 0;
         EMSCRIPTEN_RESULT res = emscripten_websocket_get_url_length(socket, &urlLength);
-        //printf("Urllength: %d, Str len: %zu", urlLength, strlen(attr.url));
         assert(res == EMSCRIPTEN_RESULT_SUCCESS);
         assert(urlLength == strlen(attr.url));
 
-        //a = A(std::bind(&B::function, this, _1));
         emscripten_websocket_set_onopen_callback(socket, (void*)42, NodeHandle::WebSocketOpen);
         emscripten_websocket_set_onclose_callback(socket, (void*)43, NodeHandle::WebSocketClose);
         emscripten_websocket_set_onerror_callback(socket, (void*)44, NodeHandle::WebSocketError);
@@ -495,7 +427,6 @@ void PublisherImpl<MSG>::publish(const MSG& msg, const std::string& topic)
     ros::message_operations::Printer<MSG>::stream(stream, "", msg);
     std::string message = "\"op\":\"publish\", \"topic\":\"" + topic + "\", \"msg\":" + stream.str();
     message = std::string("{ ") + message + " }";
-    //emscripten_websocket_send_utf8_text(NodeHandle::socket, message.c_str());
     if (NodeHandle::socket_open) {
         emscripten_websocket_send_utf8_text(NodeHandle::socket, message.c_str());
     }
@@ -511,7 +442,6 @@ void ServiceClientImpl<SRV>::call(const typename SRV::Request& req, const std::s
     ros::message_operations::Printer<typename SRV::Request>::stream(stream, "", req);
     std::string message = "\"op\":\"call_service\", \"service\":\"" + service_name + "\", \"args\":" + stream.str();
     message = std::string("{ ") + message + " }";
-    //emscripten_websocket_send_utf8_text(NodeHandle::socket, message.c_str());
     if (NodeHandle::socket_open) {
         emscripten_websocket_send_utf8_text(NodeHandle::socket, message.c_str());
     }
