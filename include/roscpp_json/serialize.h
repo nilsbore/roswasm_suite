@@ -26,7 +26,7 @@ class JSONStream {
     bool output_service_list;
     std::list<ParsingContext> contexts;
 
-    JSONStream(bool output_service_list=false) : current_indent(0), initial_indent(0), indent_needs_handling(false), output_service_list(output_service_list)
+    JSONStream(bool output_service_list=false) : current_indent(1), initial_indent(0), indent_needs_handling(false), output_service_list(output_service_list)
     {
         contexts.push_back(ParsingContext());
     }
@@ -43,7 +43,7 @@ class JSONStream {
 
     std::string str()
     {
-        exit_context(0);
+        exit_context(1);
         if (output_service_list) {
             return std::string("[ ") + stream().str() + " ]";
         }
@@ -269,17 +269,19 @@ class JSONStream {
 
     JSONStream& operator<<(const std::string& value)
     {
-        if (value.find_first_not_of(' ') == std::string::npos) {
+        if (value.empty() || value.find_first_not_of(' ') != std::string::npos) {
+            if (context().is_list) {
+                add_list_value(value);
+            }
+            else if (context().has_key) {
+                add_key_value(context().key, value);
+                context().has_key = false;
+            }
+        }
+        else {
             initial_indent = value.size()/2;
             indent_needs_handling = true;
             return *this;
-        }
-        else if (context().is_list) {
-            add_list_value(value);
-        }
-        else if (context().has_key) {
-            add_key_value(context().key, value);
-            context().has_key = false;
         }
 
         return *this;
@@ -294,6 +296,14 @@ class JSONStream {
     }
 
 };
+
+template <typename MSG>
+std::string serialize(const MSG& msg)
+{
+    roscpp_json::JSONStream stream;
+    ros::message_operations::Printer<MSG>::stream(stream, "  ", msg);
+    return stream.str();
+}
 
 } // namespace roscpp_json
 

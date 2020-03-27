@@ -14,7 +14,7 @@ find_package(rosmon_msgs REQUIRED)
 # the compile and link steps.
 # Note: we skip calling link_directories() because ROS packages follow the
 # recommended CMake practice of returning absolute paths to libraries
-include_directories(include ${roscpp_INCLUDE_DIRS} ${std_msgs_INCLUDE_DIRS} ${sensor_msgs_INCLUDE_DIRS} ${rosmon_msgs_INCLUDE_DIRS})
+include_directories(include external/rapidjson/include ${roscpp_INCLUDE_DIRS} ${std_msgs_INCLUDE_DIRS} ${sensor_msgs_INCLUDE_DIRS} ${rosmon_msgs_INCLUDE_DIRS})
 
 add_executable(test src/test.cpp)
 target_link_libraries(test ${roscpp_LIBRARIES} ${std_msgs_LIBRARIES} ${sensor_msgs_LIBRARIES} ${rosmon_msgs_LIBRARIES})
