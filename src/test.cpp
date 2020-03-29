@@ -26,7 +26,7 @@ void gps_callback(const sensor_msgs::NavSatFix& msg)
 
 void service_callback(const rosapi::TopicType::Response& res)
 {
-
+    printf("Got service response with value: %s\n", res.type.c_str());
 }
 
 void loop()
@@ -46,6 +46,7 @@ extern "C" int main(int argc, char** argv)
   rosapi::TopicType::Request req;
   req.topic = "/connected_clients";
   service->call<rosapi::TopicType>(req);
+
 
   emscripten_set_main_loop(loop, 1, 1);
 

@@ -9,6 +9,11 @@
 #include <ros/serialization.h>
 #include <cbor-lite/codec.h>
 #include <roscpp_json/serialize.h>
+#include <roscpp_json/deserialize.h>
+
+#include <rapidjson/document.h>
+#include <rapidjson/stringbuffer.h>
+#include <rapidjson/writer.h>
 
 namespace ros
 {
@@ -98,6 +103,8 @@ class ServiceClientImpl : public ServiceClientImplBase {
     void callback(const std::string& buffer)
     {
         std::cout << "Got service response: " << buffer << std::endl;
+        typename SRV::Response res = roscpp_json::deserialize<typename SRV::Response>(buffer);
+        impl_callback(res);
     }
 
     ServiceClientImpl(std::function<void(const typename SRV::Response&)> cb) : impl_callback(cb)
@@ -280,93 +287,130 @@ struct NodeHandle
         return 0;
     }
 
+    static void handle_bytes(const EmscriptenWebSocketMessageEvent* e)
+    {
+        // to be filled in
+        std::vector<uint8_t> buffer;
+        std::string topic;
+
+        printf("binary data:");
+        for(int i = 0; i < e->numBytes; ++i)
+            printf(" %02X", e->data[i]);
+        printf("\n");
+
+        CborLite::Flags flags = CborLite::Flag::none;
+        std::vector<uint8_t> buff_vec(e->data, e->data+e->numBytes);
+        auto vpos = buff_vec.begin();
+        auto vend = buff_vec.end();
+        size_t nItems;
+        CborLite::Tag tag, additional;
+        size_t len = CborLite::decodeMapSize(vpos, vend, nItems, flags);
+
+        printf("Number items: %zu\n", nItems);
+        for (int i = 0; i < nItems; ++i) {
+            std::string key;
+            len += CborLite::decodeText(vpos, vend, key, flags);
+            printf("Key: %s\n", key.c_str());
+            auto rpos = vpos;
+            CborLite::decodeTagAndAdditional(vpos, vend, tag, additional, flags);
+            vpos = rpos;
+            if (tag == CborLite::Major::textString) {
+                std::string text;
+                len += CborLite::decodeText(vpos, vend, text, flags);
+                printf("Tag: %llu\n", tag);
+                printf("Additional: %llu\n", additional);
+                printf("Text: %s\n", text.c_str());
+                if (key == "topic") {
+                    topic = text;
+                }
+            }
+            else if (tag == CborLite::Major::map) {
+                size_t mItems;
+                len += CborLite::decodeMapSize(vpos, vend, mItems, flags);
+                printf("Number items: %zu\n", nItems);
+                for (int j = 0; j < mItems; ++j) {
+                    std::string mkey;
+                    len += CborLite::decodeText(vpos, vend, mkey, flags);
+                    printf("Key: %s\n", mkey.c_str());
+                    rpos = vpos;
+                    CborLite::decodeTagAndAdditional(vpos, vend, tag, additional, flags);
+                    vpos = rpos;
+                    if (tag == CborLite::Major::textString) {
+                        std::string text;
+                        len += CborLite::decodeText(vpos, vend, text, flags);
+                        printf("Tag: %llu\n", tag);
+                        printf("Additional: %llu\n", additional);
+                        printf("Text: %s\n", text.c_str());
+                    }
+                    else if (tag == CborLite::Major::byteString) {
+                        len += CborLite::decodeBytes(vpos, vend, buffer, flags);
+                        printf("Tag: %llu\n", tag);
+                        printf("Additional: %llu\n", additional);
+                        printf("Bytes len: %zu\n", buffer.size());
+                    }
+                    else if (tag == CborLite::Major::unsignedInteger) {
+                        unsigned int value;
+                        len += CborLite::decodeUnsigned(vpos, vend, value, flags);
+                        printf("Value: %u\n", value);
+                    }
+                    else {
+                        printf("Unknown tag: %llu\n", tag);
+                    }
+                }
+
+            }
+            else {
+                printf("Unknown tag: %llu\n", tag);
+            }
+
+        }
+        printf("Total len: %zu\n", len);
+        if (subscribers.count(topic)) {
+            printf("Buffer size: %zu, calling subscriber callback\n", buffer.size());
+            subscribers[topic]->callback(buffer);
+        }
+    }
+
+    static void handle_string(const EmscriptenWebSocketMessageEvent* e)
+    {
+        rapidjson::Document document;
+        document.Parse((const char*)e->data);
+        assert(document.IsObject());
+        assert(document.HasMember("op"));
+        assert(document["op"].IsString());
+        std::string op = document["op"].GetString();
+        if (op == "publish") {
+            printf("Got string message!\n");
+        }
+        else if (op == "service_response") {
+            printf("Got string service response!\n");
+            assert(document.HasMember("values"));
+            assert(document.HasMember("service"));
+            assert(document["service"].IsString());
+            std::string service_name = document["service"].GetString();
+            rapidjson::StringBuffer sb;
+            rapidjson::Writer<rapidjson::StringBuffer> writer(sb);
+            document["values"].Accept(writer);
+            std::string json_values = sb.GetString();
+            if (service_clients.count(service_name)) {
+                printf("Response: %s, calling service client callback\n", json_values.c_str());
+                service_clients[service_name]->callback(json_values);
+            }
+        }
+        else {
+            printf("Unknown operation!\n");
+        }
+    }
+
     static EM_BOOL WebSocketMessage(int eventType, const EmscriptenWebSocketMessageEvent *e, void *userData)
     {
         printf("message(eventType=%d, userData=%d, data=%p, numBytes=%d, isText=%d)\n", eventType, (int)userData, e->data, e->numBytes, e->isText);
-        if (e->isText)
+        if (e->isText) {
             printf("text data: \"%s\"\n", e->data);
-        else
-        {
-            // to be filled in
-            std::vector<uint8_t> buffer;
-            std::string topic;
-
-            printf("binary data:");
-            for(int i = 0; i < e->numBytes; ++i)
-                printf(" %02X", e->data[i]);
-            printf("\n");
-
-            CborLite::Flags flags = CborLite::Flag::none;
-            std::vector<uint8_t> buff_vec(e->data, e->data+e->numBytes);
-            auto vpos = buff_vec.begin();
-            auto vend = buff_vec.end();
-            size_t nItems;
-            CborLite::Tag tag, additional;
-            size_t len = CborLite::decodeMapSize(vpos, vend, nItems, flags);
-
-            printf("Number items: %zu\n", nItems);
-            for (int i = 0; i < nItems; ++i) {
-                std::string key;
-                len += CborLite::decodeText(vpos, vend, key, flags);
-                printf("Key: %s\n", key.c_str());
-                auto rpos = vpos;
-                CborLite::decodeTagAndAdditional(vpos, vend, tag, additional, flags);
-                vpos = rpos;
-                if (tag == CborLite::Major::textString) {
-                    std::string text;
-                    len += CborLite::decodeText(vpos, vend, text, flags);
-                    printf("Tag: %llu\n", tag);
-                    printf("Additional: %llu\n", additional);
-                    printf("Text: %s\n", text.c_str());
-                    if (key == "topic") {
-                        topic = text;
-                    }
-                }
-                else if (tag == CborLite::Major::map) {
-                    size_t mItems;
-                    len += CborLite::decodeMapSize(vpos, vend, mItems, flags);
-                    printf("Number items: %zu\n", nItems);
-                    for (int j = 0; j < mItems; ++j) {
-                        std::string mkey;
-                        len += CborLite::decodeText(vpos, vend, mkey, flags);
-                        printf("Key: %s\n", mkey.c_str());
-                        rpos = vpos;
-                        CborLite::decodeTagAndAdditional(vpos, vend, tag, additional, flags);
-                        vpos = rpos;
-                        if (tag == CborLite::Major::textString) {
-                            std::string text;
-                            len += CborLite::decodeText(vpos, vend, text, flags);
-                            printf("Tag: %llu\n", tag);
-                            printf("Additional: %llu\n", additional);
-                            printf("Text: %s\n", text.c_str());
-                        }
-                        else if (tag == CborLite::Major::byteString) {
-                            len += CborLite::decodeBytes(vpos, vend, buffer, flags);
-                            printf("Tag: %llu\n", tag);
-                            printf("Additional: %llu\n", additional);
-                            printf("Bytes len: %zu\n", buffer.size());
-                        }
-                        else if (tag == CborLite::Major::unsignedInteger) {
-                            unsigned int value;
-                            len += CborLite::decodeUnsigned(vpos, vend, value, flags);
-                            printf("Value: %u\n", value);
-                        }
-                        else {
-                            printf("Unknown tag: %llu\n", tag);
-                        }
-                    }
-
-                }
-                else {
-                    printf("Unknown tag: %llu\n", tag);
-                }
-
-            }
-            printf("Total len: %zu\n", len);
-            if (subscribers.count(topic)) {
-                printf("Buffer size: %zu, calling subscriber callback\n", buffer.size());
-                subscribers[topic]->callback(buffer);
-            }
+            handle_string(e);
+        }
+        else {
+            handle_bytes(e);
         }
         return 0;
     }
