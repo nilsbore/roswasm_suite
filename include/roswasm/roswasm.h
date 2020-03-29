@@ -7,8 +7,8 @@
 
 #include <unordered_map>
 #include <ros/serialization.h>
-#include "cbor-lite/include/cbor-lite/codec.h"
-#include "roscpp_json_serialize/include/roscpp_json/serialize.h"
+#include <cbor-lite/codec.h>
+#include <roscpp_json/serialize.h>
 
 namespace ros
 {
