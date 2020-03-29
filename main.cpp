@@ -11,14 +11,50 @@
 #include "imgui.h"
 #include "imgui_impl_glfw.h"
 #include "imgui_impl_opengl3.h"
+
+#include <roswasm/roswasm.h>
+#include <rosapi/TopicsForType.h>
+#include <rosmon_msgs/State.h>
 #include <iostream>
 
+struct LaunchState {
+
+    roswasm::Subscriber* sub;
+    rosmon_msgs::State msg;
+
+    void callback(const rosmon_msgs::State& new_msg)
+    {
+        msg = new_msg;
+    }
+
+    LaunchState(roswasm::NodeHandle* node_handle, const std::string& topic)
+    {
+        sub = node_handle->subscribe<rosmon_msgs::State>(topic, std::bind(&LaunchState::callback, this, std::placeholders::_1));
+    }
+
+    LaunchState() : sub(nullptr) {}
+
+};
+
+// ros stuff
+roswasm::NodeHandle* nh; 
+roswasm::ServiceClient* topics_service;
+std::unordered_map<std::string, LaunchState> launch_states;
+
+void service_callback(const rosapi::TopicsForType::Response& res)
+{
+    for (int i = 0; i < res.topics.size(); ++i) {
+        if (launch_states.count(res.topics[i]) == 0) {
+            launch_states[res.topics[i]] = LaunchState(nh, res.topics[i]);
+        }
+    }
+}
 
 GLFWwindow* g_window;
 ImVec4 clear_color = ImVec4(0.45f, 0.55f, 0.60f, 1.00f);
 ImGuiContext* imgui = 0;
-bool show_demo_window = true;
-bool show_another_window = false;
+bool show_demo_window = false;
+bool show_another_window = true;
 
 EM_JS(int, canvas_get_width, (), {
   return Module.canvas.width;
@@ -70,10 +106,17 @@ void loop()
   // 2. Show another simple window. In most cases you will use an explicit Begin/End pair to name your windows.
   if (show_another_window)
   {
-      ImGui::Begin("Another Window", &show_another_window);
-      ImGui::Text("Hello from another window!");
-      if (ImGui::Button("Close Me"))
-          show_another_window = false;
+      ImGui::Begin("Mon launch", &show_another_window);
+      ImGui::Text("Mon launch instances");
+      //if (ImGui::Button("Close Me"))
+      //    show_another_window = false;
+      for (int i = 0; i < launch_states.size(); ++i) {
+          if (ImGui::CollapsingHeader("Help")) {
+              for (const std::pair<std::string, LaunchState>& state : launch_states) {
+
+              }
+          }
+      }
       ImGui::End();
   }
 
@@ -165,8 +208,13 @@ extern "C" int main(int argc, char** argv)
 {
   if (init() != 0) return 1;
 
+  nh = new roswasm::NodeHandle();
+  rosapi::TopicsForType::Request req;
+  req.type = "rosmon_msgs/State";
+  topics_service->call<rosapi::TopicsForType>(req);
+
   #ifdef __EMSCRIPTEN__
-  emscripten_set_main_loop(loop, 0, 1);
+  emscripten_set_main_loop(loop, 20, 1);
   #endif
 
   quit();
