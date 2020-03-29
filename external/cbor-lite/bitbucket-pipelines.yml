@@ -1,0 +1,8 @@
+image: cvkurt/gcxp:latest
+pipelines:
+  default:
+    - step:
+        script: # build and test
+          - cmake -G Ninja
+          - ninja
+          - ninja junit
