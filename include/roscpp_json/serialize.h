@@ -298,9 +298,9 @@ class JSONStream {
 };
 
 template <typename MSG>
-std::string serialize(const MSG& msg)
+std::string serialize(const MSG& msg, bool output_service_list=false)
 {
-    roscpp_json::JSONStream stream;
+    roscpp_json::JSONStream stream(output_service_list);
     ros::message_operations::Printer<MSG>::stream(stream, "  ", msg);
     return stream.str();
 }
