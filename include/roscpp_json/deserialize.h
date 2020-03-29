@@ -102,8 +102,24 @@ public:
     {
         rapidjson::Document document;
         document.Parse(json.c_str());
-        // this may not work for service returns
         assert(document.IsObject());
+        MSG msg;
+        parse_impl(msg, document);
+        return msg;
+    }
+
+    template <typename MSG>
+    MSG parse_service_list(const std::string& json)
+    {
+        rapidjson::Document document;
+        document.SetObject();
+        rapidjson::Document list_document(&document.GetAllocator());
+        list_document.Parse(json.c_str());
+        assert(list_document.IsArray());
+        size_t length = list_document.Size();
+        for (size_t i = 0; i < length; ++i) {
+            document.AddMember(rapidjson::StringRef(std::to_string(i).c_str()), list_document[i], document.GetAllocator());
+        }
         MSG msg;
         parse_impl(msg, document);
         return msg;
@@ -116,10 +132,15 @@ public:
 };
 
 template <typename MSG>
-MSG deserialize(const std::string& json)
+MSG deserialize(const std::string& json, bool input_service_list=false)
 {
     roscpp_json::JSONIter iter;
-    return iter.parse<MSG>(json);
+    if (input_service_list) {
+        return iter.parse_service_list<MSG>(json);
+    }
+    else {
+        return iter.parse<MSG>(json);
+    }
 }
 
 } // namespace roscpp_json

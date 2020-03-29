@@ -3,10 +3,12 @@
 #include <sensor_msgs/NavSatFix.h>
 #include <rosmon_msgs/State.h>
 
+bool service_list = false;
+
 template <typename MSG>
 void test_serialization(const MSG& msg)
 {
-    std::string json_msg = roscpp_json::serialize(msg);
+    std::string json_msg = roscpp_json::serialize(msg, service_list);
     std::cout << json_msg << std::endl;
 
     std::stringstream sstream;
@@ -14,7 +16,7 @@ void test_serialization(const MSG& msg)
     std::string original_def = sstream.str();
     std::cout << original_def << std::endl;
 
-    MSG parsed_msg = roscpp_json::deserialize<MSG>(json_msg);
+    MSG parsed_msg = roscpp_json::deserialize<MSG>(json_msg, service_list);
 
     sstream.str("");
     ros::message_operations::Printer<MSG>::stream(sstream, "", parsed_msg);
