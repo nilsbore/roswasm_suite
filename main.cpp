@@ -19,33 +19,43 @@
 
 struct LaunchState {
 
+    static const char* status[];
+
     roswasm::Subscriber* sub;
     rosmon_msgs::State msg;
+    std::string topic;
+    int selected;
+    //size_t nbr_nodes;
 
     void callback(const rosmon_msgs::State& new_msg)
     {
         msg = new_msg;
+        printf("Got quite simple msg\n");
+        printf("Nodes len: %zu\n", new_msg.nodes.size());
     }
 
-    LaunchState(roswasm::NodeHandle* node_handle, const std::string& topic)
+    LaunchState(roswasm::NodeHandle* node_handle, const std::string& topic) : topic(topic), selected(-1)
     {
         sub = node_handle->subscribe<rosmon_msgs::State>(topic, std::bind(&LaunchState::callback, this, std::placeholders::_1));
+        //sub = node_handle->subscribe<rosmon_msgs::State>(topic, simple_callback);
     }
 
     LaunchState() : sub(nullptr) {}
 
 };
 
+const char* LaunchState::status[] = { "IDLE", "RUNNING", "CRASHED", "WAITING" };
+
 // ros stuff
 roswasm::NodeHandle* nh; 
 roswasm::ServiceClient* topics_service;
-std::unordered_map<std::string, LaunchState> launch_states;
+std::unordered_map<std::string, LaunchState*> launch_states;
 
 void service_callback(const rosapi::TopicsForType::Response& res)
 {
     for (int i = 0; i < res.topics.size(); ++i) {
         if (launch_states.count(res.topics[i]) == 0) {
-            launch_states[res.topics[i]] = LaunchState(nh, res.topics[i]);
+            launch_states[res.topics[i]] = new LaunchState(nh, res.topics[i]);
         }
     }
 }
@@ -110,11 +120,51 @@ void loop()
       ImGui::Text("Mon launch instances");
       //if (ImGui::Button("Close Me"))
       //    show_another_window = false;
-      for (int i = 0; i < launch_states.size(); ++i) {
-          if (ImGui::CollapsingHeader("Help")) {
-              for (const std::pair<std::string, LaunchState>& state : launch_states) {
-
-              }
+      for (std::pair<const std::string, LaunchState*>& state : launch_states) {
+          if (state.second->msg.nodes.empty()) {
+             continue;
+          } 
+          if (ImGui::CollapsingHeader(state.second->topic.c_str())) {
+                ImGui::Columns(6, "mycolumns"); // 4-ways, with border
+                ImGui::Separator();
+                ImGui::Text("Name"); ImGui::NextColumn();
+                ImGui::Text("State"); ImGui::NextColumn();
+                ImGui::Text("CPU"); ImGui::NextColumn();
+                ImGui::Text("Memory"); ImGui::NextColumn();
+                ImGui::Text("Restarts"); ImGui::NextColumn();
+                ImGui::Text("Action"); ImGui::NextColumn();
+                ImGui::Separator();
+                //const char* names[3] = { "One", "Two", "Three" };
+                //const char* paths[3] = { "/path/one", "/path/two", "/path/three" };
+                //static int selected = -1;
+                //for (int i = 0; i < 2; i++) // state.second->nodes.size(); i++)
+                for (int i = 0; i < state.second->msg.nodes.size(); i++)
+                {
+                    //char label[32];
+                    //sprintf(label, "%04d", i);
+                    //if (ImGui::Selectable("Goppsan", state.second->selected == i, ImGuiSelectableFlags_SpanAllColumns))
+                    if (ImGui::Selectable(state.second->msg.nodes[i].name.c_str(), state.second->selected == i, ImGuiSelectableFlags_SpanAllColumns))
+                        state.second->selected = i;
+                    bool hovered = ImGui::IsItemHovered();
+                    ImGui::NextColumn();
+                    /*
+                    ImGui::Text("Tjena"); ImGui::NextColumn();
+                    ImGui::Text("Tjena"); ImGui::NextColumn();
+                    ImGui::Text("Tjena"); ImGui::NextColumn();
+                    ImGui::Text("Tjena"); ImGui::NextColumn();
+                    */
+                    ImGui::Text("%s", LaunchState::status[state.second->msg.nodes[i].state]); ImGui::NextColumn();
+                    ImGui::Text("%.2f %%", 100.*state.second->msg.nodes[i].user_load); ImGui::NextColumn();
+                    ImGui::Text("%.2f MB", 1e-6*state.second->msg.nodes[i].memory); ImGui::NextColumn();
+                    ImGui::Text("%u", state.second->msg.nodes[i].restart_count); ImGui::NextColumn();
+                    //ImGui::Text(""); ImGui::NextColumn();
+                    //ImGui::Text("%d", hovered); ImGui::NextColumn();
+                    if (ImGui::Button("Button"))
+                        printf("Button clicked!");
+                    ImGui::NextColumn();
+                }
+                ImGui::Columns(1);
+                ImGui::Separator();
           }
       }
       ImGui::End();
@@ -209,6 +259,7 @@ extern "C" int main(int argc, char** argv)
   if (init() != 0) return 1;
 
   nh = new roswasm::NodeHandle();
+  topics_service = nh->serviceClient<rosapi::TopicsForType>("/rosapi/topics_for_type", service_callback);
   rosapi::TopicsForType::Request req;
   req.type = "rosmon_msgs/State";
   topics_service->call<rosapi::TopicsForType>(req);
