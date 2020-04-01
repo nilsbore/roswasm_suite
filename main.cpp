@@ -15,6 +15,7 @@
 #include <roswasm/roswasm.h>
 #include <rosapi/TopicsForType.h>
 #include <rosmon_msgs/State.h>
+#include <rosmon_msgs/StartStop.h>
 #include <iostream>
 
 struct LaunchState {
@@ -22,10 +23,16 @@ struct LaunchState {
     static const char* status[];
 
     roswasm::Subscriber* sub;
+    roswasm::ServiceClient* client;
     rosmon_msgs::State msg;
     std::string topic;
     int selected;
     //size_t nbr_nodes;
+
+    void service_callback(const rosmon_msgs::StartStop::Response& res)
+    {
+        printf("Got StartStop service response!\n");
+    }
 
     void callback(const rosmon_msgs::State& new_msg)
     {
@@ -34,9 +41,22 @@ struct LaunchState {
         printf("Nodes len: %zu\n", new_msg.nodes.size());
     }
 
+    void start_stop(uint8_t action, const std::string& name)
+    {
+        rosmon_msgs::StartStop::Request req;
+        req.node = name;
+        req.action = action;
+        client->call<rosmon_msgs::StartStop>(req);
+    }
+
     LaunchState(roswasm::NodeHandle* node_handle, const std::string& topic) : topic(topic), selected(-1)
     {
         sub = node_handle->subscribe<rosmon_msgs::State>(topic, std::bind(&LaunchState::callback, this, std::placeholders::_1));
+        //topics_service = nh->serviceClient<rosapi::TopicsForType>("/rosapi/topics_for_type", service_callback);
+        size_t ns_pos = topic.find('/', 1);
+        std::string service_name = topic.substr(0, ns_pos) + "/start_stop";
+        printf("Service name: %s\n", service_name.c_str());
+        client = node_handle->serviceClient<rosmon_msgs::StartStop>(service_name, std::bind(&LaunchState::service_callback, this, std::placeholders::_1));
         //sub = node_handle->subscribe<rosmon_msgs::State>(topic, simple_callback);
     }
 
@@ -134,37 +154,30 @@ void loop()
                 ImGui::Text("Restarts"); ImGui::NextColumn();
                 ImGui::Text("Action"); ImGui::NextColumn();
                 ImGui::Separator();
-                //const char* names[3] = { "One", "Two", "Three" };
-                //const char* paths[3] = { "/path/one", "/path/two", "/path/three" };
-                //static int selected = -1;
-                //for (int i = 0; i < 2; i++) // state.second->nodes.size(); i++)
                 for (int i = 0; i < state.second->msg.nodes.size(); i++)
                 {
-                    //char label[32];
-                    //sprintf(label, "%04d", i);
-                    //if (ImGui::Selectable("Goppsan", state.second->selected == i, ImGuiSelectableFlags_SpanAllColumns))
                     if (ImGui::Selectable(state.second->msg.nodes[i].name.c_str(), state.second->selected == i, ImGuiSelectableFlags_SpanAllColumns))
                         state.second->selected = i;
+                    if (ImGui::BeginPopupContextItem(state.second->msg.nodes[i].name.c_str()))
+                    {
+                        if (ImGui::Selectable("START")) state.second->start_stop(rosmon_msgs::StartStop::Request::START, state.second->msg.nodes[i].name);
+                        if (ImGui::Selectable("STOP")) state.second->start_stop(rosmon_msgs::StartStop::Request::STOP, state.second->msg.nodes[i].name);
+                        if (ImGui::Selectable("RESTART")) state.second->start_stop(rosmon_msgs::StartStop::Request::RESTART, state.second->msg.nodes[i].name);
+                        ImGui::EndPopup();
+                    }
                     bool hovered = ImGui::IsItemHovered();
                     ImGui::NextColumn();
-                    /*
-                    ImGui::Text("Tjena"); ImGui::NextColumn();
-                    ImGui::Text("Tjena"); ImGui::NextColumn();
-                    ImGui::Text("Tjena"); ImGui::NextColumn();
-                    ImGui::Text("Tjena"); ImGui::NextColumn();
-                    */
                     ImGui::Text("%s", LaunchState::status[state.second->msg.nodes[i].state]); ImGui::NextColumn();
                     ImGui::Text("%.2f %%", 100.*state.second->msg.nodes[i].user_load); ImGui::NextColumn();
                     ImGui::Text("%.2f MB", 1e-6*state.second->msg.nodes[i].memory); ImGui::NextColumn();
                     ImGui::Text("%u", state.second->msg.nodes[i].restart_count); ImGui::NextColumn();
-                    //ImGui::Text(""); ImGui::NextColumn();
-                    //ImGui::Text("%d", hovered); ImGui::NextColumn();
                     if (ImGui::Button("Button"))
                         printf("Button clicked!");
                     ImGui::NextColumn();
                 }
                 ImGui::Columns(1);
                 ImGui::Separator();
+
           }
       }
       ImGui::End();
