@@ -24,7 +24,7 @@ void gps_callback(const sensor_msgs::NavSatFix& msg)
     printf("Got string message in callback: %s\n", msg.header.frame_id.c_str());
 }
 
-void service_callback(const rosapi::TopicType::Response& res)
+void service_callback(const rosapi::TopicType::Response& res, bool result)
 {
     printf("Got service response with value: %s\n", res.type.c_str());
 }

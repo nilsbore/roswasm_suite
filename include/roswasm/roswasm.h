@@ -87,7 +87,7 @@ class Subscriber {
 class ServiceClientImplBase {
     public:
 
-    virtual void callback(const std::string& buffer) = 0;
+    virtual void callback(const std::string& buffer, bool result) = 0;
     virtual ~ServiceClientImplBase() {}
 
 };
@@ -96,18 +96,21 @@ template <typename SRV>
 class ServiceClientImpl : public ServiceClientImplBase {
     public:
 
-    std::function<void(const typename SRV::Response&)> impl_callback;
+    std::function<void(const typename SRV::Response&, bool)> impl_callback;
 
     void call(const typename SRV::Request& req, const std::string& service_name);
     
-    void callback(const std::string& buffer)
+    void callback(const std::string& buffer, bool result)
     {
         std::cout << "Got service response: " << buffer << std::endl;
-        typename SRV::Response res = roscpp_json::deserialize<typename SRV::Response>(buffer);
-        impl_callback(res);
+        typename SRV::Response res;
+        if (result) {
+           res = roscpp_json::deserialize<typename SRV::Response>(buffer);
+        }
+        impl_callback(res, result);
     }
 
-    ServiceClientImpl(std::function<void(const typename SRV::Response&)> cb) : impl_callback(cb)
+    ServiceClientImpl(std::function<void(const typename SRV::Response&, bool)> cb) : impl_callback(cb)
     {
 
     }
@@ -121,10 +124,10 @@ class ServiceClient {
     ServiceClientImplBase* impl;
     std::string service_name;
 
-    void callback(const std::string& buffer)
+    void callback(const std::string& buffer, bool result)
     {
         if (impl != nullptr) {
-            impl->callback(buffer);
+            impl->callback(buffer, result);
         }
         else {
             printf("ServiceClient callback not initialized!\n");
@@ -251,7 +254,7 @@ struct NodeHandle
     }
 
     template <typename SRV>
-    ServiceClient* serviceClient(const std::string& service_name, std::function<void(const typename SRV::Response&)> callback)
+    ServiceClient* serviceClient(const std::string& service_name, std::function<void(const typename SRV::Response&, bool result)> callback)
     {
         ServiceClient* service_client = new ServiceClient(new ServiceClientImpl<SRV>(callback), service_name);
 
@@ -387,14 +390,17 @@ struct NodeHandle
             assert(document.HasMember("values"));
             assert(document.HasMember("service"));
             assert(document["service"].IsString());
+            assert(document.HasMember("result"));
+            assert(document["result"].IsBool());
             std::string service_name = document["service"].GetString();
+            bool result = document["result"].GetBool();
             rapidjson::StringBuffer sb;
             rapidjson::Writer<rapidjson::StringBuffer> writer(sb);
             document["values"].Accept(writer);
             std::string json_values = sb.GetString();
             if (service_clients.count(service_name)) {
                 printf("Response: %s, calling service client callback\n", json_values.c_str());
-                service_clients[service_name]->callback(json_values);
+                service_clients[service_name]->callback(json_values, result);
             }
         }
         else {
