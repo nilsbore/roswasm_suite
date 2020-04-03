@@ -199,46 +199,50 @@ void loop()
           if (state.second->msg.nodes.empty()) {
              continue;
           } 
-          if (ImGui::Button("Start"))
-              state.second->start_stop_launch(rosmon_msgs::StartStop::Request::START);
-          if (ImGui::Button("Stop"))
-              state.second->start_stop_launch(rosmon_msgs::StartStop::Request::STOP);
-          char buf[32];
-          float progress = state.second->get_progress();
-          sprintf(buf, "%d/%d", int(progress*state.second->msg.nodes.size()), int(state.second->msg.nodes.size()));
-          ImGui::ProgressBar(progress, ImVec2(0.f,0.f), buf);
-          if (ImGui::CollapsingHeader(state.second->topic.c_str())) {
-                ImGui::Columns(5, "mycolumns"); // 4-ways, with border
-                ImGui::Separator();
-                ImGui::Text("Name"); ImGui::NextColumn();
-                ImGui::Text("State"); ImGui::NextColumn();
-                ImGui::Text("CPU"); ImGui::NextColumn();
-                ImGui::Text("Memory"); ImGui::NextColumn();
-                ImGui::Text("Restarts"); ImGui::NextColumn();
-                ImGui::Separator();
-                for (int i = 0; i < state.second->msg.nodes.size(); i++)
-                {
-                    const std::string& name = state.second->msg.nodes[i].name;
-                    const std::string& ns = state.second->msg.nodes[i].ns;
-                    if (ImGui::Selectable(name.c_str(), state.second->selected == i, ImGuiSelectableFlags_SpanAllColumns))
-                        state.second->selected = i;
-                    if (ImGui::BeginPopupContextItem(name.c_str()))
+          if (ImGui::CollapsingHeader(state.second->topic.c_str(), ImGuiTreeNodeFlags_Framed | ImGuiTreeNodeFlags_DefaultOpen)) {
+              if (ImGui::Button("Start"))
+                  state.second->start_stop_launch(rosmon_msgs::StartStop::Request::START);
+              ImGui::SameLine();
+              if (ImGui::Button("Stop"))
+                  state.second->start_stop_launch(rosmon_msgs::StartStop::Request::STOP);
+              ImGui::SameLine();
+              char buf[32];
+              float progress = state.second->get_progress();
+              sprintf(buf, "%d/%d", int(progress*state.second->msg.nodes.size()), int(state.second->msg.nodes.size()));
+              ImGui::ProgressBar(progress, ImVec2(0.f,0.f), buf);
+              if (ImGui::TreeNode("Nodes")) {
+                    ImGui::Columns(5, "mycolumns"); // 4-ways, with border
+                    ImGui::Separator();
+                    ImGui::Text("Name"); ImGui::NextColumn();
+                    ImGui::Text("State"); ImGui::NextColumn();
+                    ImGui::Text("CPU"); ImGui::NextColumn();
+                    ImGui::Text("Memory"); ImGui::NextColumn();
+                    ImGui::Text("Restarts"); ImGui::NextColumn();
+                    ImGui::Separator();
+                    for (int i = 0; i < state.second->msg.nodes.size(); i++)
                     {
-                        if (ImGui::Selectable("START")) state.second->start_stop(rosmon_msgs::StartStop::Request::START, name, ns);
-                        if (ImGui::Selectable("STOP")) state.second->start_stop(rosmon_msgs::StartStop::Request::STOP, name, ns);
-                        if (ImGui::Selectable("RESTART")) state.second->start_stop(rosmon_msgs::StartStop::Request::RESTART, name, ns);
-                        ImGui::EndPopup();
+                        const std::string& name = state.second->msg.nodes[i].name;
+                        const std::string& ns = state.second->msg.nodes[i].ns;
+                        if (ImGui::Selectable(name.c_str(), state.second->selected == i, ImGuiSelectableFlags_SpanAllColumns))
+                            state.second->selected = i;
+                        if (ImGui::BeginPopupContextItem(name.c_str()))
+                        {
+                            if (ImGui::Selectable("START")) state.second->start_stop(rosmon_msgs::StartStop::Request::START, name, ns);
+                            if (ImGui::Selectable("STOP")) state.second->start_stop(rosmon_msgs::StartStop::Request::STOP, name, ns);
+                            if (ImGui::Selectable("RESTART")) state.second->start_stop(rosmon_msgs::StartStop::Request::RESTART, name, ns);
+                            ImGui::EndPopup();
+                        }
+                        bool hovered = ImGui::IsItemHovered();
+                        ImGui::NextColumn();
+                        ImGui::Text("%s", LaunchState::status[state.second->msg.nodes[i].state]); ImGui::NextColumn();
+                        ImGui::Text("%.2f %%", 100.*state.second->msg.nodes[i].user_load); ImGui::NextColumn();
+                        ImGui::Text("%.2f MB", 1e-6*state.second->msg.nodes[i].memory); ImGui::NextColumn();
+                        ImGui::Text("%u", state.second->msg.nodes[i].restart_count); ImGui::NextColumn();
                     }
-                    bool hovered = ImGui::IsItemHovered();
-                    ImGui::NextColumn();
-                    ImGui::Text("%s", LaunchState::status[state.second->msg.nodes[i].state]); ImGui::NextColumn();
-                    ImGui::Text("%.2f %%", 100.*state.second->msg.nodes[i].user_load); ImGui::NextColumn();
-                    ImGui::Text("%.2f MB", 1e-6*state.second->msg.nodes[i].memory); ImGui::NextColumn();
-                    ImGui::Text("%u", state.second->msg.nodes[i].restart_count); ImGui::NextColumn();
-                }
-                ImGui::Columns(1);
-                ImGui::Separator();
-
+                    ImGui::Columns(1);
+                    ImGui::Separator();
+                    ImGui::TreePop();
+              }
           }
       }
       ImGui::End();
