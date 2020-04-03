@@ -38,39 +38,46 @@ struct LaunchState {
         printf("Got StartStop service response!\n");
     }
 
-    void callback(const rosmon_msgs::State& new_msg)
+    void start_stop_launch_node()
     {
-        msg = new_msg;
-        if (start_stop_launch_node_idx != -1 && start_stop_launch_node_idx < msg.nodes.size()) {
-            uint8_t desired_state;
-            if (start_stop_launch_action == rosmon_msgs::StartStop::Request::START) {
-                desired_state = rosmon_msgs::NodeState::RUNNING;
-            }
-            else if (start_stop_launch_action == rosmon_msgs::StartStop::Request::STOP) {
-                desired_state = rosmon_msgs::NodeState::IDLE;
-            }
+        if (start_stop_launch_node_idx == -1 || start_stop_launch_node_idx >= msg.nodes.size()) {
+            return;
+        }
 
-            uint8_t state = msg.nodes[start_stop_launch_node_idx].state;
+        uint8_t desired_state;
+        if (start_stop_launch_action == rosmon_msgs::StartStop::Request::START) {
+            desired_state = rosmon_msgs::NodeState::RUNNING;
+        }
+        else if (start_stop_launch_action == rosmon_msgs::StartStop::Request::STOP) {
+            desired_state = rosmon_msgs::NodeState::IDLE;
+        }
+
+        uint8_t state = msg.nodes[start_stop_launch_node_idx].state;
+        if (state == rosmon_msgs::NodeState::CRASHED) {
+            state = rosmon_msgs::NodeState::IDLE;
+        }
+        while (state == desired_state) {
+            ++start_stop_launch_node_idx;
+            start_stop_launch_attempts = 0;
+            if (start_stop_launch_node_idx >= msg.nodes.size()) {
+                start_stop_launch_node_idx = -1;
+                break;
+            }
+            state = msg.nodes[start_stop_launch_node_idx].state;
             if (state == rosmon_msgs::NodeState::CRASHED) {
                 state = rosmon_msgs::NodeState::IDLE;
             }
-            while (state == desired_state) {
-                ++start_stop_launch_node_idx;
-                start_stop_launch_attempts = 0;
-                if (start_stop_launch_node_idx >= msg.nodes.size()) {
-                    start_stop_launch_node_idx = -1;
-                    break;
-                }
-                state = msg.nodes[start_stop_launch_node_idx].state;
-                if (state == rosmon_msgs::NodeState::CRASHED) {
-                    state = rosmon_msgs::NodeState::IDLE;
-                }
-            }
-            if (start_stop_launch_node_idx != -1) {
-                start_stop(start_stop_launch_action, msg.nodes[start_stop_launch_node_idx].name, msg.nodes[start_stop_launch_node_idx].ns);
-                ++start_stop_launch_attempts;
-            }
         }
+        if (start_stop_launch_node_idx != -1) {
+            start_stop(start_stop_launch_action, msg.nodes[start_stop_launch_node_idx].name, msg.nodes[start_stop_launch_node_idx].ns);
+            ++start_stop_launch_attempts;
+        }
+    }
+
+    void callback(const rosmon_msgs::State& new_msg)
+    {
+        msg = new_msg;
+        start_stop_launch_node();
         printf("Got quite simple msg\n");
         printf("Nodes len: %zu\n", new_msg.nodes.size());
     }
@@ -80,6 +87,7 @@ struct LaunchState {
         start_stop_launch_node_idx = 0;
         start_stop_launch_attempts = 0;
         start_stop_launch_action = action;
+        start_stop_launch_node();
     }
 
     void start_stop(uint8_t action, const std::string& name, const std::string& ns)
@@ -94,12 +102,11 @@ struct LaunchState {
     float get_progress()
     {
         if (start_stop_launch_node_idx == -1) {
-            if (start_stop_launch_action == rosmon_msgs::StartStop::Request::START) {
-                return 1.;
+            float sum = 0.;
+            for (const rosmon_msgs::NodeState& node : msg.nodes) {
+                sum += float(node.state == rosmon_msgs::NodeState::RUNNING);
             }
-            else {
-                return 0.;
-            }
+            return sum / float(msg.nodes.size());
         }
         else {
             return float(start_stop_launch_node_idx)/float(msg.nodes.size());
@@ -193,13 +200,14 @@ void loop()
   // 2. Show another simple window. In most cases you will use an explicit Begin/End pair to name your windows.
   if (show_another_window)
   {
-      ImGui::Begin("Mon launch", &show_another_window);
-      ImGui::Text("Mon launch instances");
+      ImGui::Begin("Mon launch instances", &show_another_window);
       for (std::pair<const std::string, LaunchState*>& state : launch_states) {
           if (state.second->msg.nodes.empty()) {
              continue;
           } 
           if (ImGui::CollapsingHeader(state.second->topic.c_str(), ImGuiTreeNodeFlags_Framed | ImGuiTreeNodeFlags_DefaultOpen)) {
+              bool nodes_expanded = ImGui::TreeNodeEx("Nodes", ImGuiTreeNodeFlags_AllowItemOverlap | ImGuiTreeNodeFlags_FramePadding);
+              ImGui::SameLine(); //(0, 0);
               if (ImGui::Button("Start"))
                   state.second->start_stop_launch(rosmon_msgs::StartStop::Request::START);
               ImGui::SameLine();
@@ -210,7 +218,7 @@ void loop()
               float progress = state.second->get_progress();
               sprintf(buf, "%d/%d", int(progress*state.second->msg.nodes.size()), int(state.second->msg.nodes.size()));
               ImGui::ProgressBar(progress, ImVec2(0.f,0.f), buf);
-              if (ImGui::TreeNode("Nodes")) {
+              if (nodes_expanded) {
                     ImGui::Columns(5, "mycolumns"); // 4-ways, with border
                     ImGui::Separator();
                     ImGui::Text("Name"); ImGui::NextColumn();
