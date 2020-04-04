@@ -182,6 +182,39 @@ class Publisher {
     Publisher() : impl(nullptr) {}
 };
 
+struct Timer {
+
+    long id;
+    std::function<void(const ros::TimerEvent&)> callback;
+
+    static void impl_callback(void* user_data)
+    {
+        Timer* timer = (Timer*)(user_data);
+        ros::TimerEvent ev;
+        timer->callback(ev);
+    }
+
+    void stop()
+    {
+        if (id != 0) {
+            emscripten_clear_interval(id);
+        }
+        id = 0;
+    }
+
+    Timer(double seconds, std::function<void(const ros::TimerEvent&)> cb) : callback(cb)
+    {
+        id = emscripten_set_interval(&Timer::impl_callback, 1e3*seconds, (void*)(this));
+    }
+
+    ~Timer()
+    {
+        if (id != 0) {
+            emscripten_clear_interval(id);
+        }
+    }
+};
+
 struct NodeHandle
 {
     static EMSCRIPTEN_WEBSOCKET_T socket;
@@ -190,6 +223,11 @@ struct NodeHandle
     static std::unordered_map<std::string, Subscriber*> subscribers;
     static std::unordered_map<std::string, Publisher*> publishers;
     static std::unordered_map<std::string, ServiceClient*> service_clients;
+
+    Timer* createTimer(double seconds, std::function<void(const ros::TimerEvent&)> cb)
+    {
+        return new Timer(seconds, cb);
+    }
 
     template <typename MSG>
     Subscriber* subscribe(const std::string& topic, std::function<void(const MSG&)> callback, const std::string& id = "", int throttle_rate = -1, int queue_length = -1, int fragment_size = -1, const std::string& compression = "")

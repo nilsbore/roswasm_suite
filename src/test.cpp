@@ -13,6 +13,7 @@ roswasm::Subscriber* string_sub;
 roswasm::Subscriber* gps_sub;
 roswasm::Publisher* string_pub;
 roswasm::ServiceClient* service;
+roswasm::Timer* timer;
 
 void string_callback(const std_msgs::String& msg)
 {
@@ -27,6 +28,11 @@ void gps_callback(const sensor_msgs::NavSatFix& msg)
 void service_callback(const rosapi::TopicType::Response& res, bool result)
 {
     printf("Got service response with value: %s\n", res.type.c_str());
+}
+
+void timer_callback(const ros::TimerEvent& ev)
+{
+    printf("Got timer callback!\n");
 }
 
 void loop()
@@ -46,6 +52,7 @@ extern "C" int main(int argc, char** argv)
   rosapi::TopicType::Request req;
   req.topic = "/connected_clients";
   service->call<rosapi::TopicType>(req);
+  timer = nh->createTimer(5., timer_callback);
 
 
   emscripten_set_main_loop(loop, 1, 1);
