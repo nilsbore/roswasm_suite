@@ -178,6 +178,7 @@ void show_monlaunch_window(bool& show_another_window)
              continue;
           } 
           if (ImGui::CollapsingHeader(state.second->name.c_str(), ImGuiTreeNodeFlags_Framed | ImGuiTreeNodeFlags_DefaultOpen)) {
+              ImGui::PushID(state.second->name.c_str());
               bool nodes_expanded = ImGui::TreeNodeEx("Nodes", ImGuiTreeNodeFlags_AllowItemOverlap | ImGuiTreeNodeFlags_FramePadding);
               ImGui::SameLine(); //(0, 0);
               if (ImGui::Button("Start"))
@@ -223,6 +224,7 @@ void show_monlaunch_window(bool& show_another_window)
                     ImGui::Separator();
                     ImGui::TreePop();
               }
+              ImGui::PopID();
           }
       }
       ImGui::End();
