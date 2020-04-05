@@ -30,6 +30,8 @@ using namespace std::placeholders;
 
 namespace roswasm {
 
+class NodeHandle;
+
 class SubscriberImplBase {
     public:
 
@@ -94,7 +96,11 @@ class ServiceClientImplBase {
 
 template <typename SRV>
 class ServiceClientImpl : public ServiceClientImplBase {
-    public:
+private:
+
+    NodeHandle* nh;
+
+public:
 
     std::function<void(const typename SRV::Response&, bool)> impl_callback;
 
@@ -110,7 +116,7 @@ class ServiceClientImpl : public ServiceClientImplBase {
         impl_callback(res, result);
     }
 
-    ServiceClientImpl(std::function<void(const typename SRV::Response&, bool)> cb) : impl_callback(cb)
+    ServiceClientImpl(std::function<void(const typename SRV::Response&, bool)> cb, NodeHandle* nh) : impl_callback(cb), nh(nh)
     {
 
     }
@@ -156,10 +162,12 @@ class PublisherImplBase
 template <typename MSG>
 class PublisherImpl : public PublisherImplBase
 {
-    public:
+private:
+    NodeHandle* nh;
+public:
     void publish(const MSG& msg, const std::string& topic);
 
-    PublisherImpl() {}
+    PublisherImpl(NodeHandle* nh) : nh(nh) {}
     ~PublisherImpl() {}
 };
 
@@ -217,12 +225,12 @@ struct Timer {
 
 struct NodeHandle
 {
-    static EMSCRIPTEN_WEBSOCKET_T socket;
-    static std::list<std::string> message_queue;
-    static bool socket_open;
-    static std::unordered_map<std::string, Subscriber*> subscribers;
-    static std::unordered_map<std::string, Publisher*> publishers;
-    static std::unordered_map<std::string, ServiceClient*> service_clients;
+    EMSCRIPTEN_WEBSOCKET_T socket;
+    std::list<std::string> message_queue;
+    bool socket_open;
+    std::unordered_map<std::string, Subscriber*> subscribers;
+    std::unordered_map<std::string, Publisher*> publishers;
+    std::unordered_map<std::string, ServiceClient*> service_clients;
 
     Timer* createTimer(double seconds, std::function<void(const ros::TimerEvent&)> cb)
     {
@@ -253,12 +261,7 @@ struct NodeHandle
         }
         message = "{" + message + "}";
 
-        if (socket_open) {
-            emscripten_websocket_send_utf8_text(socket, message.c_str());
-        }
-        else {
-            message_queue.push_back(message);
-        }
+        send_message(message);
 
         Subscriber* subscriber = new Subscriber(new SubscriberImpl<MSG>(callback));
 
@@ -278,14 +281,9 @@ struct NodeHandle
         }
         message = "{" + message + "}";
 
-        if (socket_open) {
-            emscripten_websocket_send_utf8_text(socket, message.c_str());
-        }
-        else {
-            message_queue.push_back(message);
-        }
+        send_message(message);
 
-        Publisher* publisher = new Publisher(new PublisherImpl<MSG>(), topic);
+        Publisher* publisher = new Publisher(new PublisherImpl<MSG>(this), topic);
 
         publishers[topic] = publisher;
         return publisher;
@@ -294,15 +292,14 @@ struct NodeHandle
     template <typename SRV>
     ServiceClient* serviceClient(const std::string& service_name, std::function<void(const typename SRV::Response&, bool result)> callback)
     {
-        ServiceClient* service_client = new ServiceClient(new ServiceClientImpl<SRV>(callback), service_name);
+        ServiceClient* service_client = new ServiceClient(new ServiceClientImpl<SRV>(callback, this), service_name);
 
         service_clients[service_name] = service_client;
         return service_client;
     }
 
-    static EM_BOOL WebSocketOpen(int eventType, const EmscriptenWebSocketOpenEvent *e, void *userData)
+    void websocket_open()
     {
-        printf("open(eventType=%d, userData=%d)\n", eventType, (int)userData);
         socket_open = true;
 
         for (const std::string& message : message_queue)
@@ -311,6 +308,19 @@ struct NodeHandle
             emscripten_websocket_send_utf8_text(socket, message.c_str());
         }
         message_queue.clear();
+    }
+
+    void websocket_close()
+    {
+        socket_open = false;
+    }
+
+    static EM_BOOL WebSocketOpen(int eventType, const EmscriptenWebSocketOpenEvent *e, void *userData)
+    {
+        printf("open(eventType=%d, userData=%d)\n", eventType, (int)userData);
+
+        NodeHandle* nh = (NodeHandle*)(userData);
+        nh->websocket_open();
 
         return 0;
     }
@@ -318,7 +328,10 @@ struct NodeHandle
     static EM_BOOL WebSocketClose(int eventType, const EmscriptenWebSocketCloseEvent *e, void *userData)
     {
         printf("close(eventType=%d, wasClean=%d, code=%d, reason=%s, userData=%d)\n", eventType, e->wasClean, e->code, e->reason, (int)userData);
-        socket_open = false;
+
+        NodeHandle* nh = (NodeHandle*)(userData);
+        nh->websocket_close();
+
         return 0;
     }
 
@@ -328,7 +341,21 @@ struct NodeHandle
         return 0;
     }
 
-    static void handle_bytes(const EmscriptenWebSocketMessageEvent* e)
+    static EM_BOOL WebSocketMessage(int eventType, const EmscriptenWebSocketMessageEvent *e, void *userData)
+    {
+        printf("message(eventType=%d, userData=%d, data=%p, numBytes=%d, isText=%d)\n", eventType, (int)userData, e->data, e->numBytes, e->isText);
+        NodeHandle* nh = (NodeHandle*)(userData);
+        if (e->isText) {
+            printf("text data: \"%s\"\n", e->data);
+            nh->handle_string(e);
+        }
+        else {
+            nh->handle_bytes(e);
+        }
+        return 0;
+    }
+
+    void handle_bytes(const EmscriptenWebSocketMessageEvent* e)
     {
         // to be filled in
         std::vector<uint8_t> buffer;
@@ -412,7 +439,7 @@ struct NodeHandle
         }
     }
 
-    static void handle_string(const EmscriptenWebSocketMessageEvent* e)
+    void handle_string(const EmscriptenWebSocketMessageEvent* e)
     {
         rapidjson::Document document;
         document.Parse((const char*)e->data);
@@ -446,22 +473,14 @@ struct NodeHandle
         }
     }
 
-    static EM_BOOL WebSocketMessage(int eventType, const EmscriptenWebSocketMessageEvent *e, void *userData)
+    void send_message(const std::string& message)
     {
-        printf("message(eventType=%d, userData=%d, data=%p, numBytes=%d, isText=%d)\n", eventType, (int)userData, e->data, e->numBytes, e->isText);
-        if (e->isText) {
-            printf("text data: \"%s\"\n", e->data);
-            handle_string(e);
+        if (NodeHandle::socket_open) {
+            emscripten_websocket_send_utf8_text(socket, message.c_str());
         }
         else {
-            handle_bytes(e);
+            message_queue.push_back(message);
         }
-        return 0;
-    }
-
-    void send_message(const std::string& msg)
-    {
-        emscripten_websocket_send_utf8_text(socket, msg.c_str());
     }
 
     NodeHandle()
@@ -492,10 +511,10 @@ struct NodeHandle
         assert(res == EMSCRIPTEN_RESULT_SUCCESS);
         assert(urlLength == strlen(attr.url));
 
-        emscripten_websocket_set_onopen_callback(socket, (void*)42, NodeHandle::WebSocketOpen);
-        emscripten_websocket_set_onclose_callback(socket, (void*)43, NodeHandle::WebSocketClose);
+        emscripten_websocket_set_onopen_callback(socket, (void*)(this), NodeHandle::WebSocketOpen);
+        emscripten_websocket_set_onclose_callback(socket, (void*)(this), NodeHandle::WebSocketClose);
         emscripten_websocket_set_onerror_callback(socket, (void*)44, NodeHandle::WebSocketError);
-        emscripten_websocket_set_onmessage_callback(socket, (void*)45, NodeHandle::WebSocketMessage);
+        emscripten_websocket_set_onmessage_callback(socket, (void*)(this), NodeHandle::WebSocketMessage);
     }
 
     /*
@@ -515,12 +534,15 @@ void PublisherImpl<MSG>::publish(const MSG& msg, const std::string& topic)
     ros::message_operations::Printer<MSG>::stream(stream, "", msg);
     std::string message = "\"op\":\"publish\", \"topic\":\"" + topic + "\", \"msg\":" + stream.str();
     message = std::string("{ ") + message + " }";
+    nh->send_message(message);
+    /*
     if (NodeHandle::socket_open) {
         emscripten_websocket_send_utf8_text(NodeHandle::socket, message.c_str());
     }
     else {
         NodeHandle::message_queue.push_back(message);
     }
+    */
 }
 
 template <typename SRV>
@@ -530,20 +552,25 @@ void ServiceClientImpl<SRV>::call(const typename SRV::Request& req, const std::s
     ros::message_operations::Printer<typename SRV::Request>::stream(stream, "", req);
     std::string message = "\"op\":\"call_service\", \"service\":\"" + service_name + "\", \"args\":" + stream.str();
     message = std::string("{ ") + message + " }";
+    nh->send_message(message);
+    /*
     if (NodeHandle::socket_open) {
         emscripten_websocket_send_utf8_text(NodeHandle::socket, message.c_str());
     }
     else {
         NodeHandle::message_queue.push_back(message);
     }
+    */
 }
 
+/*
 std::list<std::string> NodeHandle::message_queue = {};
 bool NodeHandle::socket_open = false;
 EMSCRIPTEN_WEBSOCKET_T NodeHandle::socket = NULL;
 std::unordered_map<std::string, Subscriber*> NodeHandle::subscribers;
 std::unordered_map<std::string, Publisher*> NodeHandle::publishers;
 std::unordered_map<std::string, ServiceClient*> NodeHandle::service_clients;
+*/
 
 } // namespace wasmros
 
