@@ -69,6 +69,8 @@ class Subscriber {
     public:
 
     SubscriberImplBase* impl;
+    std::string topic;
+    std::string id;
 
     void callback(std::vector<uint8_t>& buffer)
     {
@@ -80,7 +82,15 @@ class Subscriber {
         }
     }
 
-    Subscriber(SubscriberImplBase* new_impl) : impl(new_impl) {}
+    std::string get_id()
+    {
+        return id;
+    }
+
+    Subscriber(SubscriberImplBase* new_impl, const std::string& new_topic) : impl(new_impl), topic(new_topic)
+    {
+        id = std::to_string(size_t(impl));
+    }
 
     Subscriber() : impl(nullptr) {}
 
@@ -88,8 +98,15 @@ class Subscriber {
 
 class ServiceClientImplBase {
     public:
+    std::string id;
 
     virtual void callback(const std::string& buffer, bool result) = 0;
+
+    ServiceClientImplBase()
+    {
+        id = std::to_string(size_t(this));
+    }
+
     virtual ~ServiceClientImplBase() {}
 
 };
@@ -118,7 +135,6 @@ public:
 
     ServiceClientImpl(std::function<void(const typename SRV::Response&, bool)> cb, NodeHandle* nh) : impl_callback(cb), nh(nh)
     {
-
     }
     ~ServiceClientImpl() {}
 
@@ -147,7 +163,14 @@ class ServiceClient {
         value->call(req, service_name);
     }
 
-    ServiceClient(ServiceClientImplBase* new_impl, const std::string& new_service_name) : impl(new_impl), service_name(new_service_name) {}
+    std::string get_id()
+    {
+        return impl->id;
+    }
+
+    ServiceClient(ServiceClientImplBase* new_impl, const std::string& new_service_name) : impl(new_impl), service_name(new_service_name)
+    {
+    }
 
     ServiceClient() : impl(nullptr) {}
 
@@ -176,6 +199,7 @@ class Publisher {
 
     PublisherImplBase* impl;
     std::string topic;
+    std::string id;
 
     template <typename MSG>
     void publish(const MSG& msg)
@@ -185,7 +209,15 @@ class Publisher {
         value->publish(msg, topic);
     }
 
-    Publisher(PublisherImplBase* new_impl, const std::string& new_topic) : impl(new_impl), topic(new_topic) {}
+    std::string get_id()
+    {
+        return id;
+    }
+
+    Publisher(PublisherImplBase* new_impl, const std::string& new_topic) : impl(new_impl), topic(new_topic)
+    {
+        id = std::to_string(size_t(impl));
+    }
 
     Publisher() : impl(nullptr) {}
 };
@@ -238,15 +270,15 @@ struct NodeHandle
     }
 
     template <typename MSG>
-    Subscriber* subscribe(const std::string& topic, std::function<void(const MSG&)> callback, const std::string& id = "", int throttle_rate = -1, int queue_length = -1, int fragment_size = -1, const std::string& compression = "")
+    Subscriber* subscribe(const std::string& topic, std::function<void(const MSG&)> callback, int throttle_rate = -1, int queue_length = -1, int fragment_size = -1)
     {
-        std::string message = "\"op\":\"subscribe\", \"topic\":\"" + topic + "\", \"compression\":\"cbor-raw\"";
+        Subscriber* subscriber = new Subscriber(new SubscriberImpl<MSG>(callback), topic);
+        std::string id = subscriber->get_id();
+
+        std::string message = "\"op\":\"subscribe\", \"topic\":\"" + topic + "\", \"compression\":\"cbor-raw\", \"id\":\"" + id + "\"";
+        //std::string message = "\"op\":\"subscribe\", \"topic\":\"" + topic + "\", \"id\":\"" + id + "\"";
         message += ", \"type\": \"" + std::string(ros::message_traits::DataType<MSG>::value()) + "\"";
 
-        if (id.compare("") != 0)
-        {
-            message += ", \"id\":\"" + id + "\"";
-        }
         if (throttle_rate > -1)
         {
             message += ", \"throttle_rate\":" + std::to_string(throttle_rate);
@@ -259,15 +291,12 @@ struct NodeHandle
         {
             message += ", \"fragment_size\":" + std::to_string(fragment_size);
         }
-        message = "{" + message + "}";
 
+        message = "{" + message + "}";
         send_message(message);
 
-        Subscriber* subscriber = new Subscriber(new SubscriberImpl<MSG>(callback));
-
-        subscribers[topic] = subscriber;
+        subscribers[id] = subscriber;
         return subscriber;
-
     }
 
     template <typename MSG>
@@ -285,7 +314,7 @@ struct NodeHandle
 
         Publisher* publisher = new Publisher(new PublisherImpl<MSG>(this), topic);
 
-        publishers[topic] = publisher;
+        publishers[publisher->get_id()] = publisher;
         return publisher;
     }
 
@@ -294,7 +323,7 @@ struct NodeHandle
     {
         ServiceClient* service_client = new ServiceClient(new ServiceClientImpl<SRV>(callback, this), service_name);
 
-        service_clients[service_name] = service_client;
+        service_clients[service_client->get_id()] = service_client;
         return service_client;
     }
 
@@ -433,9 +462,12 @@ struct NodeHandle
 
         }
         printf("Total len: %zu\n", len);
-        if (subscribers.count(topic)) {
-            printf("Buffer size: %zu, calling subscriber callback\n", buffer.size());
-            subscribers[topic]->callback(buffer);
+        printf("Buffer size: %zu, calling subscriber callback\n", buffer.size());
+        //subscribers[id]->callback(buffer);
+        for (std::pair<const std::string, Subscriber*>& sub : subscribers) {
+            if (sub.second->topic == topic) {
+                sub.second->callback(buffer);
+            }
         }
     }
 
@@ -455,6 +487,8 @@ struct NodeHandle
             assert(document.HasMember("values"));
             assert(document.HasMember("service"));
             assert(document["service"].IsString());
+            assert(document.HasMember("id"));
+            assert(document["id"].IsString());
             assert(document.HasMember("result"));
             assert(document["result"].IsBool());
             std::string service_name = document["service"].GetString();
@@ -463,9 +497,10 @@ struct NodeHandle
             rapidjson::Writer<rapidjson::StringBuffer> writer(sb);
             document["values"].Accept(writer);
             std::string json_values = sb.GetString();
-            if (service_clients.count(service_name)) {
+            std::string id = document["id"].GetString();
+            if (service_clients.count(id)) {
                 printf("Response: %s, calling service client callback\n", json_values.c_str());
-                service_clients[service_name]->callback(json_values, result);
+                service_clients[id]->callback(json_values, result);
             }
         }
         else {
@@ -535,14 +570,6 @@ void PublisherImpl<MSG>::publish(const MSG& msg, const std::string& topic)
     std::string message = "\"op\":\"publish\", \"topic\":\"" + topic + "\", \"msg\":" + stream.str();
     message = std::string("{ ") + message + " }";
     nh->send_message(message);
-    /*
-    if (NodeHandle::socket_open) {
-        emscripten_websocket_send_utf8_text(NodeHandle::socket, message.c_str());
-    }
-    else {
-        NodeHandle::message_queue.push_back(message);
-    }
-    */
 }
 
 template <typename SRV>
@@ -550,27 +577,10 @@ void ServiceClientImpl<SRV>::call(const typename SRV::Request& req, const std::s
 {
     roscpp_json::JSONStream stream(false);
     ros::message_operations::Printer<typename SRV::Request>::stream(stream, "", req);
-    std::string message = "\"op\":\"call_service\", \"service\":\"" + service_name + "\", \"args\":" + stream.str();
+    std::string message = "\"op\":\"call_service\", \"service\":\"" + service_name + "\", \"args\":" + stream.str() + ", \"id\":\"" + id + "\"";
     message = std::string("{ ") + message + " }";
     nh->send_message(message);
-    /*
-    if (NodeHandle::socket_open) {
-        emscripten_websocket_send_utf8_text(NodeHandle::socket, message.c_str());
-    }
-    else {
-        NodeHandle::message_queue.push_back(message);
-    }
-    */
 }
-
-/*
-std::list<std::string> NodeHandle::message_queue = {};
-bool NodeHandle::socket_open = false;
-EMSCRIPTEN_WEBSOCKET_T NodeHandle::socket = NULL;
-std::unordered_map<std::string, Subscriber*> NodeHandle::subscribers;
-std::unordered_map<std::string, Publisher*> NodeHandle::publishers;
-std::unordered_map<std::string, ServiceClient*> NodeHandle::service_clients;
-*/
 
 } // namespace wasmros
 
