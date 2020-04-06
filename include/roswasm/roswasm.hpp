@@ -21,31 +21,25 @@ template <typename MSG>
 Subscriber* NodeHandle::subscribe(const std::string& topic, std::function<void(const MSG&)> callback, int throttle_rate, int queue_length, int fragment_size)
 {
     Subscriber* subscriber = new Subscriber(new SubscriberImpl<MSG>(callback), topic, throttle_rate, queue_length, fragment_size);
-    std::string id = subscriber->get_id();
 
     if (NodeHandle::socket_open) {
         std::string message = subscriber->json_subscribe_message();
         emscripten_websocket_send_utf8_text(socket, message.c_str());
     }
 
-    subscribers[id] = subscriber;
+    subscribers[subscriber->get_id()] = subscriber;
     return subscriber;
 }
 
 template <typename MSG>
 Publisher* NodeHandle::advertise(const std::string& topic, const std::string& id)
 {
-    std::string message = "\"op\":\"advertise\", \"topic\":\"" + topic + "\"";
-    message += ", \"type\": \"" + std::string(ros::message_traits::DataType<MSG>::value()) + "\"";
-    if (id.compare("") != 0)
-    {
-        message += ", \"id\":\"" + id + "\"";
-    }
-    message = "{" + message + "}";
-
-    send_message(message);
-
     Publisher* publisher = new Publisher(new PublisherImpl<MSG>(this), topic);
+
+    if (NodeHandle::socket_open) {
+        std::string message = publisher->json_advertise_message();
+        emscripten_websocket_send_utf8_text(socket, message.c_str());
+    }
 
     publishers[publisher->get_id()] = publisher;
     return publisher;
@@ -64,22 +58,62 @@ void NodeHandle::websocket_open()
 {
     socket_open = true;
 
-    for (const std::string& message : message_queue)
-    {
+    for (std::pair<const std::string, Subscriber*>& sub : subscribers) {
+        std::string message = sub.second->json_subscribe_message();
+        printf("Sending: %s\n", message.c_str());
+        emscripten_websocket_send_utf8_text(socket, message.c_str());
+    }
+
+    for (std::pair<const std::string, Publisher*>& pub : publishers) {
+        std::string message = pub.second->json_advertise_message();
+        printf("Sending: %s\n", message.c_str());
+        emscripten_websocket_send_utf8_text(socket, message.c_str());
+    }
+
+    for (const std::string& message : message_queue) {
         printf("Sending: %s\n", message.c_str());
         emscripten_websocket_send_utf8_text(socket, message.c_str());
     }
     message_queue.clear();
-
-    for (std::pair<const std::string, Subscriber*> sub : subscribers) {
-        std::string message = sub.second->json_subscribe_message();
-        emscripten_websocket_send_utf8_text(socket, message.c_str());
-    }
 }
 
 void NodeHandle::websocket_close()
 {
     socket_open = false;
+    emscripten_websocket_delete(socket);
+    // try again in 5 seconds
+    timer = createTimer(5., std::bind(&NodeHandle::try_websocket_connect, this));
+}
+
+void NodeHandle::try_websocket_connect()
+{
+    if (timer != nullptr) {
+        delete timer;
+        timer = nullptr;
+    }
+
+    EmscriptenWebSocketCreateAttributes attr;
+    emscripten_websocket_init_create_attributes(&attr);
+
+    attr.url = "ws://127.0.0.1:9090/";
+    attr.createOnMainThread = true;
+
+    socket = emscripten_websocket_new(&attr);
+    if (socket <= 0)
+    {
+        printf("WebSocket creation failed, error code %d!\n", (EMSCRIPTEN_RESULT)socket);
+        exit(1);
+    }
+
+    int urlLength = 0;
+    EMSCRIPTEN_RESULT res = emscripten_websocket_get_url_length(socket, &urlLength);
+    assert(res == EMSCRIPTEN_RESULT_SUCCESS);
+    assert(urlLength == strlen(attr.url));
+
+    emscripten_websocket_set_onopen_callback(socket, (void*)(this), NodeHandle::WebSocketOpen);
+    emscripten_websocket_set_onclose_callback(socket, (void*)(this), NodeHandle::WebSocketClose);
+    emscripten_websocket_set_onerror_callback(socket, (void*)44, NodeHandle::WebSocketError);
+    emscripten_websocket_set_onmessage_callback(socket, (void*)(this), NodeHandle::WebSocketMessage);
 }
 
 EM_BOOL NodeHandle::WebSocketOpen(int eventType, const EmscriptenWebSocketOpenEvent *e, void *userData)
@@ -256,7 +290,7 @@ void NodeHandle::send_message(const std::string& message)
     }
 }
 
-NodeHandle::NodeHandle()
+NodeHandle::NodeHandle() : timer(nullptr)
 {
     socket_open = false;
 
@@ -266,6 +300,7 @@ NodeHandle::NodeHandle()
         exit(1);
     }
 
+    /*
     EmscriptenWebSocketCreateAttributes attr;
     emscripten_websocket_init_create_attributes(&attr);
 
@@ -288,6 +323,8 @@ NodeHandle::NodeHandle()
     emscripten_websocket_set_onclose_callback(socket, (void*)(this), NodeHandle::WebSocketClose);
     emscripten_websocket_set_onerror_callback(socket, (void*)44, NodeHandle::WebSocketError);
     emscripten_websocket_set_onmessage_callback(socket, (void*)(this), NodeHandle::WebSocketMessage);
+    */
+    try_websocket_connect();
 }
 
 } // namespace roswasm

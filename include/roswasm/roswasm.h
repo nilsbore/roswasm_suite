@@ -25,6 +25,7 @@ public:
     std::unordered_map<std::string, Subscriber*> subscribers;
     std::unordered_map<std::string, Publisher*> publishers;
     std::unordered_map<std::string, ServiceClient*> service_clients;
+    Timer* timer;
 
     Timer* createTimer(double seconds, std::function<void(const ros::TimerEvent&)> cb)
     {
@@ -40,6 +41,7 @@ public:
     template <typename SRV>
     ServiceClient* serviceClient(const std::string& service_name, std::function<void(const typename SRV::Response&, bool result)> callback);
 
+    void try_websocket_connect();
     void websocket_open();
     void websocket_close();
 

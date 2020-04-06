@@ -9,6 +9,7 @@ class PublisherImplBase
 {
     public:
     virtual ~PublisherImplBase() {}
+    virtual std::string msg_type() = 0;
 };
 
 template <typename MSG>
@@ -18,6 +19,7 @@ private:
     NodeHandle* nh;
 public:
     void publish(const MSG& msg, const std::string& topic);
+    std::string msg_type();
 
     PublisherImpl(NodeHandle* nh) : nh(nh) {}
     ~PublisherImpl() {}
@@ -37,6 +39,8 @@ class Publisher {
         PublisherImpl<MSG>* value = dynamic_cast<PublisherImpl<MSG>*>(impl);
         value->publish(msg, topic);
     }
+
+    std::string json_advertise_message();
 
     std::string get_id()
     {
