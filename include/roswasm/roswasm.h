@@ -27,6 +27,11 @@ public:
     std::unordered_map<std::string, ServiceClient*> service_clients;
     Timer* timer;
 
+    bool ok()
+    {
+        return socket_open;
+    }
+
     Timer* createTimer(double seconds, std::function<void(const ros::TimerEvent&)> cb)
     {
         return new Timer(seconds, cb);
