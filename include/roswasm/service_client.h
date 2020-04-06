@@ -1,6 +1,9 @@
 #ifndef ROSWASM_SERVICE_CLIENT_H
 #define ROSWASM_SERVICE_CLIENT_H
 
+#include <string>
+#include <functional>
+
 namespace roswasm {
 
 class NodeHandle;
