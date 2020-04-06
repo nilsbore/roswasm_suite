@@ -20,28 +20,13 @@ namespace roswasm {
 template <typename MSG>
 Subscriber* NodeHandle::subscribe(const std::string& topic, std::function<void(const MSG&)> callback, int throttle_rate, int queue_length, int fragment_size)
 {
-    Subscriber* subscriber = new Subscriber(new SubscriberImpl<MSG>(callback), topic);
+    Subscriber* subscriber = new Subscriber(new SubscriberImpl<MSG>(callback), topic, throttle_rate, queue_length, fragment_size);
     std::string id = subscriber->get_id();
 
-    std::string message = "\"op\":\"subscribe\", \"topic\":\"" + topic + "\", \"compression\":\"cbor-raw\", \"id\":\"" + id + "\"";
-    //std::string message = "\"op\":\"subscribe\", \"topic\":\"" + topic + "\", \"id\":\"" + id + "\"";
-    message += ", \"type\": \"" + std::string(ros::message_traits::DataType<MSG>::value()) + "\"";
-
-    if (throttle_rate > -1)
-    {
-        message += ", \"throttle_rate\":" + std::to_string(throttle_rate);
+    if (NodeHandle::socket_open) {
+        std::string message = subscriber->json_subscribe_message();
+        emscripten_websocket_send_utf8_text(socket, message.c_str());
     }
-    if (queue_length > -1)
-    {
-        message += ", \"queue_length\":" + std::to_string(queue_length);
-    }
-    if (fragment_size > -1)
-    {
-        message += ", \"fragment_size\":" + std::to_string(fragment_size);
-    }
-
-    message = "{" + message + "}";
-    send_message(message);
 
     subscribers[id] = subscriber;
     return subscriber;
@@ -85,6 +70,11 @@ void NodeHandle::websocket_open()
         emscripten_websocket_send_utf8_text(socket, message.c_str());
     }
     message_queue.clear();
+
+    for (std::pair<const std::string, Subscriber*> sub : subscribers) {
+        std::string message = sub.second->json_subscribe_message();
+        emscripten_websocket_send_utf8_text(socket, message.c_str());
+    }
 }
 
 void NodeHandle::websocket_close()
