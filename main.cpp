@@ -235,7 +235,8 @@ void show_monlaunch_window(bool& show_another_window)
 roswasm::NodeHandle* nh; 
 
 GLFWwindow* g_window;
-ImVec4 clear_color = ImVec4(0.45f, 0.55f, 0.60f, 1.00f);
+//ImVec4 clear_color = ImVec4(0.45f, 0.55f, 0.60f, 1.00f);
+ImVec4 clear_color = ImVec4(0.25f, 0.45f, 0.55f, 1.00f);
 ImGuiContext* imgui = 0;
 bool show_demo_window = false;
 bool show_another_window = true;
@@ -268,21 +269,29 @@ void loop()
   // 1. Show a simple window.
   // Tip: if we don't call ImGui::Begin()/ImGui::End() the widgets automatically appears in a window called "Debug".
   {
-      static float f = 0.0f;
-      static int counter = 0;
-      ImGui::Text("Hello, world!");                           // Display some text (you can use a format string too)
-      ImGui::SliderFloat("float", &f, 0.0f, 1.0f);            // Edit 1 float using a slider from 0.0f to 1.0f
-      ImGui::ColorEdit3("clear color", (float*)&clear_color); // Edit 3 floats representing a color
-
-      ImGui::Checkbox("Demo Window", &show_demo_window);      // Edit bools storing our windows open/close state
-      ImGui::Checkbox("Another Window", &show_another_window);
-
-      if (ImGui::Button("Button"))                            // Buttons return true when clicked (NB: most widgets return true when edited/activated)
-          counter++;
+      float sz = ImGui::GetTextLineHeight();
+      std::string status_text;
+      ImColor status_color;
+      if (nh->ok()) {
+          status_text = "Connected";
+          status_color = ImColor(0, 255, 0);
+      }
+      else {
+          status_text = "Disconnected";
+          status_color = ImColor(255, 0, 0);
+      }
+      ImVec2 p = ImGui::GetCursorScreenPos();
+      ImGui::GetWindowDrawList()->AddRectFilled(p, ImVec2(p.x+sz, p.y+sz), status_color);
+      ImGui::Dummy(ImVec2(sz, sz));
       ImGui::SameLine();
-      ImGui::Text("counter = %d", counter);
+      ImGui::Text("%s", status_text.c_str());
+
+
+      ImGui::Checkbox("Mon launch instances", &show_another_window);
+      ImGui::Checkbox("Demo widget window", &show_demo_window);      // Edit bools storing our windows open/close state
 
       ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
+      ImGui::ColorEdit3("Background", (float*)&clear_color); // Edit 3 floats representing a color
   }
 
   //std::cout << "2nd window" << std::endl;
@@ -290,13 +299,14 @@ void loop()
   // 2. Show another simple window. In most cases you will use an explicit Begin/End pair to name your windows.
   if (show_another_window)
   {
+      ImGui::SetNextWindowPos(ImVec2(600, 60), ImGuiCond_FirstUseEver); // Normally user code doesn't need/want to call this because positions are saved in .ini file anyway. Here we just want to make the demo initial state a bit more friendly!
       roswasm_webgui::show_monlaunch_window(show_another_window);
   }
 
   // 3. Show the ImGui demo window. Most of the sample code is in ImGui::ShowDemoWindow(). Read its code to learn more about Dear ImGui!
   if (show_demo_window)
   {
-      ImGui::SetNextWindowPos(ImVec2(650, 20), ImGuiCond_FirstUseEver); // Normally user code doesn't need/want to call this because positions are saved in .ini file anyway. Here we just want to make the demo initial state a bit more friendly!
+      ImGui::SetNextWindowPos(ImVec2(600, 60), ImGuiCond_FirstUseEver); // Normally user code doesn't need/want to call this because positions are saved in .ini file anyway. Here we just want to make the demo initial state a bit more friendly!
       ImGui::ShowDemoWindow(&show_demo_window);
   }
 
@@ -347,15 +357,16 @@ int init()
   ImGui_ImplOpenGL3_Init();
 
   // Setup style
-  ImGui::StyleColorsDark();
+  ImGui::StyleColorsLight();
+  //ImGui::StyleColorsDark();
   //ImGui::StyleColorsClassic();
 
   // Load Fonts
+  io.Fonts->AddFontDefault();
   io.Fonts->AddFontFromFileTTF("data/xkcd-script.ttf", 23.0f);
   io.Fonts->AddFontFromFileTTF("data/xkcd-script.ttf", 18.0f);
   io.Fonts->AddFontFromFileTTF("data/xkcd-script.ttf", 26.0f);
   io.Fonts->AddFontFromFileTTF("data/xkcd-script.ttf", 32.0f);
-  io.Fonts->AddFontDefault();
 
   imgui =  ImGui::GetCurrentContext();
 
