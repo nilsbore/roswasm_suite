@@ -12,7 +12,7 @@ rosbridge_port = ""
 
 class MainHandler(tornado.web.RequestHandler):
     def get(self):
-        self.render("imgui.html", rosbridge_ip="127.0.0.1", rosbridge_port="9090")
+        self.render(os.path.join(cwd, "imgui.html"), rosbridge_ip=rosbridge_ip, rosbridge_port=rosbridge_port)
 
 class NoCacheStaticFileHandler(tornado.web.StaticFileHandler):
     def set_extra_headers(self, path):
@@ -49,6 +49,7 @@ def set_ping(ioloop, timeout):
 
 if __name__ == "__main__":
     rospy.init_node("wasmros_webserver", anonymous=True)
+    cwd = rospy.get_param('html_dir')
     rosbridge_ip = rospy.get_param('rosbridge_ip', '127.0.0.1')
     rosbridge_port = rospy.get_param('rosbridge_port', '9090')
     display_port = rospy.get_param('display_port', '8081')
