@@ -12,11 +12,11 @@
 #
 
 CXX = emcc
-OUTPUT = imgui.js
+OUTPUT = www/imgui.js
 
-SOURCES = main.cpp
-SOURCES += imgui_impl_glfw.cpp imgui_impl_opengl3.cpp
-SOURCES += imgui.cpp imgui_draw.cpp imgui_demo.cpp
+SOURCES = src/main.cpp
+SOURCES += src/imgui_impl_glfw.cpp src/imgui_impl_opengl3.cpp
+SOURCES += src/imgui.cpp src/imgui_draw.cpp src/imgui_demo.cpp
 
 LIBS = -lGL -lwebsocket.js
 WEBGL_VER = -s USE_WEBGL2=1 -s USE_GLFW=3 -s FULL_ES3=1
@@ -26,7 +26,7 @@ USE_WASM = -s WASM=1
 all: $(SOURCES) $(OUTPUT)
 
 $(OUTPUT): $(SOURCES)
-	$(CXX)  $(SOURCES) -std=c++11 -o $(OUTPUT) $(LIBS) $(WEBGL_VER) -O2 --preload-file data $(USE_WASM) -I /opt/ros/$(ROS_DISTRO)/include -I external/roswasm/include -I external/roswasm/external/cbor-lite/include -I external/roswasm/external/roscpp_json_serialize/include -I external/roswasm/external/roscpp_json_serialize/external/rapidjson/include -s USE_BOOST_HEADERS=1
+	$(CXX)  $(SOURCES) -std=c++11 -o $(OUTPUT) $(LIBS) $(WEBGL_VER) -O2 --preload-file data $(USE_WASM) -I include -I /opt/ros/$(ROS_DISTRO)/include -I external/roswasm/include -I external/roswasm/external/cbor-lite/include -I external/roswasm/external/roscpp_json_serialize/include -I external/roswasm/external/roscpp_json_serialize/external/rapidjson/include -s USE_BOOST_HEADERS=1 -s
 
 clean:
 	rm -f $(OUTPUT)
