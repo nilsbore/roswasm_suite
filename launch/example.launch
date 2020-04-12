@@ -1,0 +1,18 @@
+<launch>
+
+  <arg name="rosbridge_ip" default="0.0.0.0" />
+  <arg name="rosbridge_port" default="9090" />
+  <arg name="display_port" default="8081" />
+
+  <include file="$(find rosbridge_server)/launch/rosbridge_websocket.launch">
+    <arg name="address" value="$(arg rosbridge_ip)"/>
+    <arg name="port" value="$(arg rosbridge_port)"/>
+  </include>
+
+  <node name="roswasm_webserver" type="webserver.py" pkg="roswasm_webgui" output="screen">
+    <param name="rosbridge_ip" value="$(arg rosbridge_ip)"/>
+    <param name="rosbridge_port" value="$(arg rosbridge_port)"/>
+    <param name="display_port" value="$(arg display_port)"/>
+  </node>
+
+</launch>

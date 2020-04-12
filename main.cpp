@@ -273,11 +273,11 @@ void loop()
       std::string status_text;
       ImColor status_color;
       if (nh->ok()) {
-          status_text = "Connected";
+          status_text = "Connected to " + nh->get_websocket_url();
           status_color = ImColor(0, 255, 0);
       }
       else {
-          status_text = "Disconnected";
+          status_text = "Disconnected from " + nh->get_websocket_url();
           status_color = ImColor(255, 0, 0);
       }
       ImVec2 p = ImGui::GetCursorScreenPos();
@@ -392,7 +392,15 @@ extern "C" int main(int argc, char** argv)
 {
   if (init() != 0) return 1;
 
-  nh = new roswasm::NodeHandle();
+  if (argc < 3) {
+      printf("Rosbridge server ip and port not provided!");
+      return 1;
+  }
+
+  std::string rosbridge_ip(argv[1]);
+  std::string rosbridge_port(argv[2]);
+
+  nh = new roswasm::NodeHandle(rosbridge_ip, rosbridge_port);
   roswasm_webgui::init_monlaunch(nh);
 
   #ifdef __EMSCRIPTEN__
