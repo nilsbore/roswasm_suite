@@ -1,6 +1,9 @@
 #ifndef ROSWASM_SUBSCRIBER_H
 #define ROSWASM_SUBSCRIBER_H
 
+#include <string>
+#include <functional>
+
 namespace roswasm {
 
 class SubscriberImplBase {

@@ -1,6 +1,8 @@
 #ifndef ROSWASM_PUBLISHER_H
 #define ROSWASM_PUBLISHER_H
 
+#include <string>
+
 namespace roswasm {
 
 class NodeHandle;
