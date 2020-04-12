@@ -25,6 +25,8 @@ public:
     std::unordered_map<std::string, Subscriber*> subscribers;
     std::unordered_map<std::string, Publisher*> publishers;
     std::unordered_map<std::string, ServiceClient*> service_clients;
+    std::string rosbridge_ip;
+    std::string rosbridge_port;
     Timer* timer;
 
     bool ok()
@@ -49,6 +51,7 @@ public:
     void try_websocket_connect();
     void websocket_open();
     void websocket_close();
+    std::string get_websocket_url();
 
     static EM_BOOL WebSocketOpen(int eventType, const EmscriptenWebSocketOpenEvent *e, void *userData);
     static EM_BOOL WebSocketClose(int eventType, const EmscriptenWebSocketCloseEvent *e, void *userData);
@@ -60,7 +63,7 @@ public:
 
     void send_message(const std::string& message);
 
-    NodeHandle();
+    NodeHandle(const std::string& rosbridge_ip="127.0.0.1", const std::string& rosbridge_port="9090");
 
     /*
     ~NodeHandle()

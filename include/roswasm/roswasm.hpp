@@ -85,6 +85,11 @@ void NodeHandle::websocket_close()
     timer = createTimer(5., std::bind(&NodeHandle::try_websocket_connect, this));
 }
 
+std::string NodeHandle::get_websocket_url()
+{
+    return std::string("ws://") + rosbridge_ip + ":" + rosbridge_port + "/";
+}
+
 void NodeHandle::try_websocket_connect()
 {
     if (timer != nullptr) {
@@ -95,7 +100,8 @@ void NodeHandle::try_websocket_connect()
     EmscriptenWebSocketCreateAttributes attr;
     emscripten_websocket_init_create_attributes(&attr);
 
-    attr.url = "ws://127.0.0.1:9090/";
+    std::string url = get_websocket_url();
+    attr.url = url.c_str(); // "ws://127.0.0.1:9090/";
     attr.createOnMainThread = true;
 
     socket = emscripten_websocket_new(&attr);
@@ -290,7 +296,8 @@ void NodeHandle::send_message(const std::string& message)
     }
 }
 
-NodeHandle::NodeHandle() : timer(nullptr)
+NodeHandle::NodeHandle(const std::string& rosbridge_ip, const std::string& rosbridge_port)
+    : rosbridge_ip(rosbridge_ip), rosbridge_port(rosbridge_port), timer(nullptr)
 {
     socket_open = false;
 
