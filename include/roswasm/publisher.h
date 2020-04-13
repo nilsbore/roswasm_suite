@@ -42,7 +42,12 @@ class Publisher {
         value->publish(msg, topic);
     }
 
-    std::string json_advertise_message();
+    std::string json_advertise_message()
+    {
+        std::string message = "\"op\":\"advertise\", \"topic\":\"" + topic + "\", \"id\":\"" + id + "\"";
+        message += ", \"type\": \"" + impl->msg_type() + "\"";
+        return std::string("{") + message + "}";
+    }
 
     std::string get_id()
     {

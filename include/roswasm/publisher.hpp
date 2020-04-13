@@ -19,11 +19,5 @@ std::string PublisherImpl<MSG>::msg_type()
     return std::string(ros::message_traits::DataType<MSG>::value());
 }
 
-std::string Publisher::json_advertise_message()
-{
-    std::string message = "\"op\":\"advertise\", \"topic\":\"" + topic + "\", \"id\":\"" + id + "\"";
-    message += ", \"type\": \"" + impl->msg_type() + "\"";
-    return std::string("{") + message + "}";
-}
 
 } // namespace roswasm

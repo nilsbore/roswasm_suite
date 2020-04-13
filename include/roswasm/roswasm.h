@@ -75,13 +75,52 @@ public:
     */
 };
 
+template <typename MSG>
+Subscriber* NodeHandle::subscribe(const std::string& topic, std::function<void(const MSG&)> callback, int throttle_rate, int queue_length, int fragment_size)
+{
+    Subscriber* subscriber = new Subscriber(new SubscriberImpl<MSG>(callback), topic, throttle_rate, queue_length, fragment_size);
+
+    if (NodeHandle::socket_open) {
+        std::string message = subscriber->json_subscribe_message();
+        emscripten_websocket_send_utf8_text(socket, message.c_str());
+    }
+
+    subscribers[subscriber->get_id()] = subscriber;
+    return subscriber;
+}
+
+template <typename MSG>
+Publisher* NodeHandle::advertise(const std::string& topic, const std::string& id)
+{
+    Publisher* publisher = new Publisher(new PublisherImpl<MSG>(this), topic);
+
+    if (NodeHandle::socket_open) {
+        std::string message = publisher->json_advertise_message();
+        emscripten_websocket_send_utf8_text(socket, message.c_str());
+    }
+
+    publishers[publisher->get_id()] = publisher;
+    return publisher;
+}
+
+template <typename SRV>
+ServiceClient* NodeHandle::serviceClient(const std::string& service_name, std::function<void(const typename SRV::Response&, bool result)> callback)
+{
+    ServiceClient* service_client = new ServiceClient(new ServiceClientImpl<SRV>(callback, this), service_name);
+
+    service_clients[service_client->get_id()] = service_client;
+    return service_client;
+}
 
 } // namespace wasmros
 
-#include "roswasm.hpp"
 #include "publisher.hpp"
 #include "subscriber.hpp"
 #include "service_client.hpp"
+
+#ifdef ROSWASM_IMPL
+#include "roswasm.hpp"
 #include "timer.hpp"
+#endif
 
 #endif // ROSWASM_H

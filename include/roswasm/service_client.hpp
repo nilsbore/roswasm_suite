@@ -1,5 +1,5 @@
 #include <roswasm/roswasm.h>
-#include <roswasm/publisher.h>
+#include <roswasm/service_client.h>
 #include <roscpp_json/serialize.h>
 #include <roscpp_json/deserialize.h>
 

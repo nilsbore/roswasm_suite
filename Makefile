@@ -1,7 +1,7 @@
 CXX = emcc
 OUTPUT = test.js
 
-SOURCES = src/test.cpp
+SOURCES = src/roswasm.cpp src/test.cpp
 
 LIBS = -lwebsocket.js
 USE_WASM = -s WASM=1

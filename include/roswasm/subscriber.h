@@ -52,7 +52,26 @@ class Subscriber {
         }
     }
 
-    std::string json_subscribe_message();
+    std::string json_subscribe_message()
+    {
+        std::string message = "\"op\":\"subscribe\", \"topic\":\"" + topic + "\", \"compression\":\"cbor-raw\", \"id\":\"" + id + "\"";
+        message += ", \"type\": \"" + impl->msg_type() + "\"";
+
+        if (throttle_rate > -1)
+        {
+            message += ", \"throttle_rate\":" + std::to_string(throttle_rate);
+        }
+        if (queue_length > -1)
+        {
+            message += ", \"queue_length\":" + std::to_string(queue_length);
+        }
+        if (fragment_size > -1)
+        {
+            message += ", \"fragment_size\":" + std::to_string(fragment_size);
+        }
+
+        return std::string("{") + message + "}";
+    }
 
     std::string get_id()
     {
