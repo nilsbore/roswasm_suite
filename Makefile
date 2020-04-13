@@ -17,6 +17,8 @@ OUTPUT = www/imgui.js
 SOURCES = src/main.cpp
 SOURCES += src/imgui_impl_glfw.cpp src/imgui_impl_opengl3.cpp
 SOURCES += src/imgui.cpp src/imgui_draw.cpp src/imgui_demo.cpp
+SOURCES += external/roswasm/src/roswasm.cpp
+SOURCES += src/roswasm_monlaunch.cpp
 
 LIBS = -lGL -lwebsocket.js
 WEBGL_VER = -s USE_WEBGL2=1 -s USE_GLFW=3 -s FULL_ES3=1
