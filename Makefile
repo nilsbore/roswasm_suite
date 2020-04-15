@@ -28,7 +28,7 @@ USE_WASM = -s WASM=1
 all: $(SOURCES) $(OUTPUT)
 
 $(OUTPUT): $(SOURCES)
-	$(CXX)  $(SOURCES) -std=c++11 -o $(OUTPUT) $(LIBS) $(WEBGL_VER) -O2 --preload-file data $(USE_WASM) -I include -I /opt/ros/$(ROS_DISTRO)/include -I external/roswasm/include -I external/roswasm/external/cbor-lite/include -I external/roswasm/external/roscpp_json_serialize/include -I external/roswasm/external/roscpp_json_serialize/external/rapidjson/include -s USE_BOOST_HEADERS=1 -s
+	$(CXX)  $(SOURCES) -std=c++11 -o $(OUTPUT) $(LIBS) $(WEBGL_VER) -O2 --preload-file data $(USE_WASM) -I include -I /opt/ros/$(ROS_DISTRO)/include -I external/roswasm/include -I external/roswasm/external/cbor-lite/include -I external/roswasm/external/roscpp_json_serialize/include -I external/roswasm/external/roscpp_json_serialize/external/rapidjson/include -s USE_BOOST_HEADERS=1 -s USE_SDL=2 -s USE_SDL_IMAGE=2 -s SDL2_IMAGE_FORMATS='["png", "jpg"]'
 
 clean:
 	rm -f $(OUTPUT)

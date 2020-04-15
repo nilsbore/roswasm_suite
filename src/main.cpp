@@ -16,14 +16,143 @@
 #include <roswasm_monlaunch.h>
 //#include <iostream>
 
+#include <unordered_set>
+#include <sensor_msgs/CompressedImage.h>
+
+#include <SDL2/SDL.h>
+#include <SDL2/SDL_image.h>
+
 roswasm::NodeHandle* nh; 
+
+namespace roswasm_image {
+
+roswasm::ServiceClient* topics_service;
+roswasm::NodeHandle* nh;
+std::vector<std::string> topics;
+roswasm::Subscriber* sub;
+roswasm::Timer* timer;
+SDL_Surface* surface;
+
+int image_width;
+int image_height;
+GLuint image_texture;
+
+void load_texture(std::vector<uint8_t>& buffer, const std::string& format)
+{
+    //GLuint textureID;
+    //glGenTextures(1, &textureID);
+
+    //SDL_Surface* surface = IMG_Load("resources/test.jpg");
+    std::cout << "Buffer size: " << buffer.size() << std::endl;
+    SDL_RWops* src = SDL_RWFromMem(&buffer[0], buffer.size());
+    //SDL_Surface* surface = IMG_LoadTyped_RW(src, 1, "png");
+    SDL_Surface* surface;
+    if (format.find("jpeg") != std::string::npos) {
+        surface = IMG_LoadTyped_RW(src, 1, "jpg");
+    }
+    else if (format.find("png") != std::string::npos) {
+        surface = IMG_LoadTyped_RW(src, 1, "png");
+    }
+    else {
+        printf("Invalid compression format!\n");
+        return;
+    }
+    //surface = IMG_LoadTyped_RW(src, 1, "png");
+    std::cout << "Image width: " << surface->w << std::endl;
+    std::cout << "Image height: " << surface->h << std::endl;
+
+    if (image_width != surface->w || image_height != surface->h) {
+        image_width = surface->w;
+        image_height = surface->h;
+
+        glGenTextures(1, &image_texture);
+        glBindTexture(GL_TEXTURE_2D, image_texture);
+
+        // Setup filtering parameters for display
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+        // Upload pixels into texture
+        glPixelStorei(GL_UNPACK_ROW_LENGTH, 0);
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, image_width, image_height, 0, GL_RGB, GL_UNSIGNED_BYTE, surface->pixels);
+        //stbi_image_free(image_data);
+    }
+    else {
+        glBindTexture(GL_TEXTURE_2D, image_texture);
+        glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, image_width, image_height, GL_RGB, GL_UNSIGNED_BYTE, surface->pixels);
+    };
+    SDL_FreeSurface(surface);
+
+    //glGenTextures(1, &textureID);
+    //glBindTexture(GL_TEXTURE_2D, textureID);
+    //glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, surface->w, surface->h, 0, GL_RGB, GL_UNSIGNED_BYTE, surface->pixels);
+}
+
+void service_callback(const rosapi::TopicsForType::Response& res, bool result)
+{
+    topics = res.topics;
+}
+
+void timer_callback(const ros::TimerEvent& event)
+{
+    rosapi::TopicsForType::Request req;
+    req.type = "sensor_msgs/CompressedImage";
+    topics_service->call<rosapi::TopicsForType>(req);
+}
+
+void init_image(roswasm::NodeHandle* n)
+{
+    image_width = 0;
+    image_height = 0;
+    image_texture = 0;
+    nh = n;
+    topics_service = nh->serviceClient<rosapi::TopicsForType>("/rosapi/topics_for_type", service_callback);
+    rosapi::TopicsForType::Request req;
+    req.type = "sensor_msgs/CompressedImage";
+    topics_service->call<rosapi::TopicsForType>(req);
+    timer = nh->createTimer(5., timer_callback);
+}
+
+void callback(const sensor_msgs::CompressedImage& msg)
+{
+    printf("Got callback with compresed image!\n");
+    std::vector<uint8_t> bytes = msg.data;
+    load_texture(bytes, msg.format);
+}
+
+void show_image_window(bool& show_another_window)
+{
+    ImGui::SetNextWindowSize(ImVec2(550,680), ImGuiCond_FirstUseEver);
+    ImGui::Begin("Image topic", &show_another_window);
+    std::string choices;
+    if (topics.empty()) {
+        choices = " \0";
+    }
+    else {
+        for (const std::string& topic : topics) choices += topic + '\0';
+    }
+    static int style_idx = -1;
+    if (ImGui::Combo("Published topics", &style_idx, choices.c_str()))
+    {
+        if (style_idx != -1 && !topics.empty()) {
+            sub = nh->subscribe<sensor_msgs::CompressedImage>(topics[style_idx], callback, 1000);
+        }
+    }
+    if (image_width != 0 && image_height != 0) {
+        ImGui::Image((void*)(intptr_t)image_texture, ImVec2(image_width, image_height));
+    }
+    ImGui::End();
+}
+
+} // namespace roswasm_image
 
 GLFWwindow* g_window;
 //ImVec4 clear_color = ImVec4(0.45f, 0.55f, 0.60f, 1.00f);
 ImVec4 clear_color = ImVec4(0.25f, 0.45f, 0.55f, 1.00f);
 ImGuiContext* imgui = 0;
 bool show_demo_window = false;
-bool show_another_window = true;
+bool show_monlaunch_window = true;
+bool show_image_window = true;
 
 EM_JS(int, canvas_get_width, (), {
   return Module.canvas.width;
@@ -71,7 +200,8 @@ void loop()
       ImGui::Text("%s", status_text.c_str());
 
 
-      ImGui::Checkbox("Mon launch instances", &show_another_window);
+      ImGui::Checkbox("Mon launch instances", &show_monlaunch_window);
+      ImGui::Checkbox("Image topic", &show_image_window);
       ImGui::Checkbox("Demo widget window", &show_demo_window);      // Edit bools storing our windows open/close state
 
       ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
@@ -81,10 +211,16 @@ void loop()
   //std::cout << "2nd window" << std::endl;
 
   // 2. Show another simple window. In most cases you will use an explicit Begin/End pair to name your windows.
-  if (show_another_window)
+  if (show_monlaunch_window)
   {
       ImGui::SetNextWindowPos(ImVec2(600, 60), ImGuiCond_FirstUseEver); // Normally user code doesn't need/want to call this because positions are saved in .ini file anyway. Here we just want to make the demo initial state a bit more friendly!
-      roswasm_monlaunch::show_monlaunch_window(show_another_window);
+      roswasm_monlaunch::show_monlaunch_window(show_monlaunch_window);
+  }
+
+  if (show_image_window)
+  {
+      ImGui::SetNextWindowPos(ImVec2(600, 60), ImGuiCond_FirstUseEver); // Normally user code doesn't need/want to call this because positions are saved in .ini file anyway. Here we just want to make the demo initial state a bit more friendly!
+      roswasm_image::show_image_window(show_image_window);
   }
 
   // 3. Show the ImGui demo window. Most of the sample code is in ImGui::ShowDemoWindow(). Read its code to learn more about Dear ImGui!
@@ -186,6 +322,7 @@ extern "C" int main(int argc, char** argv)
 
   nh = new roswasm::NodeHandle(rosbridge_ip, rosbridge_port);
   roswasm_monlaunch::init_monlaunch(nh);
+  roswasm_image::init_image(nh);
 
   #ifdef __EMSCRIPTEN__
   emscripten_set_main_loop(loop, 20, 1);
