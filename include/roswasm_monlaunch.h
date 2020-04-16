@@ -6,7 +6,7 @@
 #include <rosmon_msgs/State.h>
 #include <rosmon_msgs/StartStop.h>
 
-namespace roswasm_monlaunch {
+namespace roswasm_webgui {
 
 struct LaunchState {
 
@@ -42,12 +42,19 @@ struct LaunchState {
 
 };
 
+class MonlaunchWidget {
+private:
+    roswasm::ServiceClient* topics_service;
+    std::unordered_map<std::string, LaunchState*> launch_states;
+    roswasm::NodeHandle* nh;
+    roswasm::Timer* timer;
+public:
+    void service_callback(const rosapi::TopicsForType::Response& res, bool result);
+    void timer_callback(const ros::TimerEvent& event);
+    void show_window(bool& show_another_window);
+    MonlaunchWidget(roswasm::NodeHandle* n);
+};
 
-void service_callback(const rosapi::TopicsForType::Response& res, bool result);
-void timer_callback(const ros::TimerEvent& event);
-void init_monlaunch(roswasm::NodeHandle* n);
-void show_monlaunch_window(bool& show_another_window);
-
-} // namespace roswasm_monlaunch
+} // namespace roswasm_webgui
 
 #endif // ROSWASM_MONLAUNCH_H

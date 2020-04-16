@@ -1,13 +1,9 @@
 #include <roswasm_monlaunch.h>
 #include <imgui.h>
 
-namespace roswasm_monlaunch {
+namespace roswasm_webgui {
 
 // ros stuff
-roswasm::ServiceClient* topics_service;
-std::unordered_map<std::string, LaunchState*> launch_states;
-roswasm::NodeHandle* nh;
-roswasm::Timer* timer;
 
 void LaunchState::service_callback(const rosmon_msgs::StartStop::Response& res, bool result)
 {
@@ -108,7 +104,7 @@ LaunchState::LaunchState() : sub(nullptr) {}
 
 const char* LaunchState::status[] = { "IDLE", "RUNNING", "CRASHED", "WAITING" };
 
-void service_callback(const rosapi::TopicsForType::Response& res, bool result)
+void MonlaunchWidget::service_callback(const rosapi::TopicsForType::Response& res, bool result)
 {
     for (int i = 0; i < res.topics.size(); ++i) {
         if (launch_states.count(res.topics[i]) == 0) {
@@ -117,24 +113,24 @@ void service_callback(const rosapi::TopicsForType::Response& res, bool result)
     }
 }
 
-void timer_callback(const ros::TimerEvent& event)
+void MonlaunchWidget::timer_callback(const ros::TimerEvent& event)
 {
     rosapi::TopicsForType::Request req;
     req.type = "rosmon_msgs/State";
     topics_service->call<rosapi::TopicsForType>(req);
 }
 
-void init_monlaunch(roswasm::NodeHandle* n)
+MonlaunchWidget::MonlaunchWidget(roswasm::NodeHandle* n)
 {
     nh = n;
-    topics_service = nh->serviceClient<rosapi::TopicsForType>("/rosapi/topics_for_type", service_callback);
+    topics_service = nh->serviceClient<rosapi::TopicsForType>("/rosapi/topics_for_type", std::bind(&MonlaunchWidget::service_callback, this, std::placeholders::_1, std::placeholders::_2));
     rosapi::TopicsForType::Request req;
     req.type = "rosmon_msgs/State";
     topics_service->call<rosapi::TopicsForType>(req);
-    timer = nh->createTimer(5., timer_callback);
+    timer = nh->createTimer(5., std::bind(&MonlaunchWidget::timer_callback, this, std::placeholders::_1));
 }
 
-void show_monlaunch_window(bool& show_another_window)
+void MonlaunchWidget::show_window(bool& show_another_window)
 {
       ImGui::SetNextWindowSize(ImVec2(550,680), ImGuiCond_FirstUseEver);
       ImGui::Begin("Mon launch instances", &show_another_window);
@@ -195,4 +191,4 @@ void show_monlaunch_window(bool& show_another_window)
       ImGui::End();
 }
 
-} // namespace roswasm_monlaunch
+} // namespace roswasm_webgui
