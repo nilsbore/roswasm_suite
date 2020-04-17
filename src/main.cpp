@@ -18,10 +18,60 @@
 //#include <iostream>
 
 #include <unordered_set>
+#include <std_msgs/Float32.h>
+
+namespace roswasm_webgui {
+
+template <typename MSG, typename T, typename FB_MSG=MSG>
+class TopicWidget {
+private:
+    std::function<void(FB_MSG&, roswasm::Publisher*)> draw_cb;
+    roswasm::Publisher* pub;
+    roswasm::Subscriber* sub;
+    FB_MSG msg;
+public:
+
+    void show_widget()
+    {
+        draw_cb(msg, pub);
+    }
+
+    void callback(const FB_MSG& new_msg)
+    {
+        msg = new_msg;
+    }
+
+    TopicWidget(roswasm::NodeHandle* nh, std::function<void(FB_MSG&, roswasm::Publisher*)> draw_cb, const std::string& fb_topic, const std::string& upd_topic="") : draw_cb(draw_cb)
+    {
+        if (upd_topic.empty()) {
+            pub = nh->advertise<MSG>(fb_topic);
+        }
+        else {
+            pub = nh->advertise<MSG>(upd_topic);
+        }
+        sub = nh->subscribe<FB_MSG>(fb_topic, std::bind(&TopicWidget::callback, this, std::placeholders::_1));
+    }
+};
+
+void draw_float(std_msgs::Float32& msg, roswasm::Publisher* pub)
+{
+    ImGui::SliderFloat("", &msg.data, 0.0f, 100.0f);
+    if (ImGui::IsItemDeactivatedAfterChange()) {
+        pub->publish(msg);
+    }
+    ImGui::SameLine();
+    ImGui::InputFloat("Float value", &msg.data);
+    if (ImGui::IsItemDeactivatedAfterChange()) {
+        pub->publish(msg);
+    }
+}
+
+} // namespace roswasm_webgui
 
 roswasm::NodeHandle* nh; 
 roswasm_webgui::MonlaunchWidget* monlaunch_widget;
 roswasm_webgui::ImageWidget* image_widget;
+roswasm_webgui::TopicWidget<std_msgs::Float32, float>* float_widget;
 
 GLFWwindow* g_window;
 //ImVec4 clear_color = ImVec4(0.45f, 0.55f, 0.60f, 1.00f);
@@ -30,6 +80,7 @@ ImGuiContext* imgui = 0;
 bool show_demo_window = false;
 bool show_monlaunch_window = true;
 bool show_image_window = true;
+bool show_topic_window = true;
 
 EM_JS(int, canvas_get_width, (), {
   return Module.canvas.width;
@@ -105,6 +156,16 @@ void loop()
   {
       ImGui::SetNextWindowPos(ImVec2(600, 60), ImGuiCond_FirstUseEver); // Normally user code doesn't need/want to call this because positions are saved in .ini file anyway. Here we just want to make the demo initial state a bit more friendly!
       ImGui::ShowDemoWindow(&show_demo_window);
+  }
+
+  if (show_topic_window)
+  {
+      ImGui::SetNextWindowPos(ImVec2(600, 60), ImGuiCond_FirstUseEver); // Normally user code doesn't need/want to call this because positions are saved in .ini file anyway. Here we just want to make the demo initial state a bit more friendly!
+    ImGui::SetNextWindowSize(ImVec2(550,680), ImGuiCond_FirstUseEver);
+    ImGui::Begin("Topic setpoints", &show_topic_window);
+    float_widget->show_widget();
+    ImGui::End();
+
   }
 
   ImGui::Render();
@@ -200,6 +261,7 @@ extern "C" int main(int argc, char** argv)
   nh = new roswasm::NodeHandle(rosbridge_ip, rosbridge_port);
   monlaunch_widget = new roswasm_webgui::MonlaunchWidget(nh);
   image_widget = new roswasm_webgui::ImageWidget(nh);
+  float_widget = new roswasm_webgui::TopicWidget<std_msgs::Float32, float>(nh, &roswasm_webgui::draw_float, "/test_float");
 
   #ifdef __EMSCRIPTEN__
   emscripten_set_main_loop(loop, 20, 1);
