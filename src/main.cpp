@@ -22,7 +22,7 @@
 
 namespace roswasm_webgui {
 
-template <typename MSG, typename T, typename FB_MSG=MSG>
+template <typename MSG, typename FB_MSG=MSG>
 class TopicWidget {
 private:
     std::function<void(FB_MSG&, roswasm::Publisher*)> draw_cb;
@@ -71,7 +71,7 @@ void draw_float(std_msgs::Float32& msg, roswasm::Publisher* pub)
 roswasm::NodeHandle* nh; 
 roswasm_webgui::MonlaunchWidget* monlaunch_widget;
 roswasm_webgui::ImageWidget* image_widget;
-roswasm_webgui::TopicWidget<std_msgs::Float32, float>* float_widget;
+roswasm_webgui::TopicWidget<std_msgs::Float32>* float_widget;
 
 GLFWwindow* g_window;
 //ImVec4 clear_color = ImVec4(0.45f, 0.55f, 0.60f, 1.00f);
@@ -261,7 +261,7 @@ extern "C" int main(int argc, char** argv)
   nh = new roswasm::NodeHandle(rosbridge_ip, rosbridge_port);
   monlaunch_widget = new roswasm_webgui::MonlaunchWidget(nh);
   image_widget = new roswasm_webgui::ImageWidget(nh);
-  float_widget = new roswasm_webgui::TopicWidget<std_msgs::Float32, float>(nh, &roswasm_webgui::draw_float, "/test_float");
+  float_widget = new roswasm_webgui::TopicWidget<std_msgs::Float32>(nh, &roswasm_webgui::draw_float, "/test_float");
 
   #ifdef __EMSCRIPTEN__
   emscripten_set_main_loop(loop, 20, 1);
