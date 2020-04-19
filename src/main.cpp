@@ -185,8 +185,7 @@ struct DrawFloat32
     DrawFloat32(float minv, float maxv) : minv(minv), maxv(maxv) {}
     void operator()(std_msgs::Float32& msg, roswasm::Publisher* pub)
     {
-        ImGui::PushID("Float");
-        ImGui::SliderFloat("Float slider", &msg.data, minv, maxv);
+        ImGui::SliderFloat("", &msg.data, minv, maxv);
         if (ImGui::IsItemDeactivatedAfterChange()) {
             pub->publish(msg);
         }
@@ -195,7 +194,6 @@ struct DrawFloat32
         if (ImGui::IsItemDeactivatedAfterChange()) {
             pub->publish(msg);
         }
-        ImGui::PopID();
     }
 };
 
@@ -260,26 +258,60 @@ public:
         ImGui::Begin("Actuator controls", &show_actuator_window);
 
         if (ImGui::CollapsingHeader("Thruster Angles", ImGuiTreeNodeFlags_Framed | ImGuiTreeNodeFlags_DefaultOpen)) {
+            ImGui::PushID("Angles");
             thruster_angles->show_widget();
+            ImGui::PopID();
         }
         if (ImGui::CollapsingHeader("Thruster RPMs", ImGuiTreeNodeFlags_Framed | ImGuiTreeNodeFlags_DefaultOpen)) {
+            ImGui::PushID("RPMs");
             thruster_rpms->show_widget();
+            ImGui::PopID();
         }
 
         if (ImGui::CollapsingHeader("LCG", ImGuiTreeNodeFlags_Framed | ImGuiTreeNodeFlags_DefaultOpen)) {
+            ImGui::PushID("LCG");
+            ImGui::Text("Actuator");
+            ImGui::SameLine();
+            ImGui::PushID("Actuator");
             lcg_actuator->show_widget();
+            ImGui::PopID();
             lcg_control_enable->show_widget();
+            ImGui::Text("Pitch setpoint");
+            ImGui::SameLine();
+            ImGui::PushID("Control");
             lcg_control_setpoint->show_widget();
+            ImGui::PopID();
+            ImGui::PopID();
         }
         if (ImGui::CollapsingHeader("VBS", ImGuiTreeNodeFlags_Framed | ImGuiTreeNodeFlags_DefaultOpen)) {
+            ImGui::PushID("VBS");
+            ImGui::Text("Actuator");
+            ImGui::SameLine();
+            ImGui::PushID("Actuator");
             vbs_actuator->show_widget();
+            ImGui::PopID();
             vbs_control_enable->show_widget();
+            ImGui::Text("Depth setpoint");
+            ImGui::SameLine();
+            ImGui::PushID("Control");
             vbs_control_setpoint->show_widget();
+            ImGui::PopID();
+            ImGui::PopID();
         }
         if (ImGui::CollapsingHeader("TCG", ImGuiTreeNodeFlags_Framed | ImGuiTreeNodeFlags_DefaultOpen)) {
+            ImGui::PushID("TCG");
+            ImGui::Text("Actuator");
+            ImGui::SameLine();
+            ImGui::PushID("Actuator");
             tcg_actuator->show_widget();
+            ImGui::PopID();
             tcg_control_enable->show_widget();
+            ImGui::Text("Roll setpoint");
+            ImGui::SameLine();
+            ImGui::PushID("Control");
             tcg_control_setpoint->show_widget();
+            ImGui::PopID();
+            ImGui::PopID();
         }
 
         ImGui::End();
