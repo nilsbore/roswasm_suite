@@ -3,6 +3,10 @@
 
 #include <roswasm_widget.h>
 
+#include <sensor_msgs/NavSatFix.h>
+#include <sensor_msgs/BatteryState.h>
+#include <nav_msgs/Odometry.h>
+
 namespace roswasm_webgui {
 
 class ExampleActuatorWidget {
@@ -22,6 +26,23 @@ private:
 public:
     void show_window(bool& show_actuator_window);
     ExampleActuatorWidget(roswasm::NodeHandle* nh);
+};
+
+class ExampleDashboardWidget {
+private:
+    TopicBuffer<std_msgs::Bool>* leak;
+    TopicBuffer<sensor_msgs::NavSatFix>* gps;
+    TopicBuffer<sensor_msgs::BatteryState>* battery;
+    TopicBuffer<nav_msgs::Odometry>* odom;
+    TopicBuffer<std_msgs::Float64>* vbs;
+    TopicBuffer<std_msgs::Float64>* lcg;
+    TopicBuffer<std_msgs::Float64>* depth;
+    TopicBuffer<std_msgs::Float64>* pitch;
+    TopicBuffer<std_msgs::Float64>* roll;
+    TopicBuffer<std_msgs::Float64>* yaw;
+public:
+    void show_window(bool& show_dashboard_window);
+    ExampleDashboardWidget(roswasm::NodeHandle* nh);
 };
 
 } // namespace roswasm_webgui

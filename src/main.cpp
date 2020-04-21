@@ -24,6 +24,7 @@ roswasm::NodeHandle* nh;
 roswasm_webgui::MonlaunchWidget* monlaunch_widget;
 roswasm_webgui::ImageWidget* image_widget;
 roswasm_webgui::ExampleActuatorWidget* actuator_widget;
+roswasm_webgui::ExampleDashboardWidget* dashboard_widget;
 
 GLFWwindow* g_window;
 //ImVec4 clear_color = ImVec4(0.45f, 0.55f, 0.60f, 1.00f);
@@ -33,6 +34,7 @@ bool show_demo_window = false;
 bool show_monlaunch_window = true;
 bool show_image_window = true;
 bool show_actuator_window = true;
+bool show_dashboard_window = true;
 
 EM_JS(int, canvas_get_width, (), {
   return Module.canvas.width;
@@ -122,6 +124,13 @@ void loop()
         ImGui::End();
         */
       actuator_widget->show_window(show_actuator_window);
+
+  }
+
+  if (show_dashboard_window)
+  {
+      ImGui::SetNextWindowPos(ImVec2(600, 60), ImGuiCond_FirstUseEver);
+      dashboard_widget->show_window(show_dashboard_window);
 
   }
 
@@ -221,6 +230,7 @@ extern "C" int main(int argc, char** argv)
   //float_widget = new roswasm_webgui::TopicWidget<std_msgs::Float32>(nh, &roswasm_webgui::draw_float, "/test_float");
   //pose2d_widget = new roswasm_webgui::TopicPairWidget<geometry_msgs::Pose2D, std_msgs::Float64>(nh, &roswasm_webgui::draw_pose2d, "/pose2d", "/pose2d_fb1", "/pose2d_fb2");
   actuator_widget = new roswasm_webgui::ExampleActuatorWidget(nh);
+  dashboard_widget = new roswasm_webgui::ExampleDashboardWidget(nh);
 
   #ifdef __EMSCRIPTEN__
   emscripten_set_main_loop(loop, 20, 1);

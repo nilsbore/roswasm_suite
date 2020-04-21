@@ -94,4 +94,44 @@ void ExampleActuatorWidget::show_window(bool& show_actuator_window)
     ImGui::End();
 }
 
+ExampleDashboardWidget::ExampleDashboardWidget(roswasm::NodeHandle* nh)
+{
+    leak = new TopicBuffer<std_msgs::Bool>(nh, "/sam/core/leak_fb");
+    gps = new TopicBuffer<sensor_msgs::NavSatFix>(nh, "/sam/core/gps");
+    battery = new TopicBuffer<sensor_msgs::BatteryState>(nh, "/sam/core/battery_fb");
+    odom = new TopicBuffer<nav_msgs::Odometry>(nh, "/sam/dr/odom", 1000);
+    vbs = new TopicBuffer<std_msgs::Float64>(nh, "/sam/core/vbs_fb", 1000);
+    lcg = new TopicBuffer<std_msgs::Float64>(nh, "/sam/core/lcg_fb", 1000);
+    depth = new TopicBuffer<std_msgs::Float64>(nh, "/sam/ctrl/depth_feedback", 1000);
+    pitch = new TopicBuffer<std_msgs::Float64>(nh, "/sam/ctrl/pitch_feedback", 1000);
+    roll = new TopicBuffer<std_msgs::Float64>(nh, "/sam/ctrl/roll_feedback", 1000);
+    yaw = new TopicBuffer<std_msgs::Float64>(nh, "/sam/ctrl/yaw_feedback", 1000);
+}
+
+void ExampleDashboardWidget::show_window(bool& show_dashboard_window)
+{
+    ImGui::SetNextWindowSize(ImVec2(550,680), ImGuiCond_FirstUseEver);
+    ImGui::Begin("Status dashboard", &show_dashboard_window);
+
+    if (leak->get_msg().data) {
+        ImGui::Text("Leak!");
+    }
+    else {
+        ImGui::Text("No leak!");
+    }
+    ImGui::Text("Lat: %.5f", gps->get_msg().latitude);
+    ImGui::Text("Lon: %.5f", gps->get_msg().longitude);
+    ImGui::Text("Battery: %.0f%%", battery->get_msg().percentage);
+    ImGui::Text("X: %.2fm", odom->get_msg().pose.pose.position.x);
+    ImGui::Text("Y: %.2fm", odom->get_msg().pose.pose.position.y);
+    ImGui::Text("Z: %.2fm", odom->get_msg().pose.pose.position.z);
+    ImGui::Text("VBS pos: %.2f%%", vbs->get_msg().data);
+    ImGui::Text("LCG pos: %.2f%%", lcg->get_msg().data);
+    ImGui::Text("Depth: %.2fm", depth->get_msg().data);
+    ImGui::Text("Roll: %.2fdeg", 180./M_PI*roll->get_msg().data);
+    ImGui::Text("Pitch: %.2fdeg", 180./M_PI*pitch->get_msg().data);
+    ImGui::Text("Yaw: %.2fdeg", 180./M_PI*yaw->get_msg().data);
+    ImGui::End();
+}
+
 } // namespace roswasm_webgui
