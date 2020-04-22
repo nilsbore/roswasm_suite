@@ -30,6 +30,7 @@ public:
 
 class ExampleDashboardWidget {
 private:
+    bool was_leak;
     TopicBuffer<std_msgs::Bool>* leak;
     TopicBuffer<sensor_msgs::NavSatFix>* gps;
     TopicBuffer<sensor_msgs::BatteryState>* battery;

@@ -64,6 +64,8 @@ void loop()
   // 1. Show a simple window.
   // Tip: if we don't call ImGui::Begin()/ImGui::End() the widgets automatically appears in a window called "Debug".
   {
+      ImGui::SetNextWindowPos(ImVec2(30, 30), ImGuiCond_FirstUseEver);
+      ImGui::SetNextWindowSize(ImVec2(482, 208), ImGuiCond_FirstUseEver);
       float sz = ImGui::GetTextLineHeight();
       std::string status_text;
       ImColor status_color;
@@ -85,6 +87,7 @@ void loop()
       ImGui::Checkbox("Mon launch instances", &show_monlaunch_window);
       ImGui::Checkbox("Image topic", &show_image_window);
       ImGui::Checkbox("Actuators", &show_actuator_window);
+      ImGui::Checkbox("Status dashboard", &show_dashboard_window);
       ImGui::Checkbox("Demo widget window", &show_demo_window);      // Edit bools storing our windows open/close state
 
       ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
@@ -96,13 +99,13 @@ void loop()
   // 2. Show another simple window. In most cases you will use an explicit Begin/End pair to name your windows.
   if (show_monlaunch_window)
   {
-      ImGui::SetNextWindowPos(ImVec2(600, 60), ImGuiCond_FirstUseEver); // Normally user code doesn't need/want to call this because positions are saved in .ini file anyway. Here we just want to make the demo initial state a bit more friendly!
+      ImGui::SetNextWindowPos(ImVec2(30, 303), ImGuiCond_FirstUseEver); // Normally user code doesn't need/want to call this because positions are saved in .ini file anyway. Here we just want to make the demo initial state a bit more friendly!
       monlaunch_widget->show_window(show_monlaunch_window);
   }
 
   if (show_image_window)
   {
-      ImGui::SetNextWindowPos(ImVec2(600, 60), ImGuiCond_FirstUseEver); // Normally user code doesn't need/want to call this because positions are saved in .ini file anyway. Here we just want to make the demo initial state a bit more friendly!
+      ImGui::SetNextWindowPos(ImVec2(1072, 30), ImGuiCond_FirstUseEver); // Normally user code doesn't need/want to call this because positions are saved in .ini file anyway. Here we just want to make the demo initial state a bit more friendly!
       image_widget->show_window(show_image_window);
   }
 
@@ -115,7 +118,7 @@ void loop()
 
   if (show_actuator_window)
   {
-      ImGui::SetNextWindowPos(ImVec2(600, 60), ImGuiCond_FirstUseEver); // Normally user code doesn't need/want to call this because positions are saved in .ini file anyway. Here we just want to make the demo initial state a bit more friendly!
+      ImGui::SetNextWindowPos(ImVec2(542, 294), ImGuiCond_FirstUseEver); // Normally user code doesn't need/want to call this because positions are saved in .ini file anyway. Here we just want to make the demo initial state a bit more friendly!
       /*
         ImGui::SetNextWindowSize(ImVec2(550,680), ImGuiCond_FirstUseEver);
         ImGui::Begin("Topic setpoints", &show_topic_window);
@@ -129,7 +132,7 @@ void loop()
 
   if (show_dashboard_window)
   {
-      ImGui::SetNextWindowPos(ImVec2(600, 60), ImGuiCond_FirstUseEver);
+      ImGui::SetNextWindowPos(ImVec2(542, 30), ImGuiCond_FirstUseEver);
       dashboard_widget->show_window(show_dashboard_window);
 
   }

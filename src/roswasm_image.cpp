@@ -92,7 +92,7 @@ void ImageWidget::callback(const sensor_msgs::CompressedImage& msg)
 
 void ImageWidget::show_window(bool& show_another_window)
 {
-    ImGui::SetNextWindowSize(ImVec2(550,680), ImGuiCond_FirstUseEver);
+    ImGui::SetNextWindowSize(ImVec2(472, 427), ImGuiCond_FirstUseEver);
     ImGui::Begin("Image topic", &show_another_window);
     std::string choices;
     if (topics.empty()) {

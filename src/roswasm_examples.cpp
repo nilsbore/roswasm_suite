@@ -31,7 +31,7 @@ ExampleActuatorWidget::ExampleActuatorWidget(roswasm::NodeHandle* nh)
 
 void ExampleActuatorWidget::show_window(bool& show_actuator_window)
 {
-    ImGui::SetNextWindowSize(ImVec2(550,680), ImGuiCond_FirstUseEver);
+    ImGui::SetNextWindowSize(ImVec2(500, 454), ImGuiCond_FirstUseEver);
     ImGui::Begin("Actuator controls", &show_actuator_window);
 
     if (ImGui::CollapsingHeader("Thruster Angles", ImGuiTreeNodeFlags_Framed | ImGuiTreeNodeFlags_DefaultOpen)) {
@@ -94,7 +94,7 @@ void ExampleActuatorWidget::show_window(bool& show_actuator_window)
     ImGui::End();
 }
 
-ExampleDashboardWidget::ExampleDashboardWidget(roswasm::NodeHandle* nh)
+ExampleDashboardWidget::ExampleDashboardWidget(roswasm::NodeHandle* nh) : was_leak(false)
 {
     leak = new TopicBuffer<std_msgs::Bool>(nh, "/sam/core/leak_fb");
     gps = new TopicBuffer<sensor_msgs::NavSatFix>(nh, "/sam/core/gps");
@@ -110,27 +110,63 @@ ExampleDashboardWidget::ExampleDashboardWidget(roswasm::NodeHandle* nh)
 
 void ExampleDashboardWidget::show_window(bool& show_dashboard_window)
 {
-    ImGui::SetNextWindowSize(ImVec2(550,680), ImGuiCond_FirstUseEver);
+    ImGui::SetNextWindowSize(ImVec2(500, 243), ImGuiCond_FirstUseEver);
     ImGui::Begin("Status dashboard", &show_dashboard_window);
 
-    if (leak->get_msg().data) {
-        ImGui::Text("Leak!");
+    if (ImGui::CollapsingHeader("Critical Info", ImGuiTreeNodeFlags_Framed | ImGuiTreeNodeFlags_DefaultOpen)) {
+        was_leak = was_leak || leak->get_msg().data;
+
+        float sz = ImGui::GetTextLineHeight();
+        std::string status_text;
+        ImColor status_color;
+        if (!was_leak) {
+            status_text = "No leaks!";
+            status_color = ImColor(0, 255, 0);
+        }
+        else {
+            status_text = "Leak!!!!!";
+            status_color = ImColor(255, 0, 0);
+        }
+        ImVec2 p = ImGui::GetCursorScreenPos();
+        ImGui::GetWindowDrawList()->AddRectFilled(p, ImVec2(p.x+sz, p.y+sz), status_color);
+        ImGui::Dummy(ImVec2(sz, sz));
+        ImGui::SameLine();
+        ImGui::Text("%s", status_text.c_str());
+
+        ImGui::SameLine(150);
+        ImGui::Text("Battery: %.0f%%", battery->get_msg().percentage);
     }
-    else {
-        ImGui::Text("No leak!");
+
+    if (ImGui::CollapsingHeader("GPS and depth", ImGuiTreeNodeFlags_Framed | ImGuiTreeNodeFlags_DefaultOpen)) {
+        ImGui::Text("Lat: %.5f", gps->get_msg().latitude);
+        ImGui::SameLine(150);
+        ImGui::Text("Lon: %.5f", gps->get_msg().longitude);
+        ImGui::SameLine(300);
+        ImGui::Text("Depth: %.2fm", depth->get_msg().data);
     }
-    ImGui::Text("Lat: %.5f", gps->get_msg().latitude);
-    ImGui::Text("Lon: %.5f", gps->get_msg().longitude);
-    ImGui::Text("Battery: %.0f%%", battery->get_msg().percentage);
-    ImGui::Text("X: %.2fm", odom->get_msg().pose.pose.position.x);
-    ImGui::Text("Y: %.2fm", odom->get_msg().pose.pose.position.y);
-    ImGui::Text("Z: %.2fm", odom->get_msg().pose.pose.position.z);
-    ImGui::Text("VBS pos: %.2f%%", vbs->get_msg().data);
-    ImGui::Text("LCG pos: %.2f%%", lcg->get_msg().data);
-    ImGui::Text("Depth: %.2fm", depth->get_msg().data);
-    ImGui::Text("Roll: %.2fdeg", 180./M_PI*roll->get_msg().data);
-    ImGui::Text("Pitch: %.2fdeg", 180./M_PI*pitch->get_msg().data);
-    ImGui::Text("Yaw: %.2fdeg", 180./M_PI*yaw->get_msg().data);
+
+    if (ImGui::CollapsingHeader("DR translation", ImGuiTreeNodeFlags_Framed | ImGuiTreeNodeFlags_DefaultOpen)) {
+        ImGui::Text("X: %.2fm", odom->get_msg().pose.pose.position.x);
+        ImGui::SameLine(150);
+        ImGui::Text("Y: %.2fm", odom->get_msg().pose.pose.position.y);
+        ImGui::SameLine(300);
+        ImGui::Text("Z: %.2fm", odom->get_msg().pose.pose.position.z);
+    }
+
+    if (ImGui::CollapsingHeader("DR rotation", ImGuiTreeNodeFlags_Framed | ImGuiTreeNodeFlags_DefaultOpen)) {
+        ImGui::Text("Roll: %.2fdeg", 180./M_PI*roll->get_msg().data);
+        ImGui::SameLine(150);
+        ImGui::Text("Pitch: %.2fdeg", 180./M_PI*pitch->get_msg().data);
+        ImGui::SameLine(300);
+        ImGui::Text("Yaw: %.2fdeg", 180./M_PI*yaw->get_msg().data);
+    }
+
+    if (ImGui::CollapsingHeader("Actuator feedback", ImGuiTreeNodeFlags_Framed | ImGuiTreeNodeFlags_DefaultOpen)) {
+        ImGui::Text("VBS pos: %.2f%%", vbs->get_msg().data);
+        ImGui::SameLine(150);
+        ImGui::Text("LCG pos: %.2f%%", lcg->get_msg().data);
+    }
+
     ImGui::End();
 }
 
