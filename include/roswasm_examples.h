@@ -46,6 +46,17 @@ public:
     ExampleDashboardWidget(roswasm::NodeHandle* nh);
 };
 
+class ExampleTeleopWidget {
+private:
+    roswasm::Publisher* rpm_pub;
+    roswasm::Publisher* angle_pub;
+    roswasm::Timer* pub_timer;
+public:
+    void pub_callback(const ros::TimerEvent& e);
+    void show_window(bool& show_teleop_window);
+    ExampleTeleopWidget(roswasm::NodeHandle* nh);
+};
+
 } // namespace roswasm_webgui
 
 #endif // ROSWASM_EXAMPLES_H

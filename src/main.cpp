@@ -25,6 +25,7 @@ roswasm_webgui::MonlaunchWidget* monlaunch_widget;
 roswasm_webgui::ImageWidget* image_widget;
 roswasm_webgui::ExampleActuatorWidget* actuator_widget;
 roswasm_webgui::ExampleDashboardWidget* dashboard_widget;
+roswasm_webgui::ExampleTeleopWidget* teleop_widget;
 
 GLFWwindow* g_window;
 //ImVec4 clear_color = ImVec4(0.45f, 0.55f, 0.60f, 1.00f);
@@ -35,6 +36,7 @@ bool show_monlaunch_window = true;
 bool show_image_window = true;
 bool show_actuator_window = true;
 bool show_dashboard_window = true;
+bool show_teleop_window = true;
 
 EM_JS(int, canvas_get_width, (), {
   return Module.canvas.width;
@@ -66,6 +68,7 @@ void loop()
   {
       ImGui::SetNextWindowPos(ImVec2(30, 30), ImGuiCond_FirstUseEver);
       ImGui::SetNextWindowSize(ImVec2(482, 208), ImGuiCond_FirstUseEver);
+      ImGui::Begin("Roswasm webgui"); //, &show_another_window);
       float sz = ImGui::GetTextLineHeight();
       std::string status_text;
       ImColor status_color;
@@ -84,14 +87,15 @@ void loop()
       ImGui::Text("%s", status_text.c_str());
 
 
-      ImGui::Checkbox("Mon launch instances", &show_monlaunch_window);
+      ImGui::Checkbox("Launch control", &show_monlaunch_window);
       ImGui::Checkbox("Image topic", &show_image_window);
       ImGui::Checkbox("Actuators", &show_actuator_window);
       ImGui::Checkbox("Status dashboard", &show_dashboard_window);
-      ImGui::Checkbox("Demo widget window", &show_demo_window);      // Edit bools storing our windows open/close state
+      ImGui::Checkbox("Demo widgets", &show_demo_window);      // Edit bools storing our windows open/close state
 
       ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
       ImGui::ColorEdit3("Background", (float*)&clear_color); // Edit 3 floats representing a color
+      ImGui::End();
   }
 
   //std::cout << "2nd window" << std::endl;
@@ -99,7 +103,7 @@ void loop()
   // 2. Show another simple window. In most cases you will use an explicit Begin/End pair to name your windows.
   if (show_monlaunch_window)
   {
-      ImGui::SetNextWindowPos(ImVec2(30, 303), ImGuiCond_FirstUseEver); // Normally user code doesn't need/want to call this because positions are saved in .ini file anyway. Here we just want to make the demo initial state a bit more friendly!
+      ImGui::SetNextWindowPos(ImVec2(30, 268), ImGuiCond_FirstUseEver); // Normally user code doesn't need/want to call this because positions are saved in .ini file anyway. Here we just want to make the demo initial state a bit more friendly!
       monlaunch_widget->show_window(show_monlaunch_window);
   }
 
@@ -118,7 +122,7 @@ void loop()
 
   if (show_actuator_window)
   {
-      ImGui::SetNextWindowPos(ImVec2(542, 294), ImGuiCond_FirstUseEver); // Normally user code doesn't need/want to call this because positions are saved in .ini file anyway. Here we just want to make the demo initial state a bit more friendly!
+      ImGui::SetNextWindowPos(ImVec2(542, 303), ImGuiCond_FirstUseEver); // Normally user code doesn't need/want to call this because positions are saved in .ini file anyway. Here we just want to make the demo initial state a bit more friendly!
       /*
         ImGui::SetNextWindowSize(ImVec2(550,680), ImGuiCond_FirstUseEver);
         ImGui::Begin("Topic setpoints", &show_topic_window);
@@ -134,6 +138,13 @@ void loop()
   {
       ImGui::SetNextWindowPos(ImVec2(542, 30), ImGuiCond_FirstUseEver);
       dashboard_widget->show_window(show_dashboard_window);
+
+  }
+
+  if (show_teleop_window)
+  {
+      ImGui::SetNextWindowPos(ImVec2(1072, 487), ImGuiCond_FirstUseEver);
+      teleop_widget->show_window(show_teleop_window);
 
   }
 
@@ -234,6 +245,7 @@ extern "C" int main(int argc, char** argv)
   //pose2d_widget = new roswasm_webgui::TopicPairWidget<geometry_msgs::Pose2D, std_msgs::Float64>(nh, &roswasm_webgui::draw_pose2d, "/pose2d", "/pose2d_fb1", "/pose2d_fb2");
   actuator_widget = new roswasm_webgui::ExampleActuatorWidget(nh);
   dashboard_widget = new roswasm_webgui::ExampleDashboardWidget(nh);
+  teleop_widget = new roswasm_webgui::ExampleTeleopWidget(nh);
 
   #ifdef __EMSCRIPTEN__
   emscripten_set_main_loop(loop, 20, 1);

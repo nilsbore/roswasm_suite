@@ -45,7 +45,7 @@ struct LaunchState {
 class MonlaunchWidget {
 private:
     roswasm::ServiceClient* topics_service;
-    std::unordered_map<std::string, LaunchState*> launch_states;
+    std::map<std::string, LaunchState*> launch_states;
     roswasm::NodeHandle* nh;
     roswasm::Timer* timer;
 public:

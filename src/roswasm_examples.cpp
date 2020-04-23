@@ -170,4 +170,41 @@ void ExampleDashboardWidget::show_window(bool& show_dashboard_window)
     ImGui::End();
 }
 
+ExampleTeleopWidget::ExampleTeleopWidget(roswasm::NodeHandle* nh)
+{
+    angle_pub = nh->advertise<geometry_msgs::Pose2D>("/sam/core/thrust_vector_cmd");
+    rpm_pub = nh->advertise<geometry_msgs::Pose2D>("/sam/core/rpm_cmd");
+}
+
+void ExampleTeleopWidget::pub_callback(const ros::TimerEvent& e)
+{
+
+}
+
+void ExampleTeleopWidget::show_window(bool& show_teleop_window)
+{
+    ImGui::SetNextWindowSize(ImVec2(472, 243), ImGuiCond_FirstUseEver);
+    ImGui::Begin("Keyboard teleop", &show_teleop_window);
+    float sz = ImGui::GetTextLineHeight();
+    ImGui::BeginGroup();
+    ImGui::BeginGroup();
+    ImGui::Dummy(ImVec2(sz, sz));
+    ImGui::ArrowButton("##left", ImGuiDir_Left);
+    ImGui::EndGroup();
+    ImGui::SameLine();
+    ImGui::BeginGroup();
+    ImGui::ArrowButton("##up", ImGuiDir_Up);
+    ImGui::ArrowButton("##down", ImGuiDir_Down);
+    ImGui::EndGroup();
+    ImGui::SameLine();
+    ImGui::BeginGroup();
+    ImGui::Dummy(ImVec2(sz, sz));
+    ImGui::ArrowButton("##right", ImGuiDir_Right);
+    ImGui::EndGroup();
+    ImGui::EndGroup();
+    ImGui::End();
+    //ImGui::Text("Keys down:");      for (int i = 0; i < IM_ARRAYSIZE(io.KeysDown); i++) if (io.KeysDownDuration[i] >= 0.0f)     { ImGui::SameLine(); ImGui::Text("%d (%.02f secs)", i, io.KeysDownDuration[i]); }
+}
+
+
 } // namespace roswasm_webgui
