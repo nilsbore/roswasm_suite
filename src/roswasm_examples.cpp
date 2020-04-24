@@ -170,7 +170,7 @@ void ExampleDashboardWidget::show_window(bool& show_dashboard_window)
     ImGui::End();
 }
 
-ExampleTeleopWidget::ExampleTeleopWidget(roswasm::NodeHandle* nh)
+ExampleTeleopWidget::ExampleTeleopWidget(roswasm::NodeHandle* nh) : enabled(false), pub_timer(nullptr)
 {
     angle_pub = nh->advertise<geometry_msgs::Pose2D>("/sam/core/thrust_vector_cmd");
     rpm_pub = nh->advertise<geometry_msgs::Pose2D>("/sam/core/rpm_cmd");
@@ -178,31 +178,130 @@ ExampleTeleopWidget::ExampleTeleopWidget(roswasm::NodeHandle* nh)
 
 void ExampleTeleopWidget::pub_callback(const ros::TimerEvent& e)
 {
-
+    angle_pub->publish(angles_msg);
+    rpm_pub->publish(rpm_msg);
 }
 
 void ExampleTeleopWidget::show_window(bool& show_teleop_window)
 {
-    ImGui::SetNextWindowSize(ImVec2(472, 243), ImGuiCond_FirstUseEver);
+    ImGuiIO& io = ImGui::GetIO();
+    ImVec4 col = ImGui::GetStyle().Colors[23];
+
+    ImGui::SetNextWindowSize(ImVec2(472, 80), ImGuiCond_FirstUseEver);
     ImGui::Begin("Keyboard teleop", &show_teleop_window);
+
+    angles_msg.x = angles_msg.y = rpm_msg.x = rpm_msg.y = 0.;
+
     float sz = ImGui::GetTextLineHeight();
     ImGui::BeginGroup();
     ImGui::BeginGroup();
     ImGui::Dummy(ImVec2(sz, sz));
-    ImGui::ArrowButton("##left", ImGuiDir_Left);
+    ImGui::Checkbox("Teleop enabled", &enabled);
+    if (enabled && pub_timer == nullptr) {
+        pub_timer = new roswasm::Timer(0.08, std::bind(&ExampleTeleopWidget::pub_callback, this, std::placeholders::_1));
+    }
+    else if (!enabled && pub_timer != nullptr) {
+        delete pub_timer;
+        pub_timer = nullptr;
+    }
+    ImGui::EndGroup();
+
+    ImGui::SameLine();
+
+    ImGui::BeginGroup();
+    ImGui::Dummy(ImVec2(sz, 1.5f*sz));
+    bool key_down = enabled && io.KeysDownDuration[263] >= 0.0f;
+    if (key_down) {
+        ImGui::PushStyleColor(ImGuiCol_Button, col);
+    }
+    if (ImGui::ArrowButton("##left", ImGuiDir_Left) || key_down) {
+        angles_msg.x = -0.10;
+    }
+    if (key_down) {
+        ImGui::PopStyleColor();   
+    }
     ImGui::EndGroup();
     ImGui::SameLine();
     ImGui::BeginGroup();
-    ImGui::ArrowButton("##up", ImGuiDir_Up);
-    ImGui::ArrowButton("##down", ImGuiDir_Down);
+    key_down = enabled && io.KeysDownDuration[265] >= 0.0f;
+    if (key_down) {
+        ImGui::PushStyleColor(ImGuiCol_Button, col);
+    }
+    if (ImGui::ArrowButton("##up", ImGuiDir_Up) || key_down) {
+        angles_msg.y = 0.10;
+    }
+    if (key_down) {
+        ImGui::PopStyleColor();   
+    }
+    key_down = enabled && io.KeysDownDuration[264] >= 0.0f;
+    if (key_down) {
+        ImGui::PushStyleColor(ImGuiCol_Button, col);
+    }
+    if (ImGui::ArrowButton("##down", ImGuiDir_Down) || key_down) {
+        angles_msg.y = -0.10;
+    }
+    if (key_down) {
+        ImGui::PopStyleColor();   
+    }
     ImGui::EndGroup();
     ImGui::SameLine();
+    ImGui::BeginGroup();
+    ImGui::Dummy(ImVec2(sz, 1.5f*sz));
+    key_down = enabled && io.KeysDownDuration[262] >= 0.0f;
+    if (key_down) {
+        ImGui::PushStyleColor(ImGuiCol_Button, col);
+    }
+    if (ImGui::ArrowButton("##right", ImGuiDir_Right) || key_down) {
+        angles_msg.x = 0.10;
+    }
+    if (key_down) {
+        ImGui::PopStyleColor();   
+    }
+    ImGui::EndGroup();
+
+    ImGui::SameLine();
+
     ImGui::BeginGroup();
     ImGui::Dummy(ImVec2(sz, sz));
-    ImGui::ArrowButton("##right", ImGuiDir_Right);
+    ImGui::Text("Thrust Vector");
+    ImGui::EndGroup();
+
+    ImGui::SameLine();
+
+    ImGui::BeginGroup();
+    key_down = enabled && io.KeysDownDuration[87] >= 0.0f;
+    if (key_down) {
+        ImGui::PushStyleColor(ImGuiCol_Button, col);
+    }
+    if (ImGui::Button("w") || key_down) {
+        rpm_msg.x = 500;
+        rpm_msg.y = 500;
+    }
+    if (key_down) {
+        ImGui::PopStyleColor();   
+    }
+    key_down = enabled && io.KeysDownDuration[83] >= 0.0f;
+    if (key_down) {
+        ImGui::PushStyleColor(ImGuiCol_Button, col);
+    }
+    if (ImGui::Button("s") || key_down) {
+        rpm_msg.x = -500;
+        rpm_msg.y = -500;
+    }
+    if (key_down) {
+        ImGui::PopStyleColor();   
+    }
+    ImGui::EndGroup();
+    ImGui::SameLine();
+    ImGui::BeginGroup();
+    ImGui::Text("Forward");
+    ImGui::Dummy(ImVec2(sz, 0.5f*sz));
+    ImGui::Text("Reverse");
     ImGui::EndGroup();
     ImGui::EndGroup();
+
     ImGui::End();
+
     //ImGui::Text("Keys down:");      for (int i = 0; i < IM_ARRAYSIZE(io.KeysDown); i++) if (io.KeysDownDuration[i] >= 0.0f)     { ImGui::SameLine(); ImGui::Text("%d (%.02f secs)", i, io.KeysDownDuration[i]); }
 }
 

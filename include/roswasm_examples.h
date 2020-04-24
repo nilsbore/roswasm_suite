@@ -48,6 +48,9 @@ public:
 
 class ExampleTeleopWidget {
 private:
+    bool enabled;
+    geometry_msgs::Pose2D angles_msg;
+    geometry_msgs::Pose2D rpm_msg;
     roswasm::Publisher* rpm_pub;
     roswasm::Publisher* angle_pub;
     roswasm::Timer* pub_timer;
