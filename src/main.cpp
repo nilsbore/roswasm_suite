@@ -67,7 +67,7 @@ void loop()
   // Tip: if we don't call ImGui::Begin()/ImGui::End() the widgets automatically appears in a window called "Debug".
   {
       ImGui::SetNextWindowPos(ImVec2(30, 30), ImGuiCond_FirstUseEver);
-      ImGui::SetNextWindowSize(ImVec2(482, 208), ImGuiCond_FirstUseEver);
+      ImGui::SetNextWindowSize(ImVec2(482, 210), ImGuiCond_FirstUseEver);
       ImGui::Begin("Roswasm webgui"); //, &show_another_window);
       float sz = ImGui::GetTextLineHeight();
       std::string status_text;
@@ -89,11 +89,12 @@ void loop()
 
       ImGui::Checkbox("Launch control", &show_monlaunch_window);
       ImGui::Checkbox("Image topic", &show_image_window);
-      ImGui::Checkbox("Actuators", &show_actuator_window);
+      ImGui::Checkbox("Actuator controls", &show_actuator_window);
       ImGui::Checkbox("Status dashboard", &show_dashboard_window);
+      ImGui::Checkbox("Keyboard teleop", &show_teleop_window);
       ImGui::Checkbox("Demo widgets", &show_demo_window);      // Edit bools storing our windows open/close state
 
-      ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
+      //ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
       ImGui::ColorEdit3("Background", (float*)&clear_color); // Edit 3 floats representing a color
       ImGui::End();
   }
@@ -103,7 +104,7 @@ void loop()
   // 2. Show another simple window. In most cases you will use an explicit Begin/End pair to name your windows.
   if (show_monlaunch_window)
   {
-      ImGui::SetNextWindowPos(ImVec2(30, 268), ImGuiCond_FirstUseEver); // Normally user code doesn't need/want to call this because positions are saved in .ini file anyway. Here we just want to make the demo initial state a bit more friendly!
+      ImGui::SetNextWindowPos(ImVec2(30, 270), ImGuiCond_FirstUseEver); // Normally user code doesn't need/want to call this because positions are saved in .ini file anyway. Here we just want to make the demo initial state a bit more friendly!
       monlaunch_widget->show_window(show_monlaunch_window);
   }
 

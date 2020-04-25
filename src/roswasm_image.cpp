@@ -60,7 +60,9 @@ void ImageWidget::load_texture(std::vector<uint8_t>& buffer, const std::string& 
 
 void ImageWidget::service_callback(const rosapi::TopicsForType::Response& res, bool result)
 {
-    topics = res.topics;
+    //topics = res.topics;
+    topics.clear();
+    std::copy_if(res.topics.begin(), res.topics.end(), std::back_inserter(topics), [](const std::string& s){return s.find("compressedDepth") == std::string::npos;});
 }
 
 void ImageWidget::timer_callback(const ros::TimerEvent& event)
@@ -76,6 +78,7 @@ ImageWidget::ImageWidget(roswasm::NodeHandle* n)
     image_height = 0;
     image_texture = 0;
     nh = n;
+    sub = nullptr;
     topics_service = nh->serviceClient<rosapi::TopicsForType>("/rosapi/topics_for_type", std::bind(&ImageWidget::service_callback, this, std::placeholders::_1, std::placeholders::_2));
     rosapi::TopicsForType::Request req;
     req.type = "sensor_msgs/CompressedImage";
@@ -105,6 +108,9 @@ void ImageWidget::show_window(bool& show_another_window)
     if (ImGui::Combo("Published topics", &style_idx, choices.c_str()))
     {
         if (style_idx != -1 && !topics.empty()) {
+            if (sub != nullptr && sub->topic != topics[style_idx]) {
+                delete sub;
+            }
             sub = nh->subscribe<sensor_msgs::CompressedImage>(topics[style_idx], std::bind(&ImageWidget::callback, this, std::placeholders::_1), 1000);
         }
     }

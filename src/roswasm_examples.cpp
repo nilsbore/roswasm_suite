@@ -178,8 +178,10 @@ ExampleTeleopWidget::ExampleTeleopWidget(roswasm::NodeHandle* nh) : enabled(fals
 
 void ExampleTeleopWidget::pub_callback(const ros::TimerEvent& e)
 {
-    angle_pub->publish(angles_msg);
-    rpm_pub->publish(rpm_msg);
+    if (enabled) {
+        angle_pub->publish(angles_msg);
+        rpm_pub->publish(rpm_msg);
+    }
 }
 
 void ExampleTeleopWidget::show_window(bool& show_teleop_window)
@@ -195,7 +197,7 @@ void ExampleTeleopWidget::show_window(bool& show_teleop_window)
     float sz = ImGui::GetTextLineHeight();
     ImGui::BeginGroup();
     ImGui::BeginGroup();
-    ImGui::Dummy(ImVec2(sz, sz));
+    ImGui::Dummy(ImVec2(sz, 0.75f*sz));
     ImGui::Checkbox("Teleop enabled", &enabled);
     if (enabled && pub_timer == nullptr) {
         pub_timer = new roswasm::Timer(0.08, std::bind(&ExampleTeleopWidget::pub_callback, this, std::placeholders::_1));

@@ -132,7 +132,7 @@ MonlaunchWidget::MonlaunchWidget(roswasm::NodeHandle* n)
 
 void MonlaunchWidget::show_window(bool& show_another_window)
 {
-      ImGui::SetNextWindowSize(ImVec2(482, 489), ImGuiCond_FirstUseEver);
+      ImGui::SetNextWindowSize(ImVec2(482, 487), ImGuiCond_FirstUseEver);
       ImGui::Begin("Launch control", &show_another_window);
       for (std::pair<const std::string, LaunchState*>& state : launch_states) {
           if (state.second->msg.nodes.empty()) {
