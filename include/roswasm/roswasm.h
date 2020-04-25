@@ -42,6 +42,8 @@ public:
     template <typename MSG>
     Subscriber* subscribe(const std::string& topic, std::function<void(const MSG&)> callback, int throttle_rate = -1, int queue_length = -1, int fragment_size = -1);
 
+    void unsubscribe(const std::string& id);
+
     template <typename MSG>
     Publisher* advertise(const std::string& topic, const std::string& id="");
 
@@ -78,7 +80,7 @@ public:
 template <typename MSG>
 Subscriber* NodeHandle::subscribe(const std::string& topic, std::function<void(const MSG&)> callback, int throttle_rate, int queue_length, int fragment_size)
 {
-    Subscriber* subscriber = new Subscriber(new SubscriberImpl<MSG>(callback), topic, throttle_rate, queue_length, fragment_size);
+    Subscriber* subscriber = new Subscriber(new SubscriberImpl<MSG>(callback, this), topic, throttle_rate, queue_length, fragment_size);
 
     if (NodeHandle::socket_open) {
         std::string message = subscriber->json_subscribe_message();

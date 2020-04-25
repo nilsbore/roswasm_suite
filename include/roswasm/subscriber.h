@@ -10,6 +10,7 @@ class SubscriberImplBase {
     public:
 
     virtual void callback(std::vector<uint8_t>& buffer) = 0;
+    virtual void shutdown(const std::string& id) = 0;
     virtual std::string msg_type() = 0;
     virtual ~SubscriberImplBase() {}
 
@@ -17,14 +18,17 @@ class SubscriberImplBase {
 
 template <typename MSG>
 class SubscriberImpl : public SubscriberImplBase {
-    public:
+private:
+    NodeHandle* nh;
+public:
+    void shutdown(const std::string& id);
 
     std::function<void(const MSG&)> impl_callback;
     
     void callback(std::vector<uint8_t>& buffer);
     std::string msg_type();
 
-    SubscriberImpl(std::function<void(const MSG&)> cb) : impl_callback(cb)
+    SubscriberImpl(std::function<void(const MSG&)> cb, roswasm::NodeHandle* nh) : impl_callback(cb), nh(nh)
     {
 
     }
@@ -33,14 +37,14 @@ class SubscriberImpl : public SubscriberImplBase {
 };
 
 class Subscriber {
-    public:
-
+public:
     SubscriberImplBase* impl;
     std::string topic;
     std::string id;
     int throttle_rate;
     int queue_length;
     int fragment_size;
+
 
     void callback(std::vector<uint8_t>& buffer)
     {
@@ -73,6 +77,12 @@ class Subscriber {
         return std::string("{") + message + "}";
     }
 
+    std::string json_unsubscribe_message()
+    {
+        std::string message = "\"op\":\"unsubscribe\", \"topic\":\"" + topic + "\", \"id\":\"" + id + "\"";
+        return std::string("{") + message + "}";
+    }
+
     std::string get_id()
     {
         return id;
@@ -85,6 +95,13 @@ class Subscriber {
     }
 
     Subscriber() : impl(nullptr) {}
+
+    ~Subscriber()
+    {
+        impl->shutdown(id);
+        delete impl;
+        impl = nullptr;
+    }
 
 };
 

@@ -1,7 +1,14 @@
+#include <roswasm/roswasm.h>
 #include <roswasm/subscriber.h>
 #include <ros/serialization.h>
 
 namespace roswasm {
+
+template <typename MSG>
+void SubscriberImpl<MSG>::shutdown(const std::string& id)
+{
+    nh->unsubscribe(id);
+}
 
 template <typename MSG>
 void SubscriberImpl<MSG>::callback(std::vector<uint8_t>& buffer)

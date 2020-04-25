@@ -17,6 +17,18 @@ void throwStreamOverrun()
 
 namespace roswasm {
 
+void NodeHandle::unsubscribe(const std::string& id)
+{
+    if (subscribers.count(id) == 0) {
+        return;
+    }
+    if (NodeHandle::socket_open) {
+        std::string message = subscribers[id]->json_unsubscribe_message();
+        emscripten_websocket_send_utf8_text(socket, message.c_str());
+    }
+    subscribers.erase(id);
+}
+
 void NodeHandle::websocket_open()
 {
     socket_open = true;
@@ -131,10 +143,12 @@ void NodeHandle::handle_bytes(const EmscriptenWebSocketMessageEvent* e)
     std::vector<uint8_t> buffer;
     std::string topic;
 
+    /*
     printf("binary data:");
     for(int i = 0; i < e->numBytes; ++i)
         printf(" %02X", e->data[i]);
     printf("\n");
+    */
 
     CborLite::Flags flags = CborLite::Flag::none;
     std::vector<uint8_t> buff_vec(e->data, e->data+e->numBytes);
