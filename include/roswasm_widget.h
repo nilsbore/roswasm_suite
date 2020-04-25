@@ -75,6 +75,9 @@ private:
     FB_MSG msg2;
 public:
 
+    const FB_MSG& get_msg1() { return msg1; }
+    const FB_MSG& get_msg2() { return msg2; }
+
     void show_widget()
     {
         draw_cb(msg1, msg2, pub);

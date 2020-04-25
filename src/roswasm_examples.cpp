@@ -4,12 +4,13 @@
 
 namespace roswasm_webgui {
 
-ExampleActuatorWidget::ExampleActuatorWidget(roswasm::NodeHandle* nh)
+ExampleActuatorWidget::ExampleActuatorWidget(roswasm::NodeHandle* nh) : rpm_pub_enabled(false), pub_timer(nullptr)
 {
     thruster_angles = new TopicPairWidget<geometry_msgs::Pose2D, std_msgs::Float64>(nh, DrawFloatPair("Hori (rad)", -0.1, 0.18, "Vert (rad)", -0.1, 0.15), "/sam/core/thrust_vector_cmd", "/sam/core/thrust_fb1", "/sam/core/thrust_fb2");
 //                                                      [{"name": "Hori.", "member": "thruster_horizontal_radians", "min": -0.1, "max": 0.18},
 //                                                       {"name": "Vert.", "member": "thruster_vertical_radians", "min": -0.1, "max": 0.15}])
     thruster_rpms = new TopicPairWidget<geometry_msgs::Pose2D, std_msgs::Float64>(nh, DrawFloatPair("Thruster 1", -1000., 1000., "Thruster 2", -1000., 1000.), "/sam/core/rpm_cmd", "/sam/core/rpm_fb1", "/sam/core/rpm_fb2");
+    rpm_pub = nh->advertise<geometry_msgs::Pose2D>("/sam/core/rpm_cmd");
 //                                                    [{"name": "Front", "member": "thruster_1_rpm", "min": -1000, "max": 1000, "type": "int"},
 //                                                     {"name": "Back", "member": "thruster_2_rpm", "min": -1000, "max": 1000, "type": "int"}])
 
@@ -29,9 +30,19 @@ ExampleActuatorWidget::ExampleActuatorWidget(roswasm::NodeHandle* nh)
 
 }
 
+void ExampleActuatorWidget::pub_callback(const ros::TimerEvent& e)
+{
+    if (rpm_pub_enabled) {
+        geometry_msgs::Pose2D msg;
+        msg.x = thruster_rpms->get_msg1().data;
+        msg.y = thruster_rpms->get_msg2().data;
+        rpm_pub->publish(msg);
+    }
+}
+
 void ExampleActuatorWidget::show_window(bool& show_actuator_window)
 {
-    ImGui::SetNextWindowSize(ImVec2(500, 454), ImGuiCond_FirstUseEver);
+    ImGui::SetNextWindowSize(ImVec2(500, 478), ImGuiCond_FirstUseEver);
     ImGui::Begin("Actuator controls", &show_actuator_window);
 
     if (ImGui::CollapsingHeader("Thruster Angles", ImGuiTreeNodeFlags_Framed | ImGuiTreeNodeFlags_DefaultOpen)) {
@@ -42,7 +53,15 @@ void ExampleActuatorWidget::show_window(bool& show_actuator_window)
     if (ImGui::CollapsingHeader("Thruster RPMs", ImGuiTreeNodeFlags_Framed | ImGuiTreeNodeFlags_DefaultOpen)) {
         ImGui::PushID("RPMs");
         thruster_rpms->show_widget();
+        ImGui::Checkbox("Publish RPMs at 10hz", &rpm_pub_enabled);
         ImGui::PopID();
+        if (rpm_pub_enabled && pub_timer == nullptr) {
+            pub_timer = new roswasm::Timer(0.08, std::bind(&ExampleActuatorWidget::pub_callback, this, std::placeholders::_1));
+        }
+        else if (!rpm_pub_enabled && pub_timer != nullptr) {
+            delete pub_timer;
+            pub_timer = nullptr;
+        }
     }
 
     if (ImGui::CollapsingHeader("Longitudinal Centre of Gravity (LCG)", ImGuiTreeNodeFlags_Framed | ImGuiTreeNodeFlags_DefaultOpen)) {

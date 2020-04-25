@@ -13,6 +13,9 @@ class ExampleActuatorWidget {
 private:
     TopicPairWidget<geometry_msgs::Pose2D, std_msgs::Float64>* thruster_angles;
     TopicPairWidget<geometry_msgs::Pose2D, std_msgs::Float64>* thruster_rpms;
+    roswasm::Publisher* rpm_pub;
+    roswasm::Timer* pub_timer;
+    bool rpm_pub_enabled;
     TopicWidget<std_msgs::Float32>* lcg_actuator;
     TopicWidget<std_msgs::Bool>* lcg_control_enable;
     TopicWidget<std_msgs::Float32>* lcg_control_setpoint;
@@ -24,6 +27,7 @@ private:
     TopicWidget<std_msgs::Float32>* tcg_control_setpoint;
 
 public:
+    void pub_callback(const ros::TimerEvent& e);
     void show_window(bool& show_actuator_window);
     ExampleActuatorWidget(roswasm::NodeHandle* nh);
 };
