@@ -58,6 +58,7 @@ private:
     TopicBuffer<std_msgs::Float64>* roll;
     TopicBuffer<std_msgs::Float64>* yaw;
 public:
+    bool is_emergency() { return was_leak; }
     void show_window(bool& show_dashboard_window);
     SamDashboardWidget(roswasm::NodeHandle* nh);
 };

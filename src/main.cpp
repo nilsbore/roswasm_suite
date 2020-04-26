@@ -43,6 +43,7 @@ roswasm_webgui::ExampleTeleopWidget* teleop_widget;
 GLFWwindow* g_window;
 //ImVec4 clear_color = ImVec4(0.45f, 0.55f, 0.60f, 1.00f);
 ImVec4 clear_color = ImVec4(0.25f, 0.45f, 0.55f, 1.00f);
+ImVec4 emergency_color = ImVec4(1.0f, 0.0f, 0.0f, 1.00f);
 ImGuiContext* imgui = 0;
 bool show_demo_window = false;
 bool show_monlaunch_window = true;
@@ -145,7 +146,12 @@ void loop()
   glfwMakeContextCurrent(g_window);
   glfwGetFramebufferSize(g_window, &display_w, &display_h);
   glViewport(0, 0, display_w, display_h);
-  glClearColor(clear_color.x, clear_color.y, clear_color.z, clear_color.w);
+  if (dashboard_widget->is_emergency()) {
+      glClearColor(emergency_color.x, emergency_color.y, emergency_color.z, emergency_color.w);
+  }
+  else {
+      glClearColor(clear_color.x, clear_color.y, clear_color.z, clear_color.w);
+  }
   glClear(GL_COLOR_BUFFER_BIT);
 
   ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
