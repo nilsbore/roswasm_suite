@@ -4,7 +4,7 @@
 
 namespace roswasm_webgui {
 
-void draw_ballast_angles(sam_msgs::BallastAngles& msg, roswasm::Publisher* pub)
+bool draw_ballast_angles(sam_msgs::BallastAngles& msg, roswasm::Publisher* pub)
 {
     ImGui::PushID("Angles cmd slider");
     ImGui::SliderFloat("", &msg.weight_1_offset_radians, -1.6f, 1.6f, "%.2frad");
@@ -19,24 +19,30 @@ void draw_ballast_angles(sam_msgs::BallastAngles& msg, roswasm::Publisher* pub)
         msg.weight_2_offset_radians = msg.weight_1_offset_radians;
         pub->publish(msg);
     }
+
+    return false;
 }
 
-void draw_percent(sam_msgs::PercentStamped& msg, roswasm::Publisher* pub)
+bool draw_percent(sam_msgs::PercentStamped& msg, roswasm::Publisher* pub)
 {
     ImGui::PushID("Percent cmd slider");
     ImGui::SliderFloat("", &msg.value, 0.0f, 100.0f, "%.2f%%");
     if (ImGui::IsItemDeactivatedAfterChange()) {
         pub->publish(msg);
     }
+    bool lock = ImGui::IsItemActive();
+
     ImGui::PopID();
     ImGui::SameLine();
     ImGui::InputFloat("Percent cmd input", &msg.value, 0.0f, 0.0f, "%.2f");
     if (ImGui::IsItemDeactivatedAfterChange()) {
         pub->publish(msg);
     }
+
+    return lock;
 }
 
-void draw_thruster_rpms(sam_msgs::ThrusterRPMs& msg, roswasm::Publisher* pub)
+bool draw_thruster_rpms(sam_msgs::ThrusterRPMs& msg, roswasm::Publisher* pub)
 {
     ImGui::PushID("First cmd slider");
     ImGui::Text("Thruster 1");
@@ -45,6 +51,7 @@ void draw_thruster_rpms(sam_msgs::ThrusterRPMs& msg, roswasm::Publisher* pub)
     if (ImGui::IsItemDeactivatedAfterChange()) {
         pub->publish(msg);
     }
+    bool lock = ImGui::IsItemActive();
     ImGui::PopID();
     ImGui::SameLine();
     ImGui::InputInt("First cmd input", &msg.thruster_1_rpm);
@@ -59,26 +66,29 @@ void draw_thruster_rpms(sam_msgs::ThrusterRPMs& msg, roswasm::Publisher* pub)
     if (ImGui::IsItemDeactivatedAfterChange()) {
         pub->publish(msg);
     }
+    lock = lock || IsItemActive();
     ImGui::PopID();
     ImGui::SameLine();
     ImGui::InputInt("Second cmd input", &msg.thruster_2_rpm);
     if (ImGui::IsItemDeactivatedAfterChange()) {
         pub->publish(msg);
     }
+
+    return lock;
 }
 
-void draw_thruster_angles(sam_msgs::ThrusterAngles& msg, roswasm::Publisher* pub)
+bool draw_thruster_angles(sam_msgs::ThrusterAngles& msg, roswasm::Publisher* pub)
 {
     ImGui::PushID("First cmd slider");
     ImGui::Text("Hori (rad)");
     ImGui::SameLine();
-    ImGui::SliderFloat("", &msg.thruster_vertical_radians, -0.1f, 0.18f, "%.2frad");
+    ImGui::SliderFloat("", &msg.thruster_horizontal_radians, -0.1f, 0.18f, "%.2frad");
     if (ImGui::IsItemDeactivatedAfterChange()) {
         pub->publish(msg);
     }
     ImGui::PopID();
     ImGui::SameLine();
-    ImGui::InputFloat("First cmd input", &msg.thruster_vertical_radians, 0.0f, 0.0f, "%.2f");
+    ImGui::InputFloat("First cmd input", &msg.thruster_horizontal_radians, 0.0f, 0.0f, "%.2f");
     if (ImGui::IsItemDeactivatedAfterChange()) {
         pub->publish(msg);
     }
@@ -86,16 +96,18 @@ void draw_thruster_angles(sam_msgs::ThrusterAngles& msg, roswasm::Publisher* pub
     ImGui::PushID("Second cmd slider");
     ImGui::Text("Vert (rad)");
     ImGui::SameLine();
-    ImGui::SliderFloat("", &msg.thruster_horizontal_radians, -0.1f, 0.15f, "%.2frad");
+    ImGui::SliderFloat("", &msg.thruster_vertical_radians, -0.1f, 0.15f, "%.2frad");
     if (ImGui::IsItemDeactivatedAfterChange()) {
         pub->publish(msg);
     }
     ImGui::PopID();
     ImGui::SameLine();
-    ImGui::InputFloat("Second cmd input", &msg.thruster_horizontal_radians, 0.0f, 0.0f, "%.2f");
+    ImGui::InputFloat("Second cmd input", &msg.thruster_vertical_radians, 0.0f, 0.0f, "%.2f");
     if (ImGui::IsItemDeactivatedAfterChange()) {
         pub->publish(msg);
     }
+
+    return false;
 }
 
 SamActuatorWidget::SamActuatorWidget(roswasm::NodeHandle* nh) : rpm_pub_enabled(false), pub_timer(nullptr)

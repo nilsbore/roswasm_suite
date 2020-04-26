@@ -15,10 +15,10 @@
 
 namespace roswasm_webgui {
 
-void draw_ballast_angles(sam_msgs::BallastAngles& msg, roswasm::Publisher* pub);
-void draw_percent(sam_msgs::PercentStamped& msg, roswasm::Publisher* pub);
-void draw_thruster_rpms(sam_msgs::ThrusterRPMs& msg, roswasm::Publisher* pub);
-void draw_thruster_angles(sam_msgs::ThrusterAngles& msg, roswasm::Publisher* pub);
+bool draw_ballast_angles(sam_msgs::BallastAngles& msg, roswasm::Publisher* pub);
+bool draw_percent(sam_msgs::PercentStamped& msg, roswasm::Publisher* pub);
+bool draw_thruster_rpms(sam_msgs::ThrusterRPMs& msg, roswasm::Publisher* pub);
+bool draw_thruster_angles(sam_msgs::ThrusterAngles& msg, roswasm::Publisher* pub);
 
 class SamActuatorWidget {
 private:

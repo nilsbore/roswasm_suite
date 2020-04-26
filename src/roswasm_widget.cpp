@@ -4,7 +4,7 @@
 
 namespace roswasm_webgui {
 
-void draw_float(std_msgs::Float32& msg, roswasm::Publisher* pub)
+bool draw_float(std_msgs::Float32& msg, roswasm::Publisher* pub)
 {
     ImGui::PushID("Float");
     ImGui::SliderFloat("Float slider", &msg.data, 0.0f, 100.0f);
@@ -17,9 +17,11 @@ void draw_float(std_msgs::Float32& msg, roswasm::Publisher* pub)
         pub->publish(msg);
     }
     ImGui::PopID();
+
+    return false;
 }
 
-void draw_bool(std_msgs::Bool& msg, roswasm::Publisher* pub)
+bool draw_bool(std_msgs::Bool& msg, roswasm::Publisher* pub)
 {
     ImGui::PushID("Bool");
     bool value = msg.data;
@@ -29,9 +31,11 @@ void draw_bool(std_msgs::Bool& msg, roswasm::Publisher* pub)
         pub->publish(msg);
     }
     ImGui::PopID();
+
+    return false;
 }
 
-void draw_pose2d(std_msgs::Float64& msg1, std_msgs::Float64& msg2, roswasm::Publisher* pub)
+bool draw_pose2d(std_msgs::Float64& msg1, std_msgs::Float64& msg2, roswasm::Publisher* pub)
 {
     geometry_msgs::Pose2D msg;
     msg.x = msg1.data;
@@ -67,9 +71,11 @@ void draw_pose2d(std_msgs::Float64& msg1, std_msgs::Float64& msg2, roswasm::Publ
     }
 
     ImGui::PopID();
+
+    return false;
 }
 
-void DrawFloat32::operator()(std_msgs::Float32& msg, roswasm::Publisher* pub)
+bool DrawFloat32::operator()(std_msgs::Float32& msg, roswasm::Publisher* pub)
 {
     ImGui::SliderFloat("", &msg.data, minv, maxv, "%.2f");
     if (ImGui::IsItemDeactivatedAfterChange()) {
@@ -80,9 +86,11 @@ void DrawFloat32::operator()(std_msgs::Float32& msg, roswasm::Publisher* pub)
     if (ImGui::IsItemDeactivatedAfterChange()) {
         pub->publish(msg);
     }
+
+    return false;
 }
 
-void DrawFloat64::operator()(std_msgs::Float64& msg, roswasm::Publisher* pub)
+bool DrawFloat64::operator()(std_msgs::Float64& msg, roswasm::Publisher* pub)
 {
     ImGui::PushID("Cmd slider");
     ImGui::SliderScalar("", ImGuiDataType_Double, &msg.data, &minv, &maxv, "%.2f");
@@ -95,9 +103,11 @@ void DrawFloat64::operator()(std_msgs::Float64& msg, roswasm::Publisher* pub)
     if (ImGui::IsItemDeactivatedAfterChange()) {
         pub->publish(msg);
     }
+
+    return false;
 }
 
-void DrawFloatPair::operator()(std_msgs::Float64& msg1, std_msgs::Float64& msg2, roswasm::Publisher* pub)
+bool DrawFloatPair::operator()(std_msgs::Float64& msg1, std_msgs::Float64& msg2, roswasm::Publisher* pub)
 {
     geometry_msgs::Pose2D msg;
     msg.x = msg1.data;
@@ -134,6 +144,8 @@ void DrawFloatPair::operator()(std_msgs::Float64& msg1, std_msgs::Float64& msg2,
         msg.y = msg2.data;
         pub->publish(msg);
     }
+
+    return false;
 }
 
 } // namespace roswasm_webgui

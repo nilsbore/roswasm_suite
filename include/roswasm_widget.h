@@ -36,10 +36,11 @@ public:
 template <typename MSG, typename FB_MSG=MSG>
 class TopicWidget {
 private:
-    std::function<void(FB_MSG&, roswasm::Publisher*)> draw_cb;
+    std::function<bool(FB_MSG&, roswasm::Publisher*)> draw_cb;
     roswasm::Publisher* pub;
     roswasm::Subscriber* sub;
     FB_MSG msg;
+    bool lock;
 public:
 
     const FB_MSG& get_msg()
@@ -49,15 +50,17 @@ public:
 
     void show_widget()
     {
-        draw_cb(msg, pub);
+        lock = draw_cb(msg, pub);
     }
 
     void callback(const FB_MSG& new_msg)
     {
-        msg = new_msg;
+        if (!lock) {
+            msg = new_msg;
+        }
     }
 
-    TopicWidget(roswasm::NodeHandle* nh, std::function<void(FB_MSG&, roswasm::Publisher*)> draw_cb, const std::string& topic, const std::string& fb_topic="") : draw_cb(draw_cb)
+    TopicWidget(roswasm::NodeHandle* nh, std::function<bool(FB_MSG&, roswasm::Publisher*)> draw_cb, const std::string& topic, const std::string& fb_topic="") : draw_cb(draw_cb), lock(false)
     {
         pub = nh->advertise<MSG>(topic);
         if (fb_topic.empty()) {
@@ -72,12 +75,13 @@ public:
 template <typename MSG, typename FB_MSG>
 class TopicPairWidget {
 private:
-    std::function<void(FB_MSG&, FB_MSG&, roswasm::Publisher*)> draw_cb;
+    std::function<bool(FB_MSG&, FB_MSG&, roswasm::Publisher*)> draw_cb;
     roswasm::Publisher* pub;
     roswasm::Subscriber* sub1;
     roswasm::Subscriber* sub2;
     FB_MSG msg1;
     FB_MSG msg2;
+    bool lock;
 public:
 
     const FB_MSG& get_msg1() { return msg1; }
@@ -85,20 +89,24 @@ public:
 
     void show_widget()
     {
-        draw_cb(msg1, msg2, pub);
+        lock = draw_cb(msg1, msg2, pub);
     }
 
     void callback1(const FB_MSG& new_msg)
     {
-        msg1 = new_msg;
+        if (!lock) {
+            msg1 = new_msg;
+        }
     }
 
     void callback2(const FB_MSG& new_msg)
     {
-        msg2 = new_msg;
+        if (!lock) {
+            msg2 = new_msg;
+        }
     }
 
-    TopicPairWidget(roswasm::NodeHandle* nh, std::function<void(FB_MSG&, FB_MSG&, roswasm::Publisher*)> draw_cb, const std::string& topic, const std::string& fb_topic1, const std::string& fb_topic2) : draw_cb(draw_cb)
+    TopicPairWidget(roswasm::NodeHandle* nh, std::function<bool(FB_MSG&, FB_MSG&, roswasm::Publisher*)> draw_cb, const std::string& topic, const std::string& fb_topic1, const std::string& fb_topic2) : draw_cb(draw_cb), lock(false)
     {
         pub = nh->advertise<MSG>(topic);
         sub1 = nh->subscribe<FB_MSG>(fb_topic1, std::bind(&TopicPairWidget::callback1, this, std::placeholders::_1));
@@ -110,14 +118,14 @@ struct DrawFloat32
 {
     float minv, maxv;
     DrawFloat32(float minv, float maxv) : minv(minv), maxv(maxv) {}
-    void operator()(std_msgs::Float32& msg, roswasm::Publisher* pub);
+    bool operator()(std_msgs::Float32& msg, roswasm::Publisher* pub);
 };
 
 struct DrawFloat64
 {
     double minv, maxv;
     DrawFloat64(double minv, double maxv) : minv(minv), maxv(maxv) {}
-    void operator()(std_msgs::Float64& msg, roswasm::Publisher* pub);
+    bool operator()(std_msgs::Float64& msg, roswasm::Publisher* pub);
 };
 
 struct DrawFloatPair
@@ -125,14 +133,14 @@ struct DrawFloatPair
     double minv1, maxv1, minv2, maxv2;
     std::string name1, name2;
     DrawFloatPair(const std::string name1, double minv1, double maxv1, const std::string& name2, double minv2, double maxv2) : name1(name1), minv1(minv1), maxv1(maxv1), name2(name2), minv2(minv2), maxv2(maxv2) {}
-    void operator()(std_msgs::Float64& msg1, std_msgs::Float64& msg2, roswasm::Publisher* pub);
+    bool operator()(std_msgs::Float64& msg1, std_msgs::Float64& msg2, roswasm::Publisher* pub);
 };
 
-void draw_float(std_msgs::Float32& msg, roswasm::Publisher* pub);
+bool draw_float(std_msgs::Float32& msg, roswasm::Publisher* pub);
 
-void draw_bool(std_msgs::Bool& msg, roswasm::Publisher* pub);
+bool draw_bool(std_msgs::Bool& msg, roswasm::Publisher* pub);
 
-void draw_pose2d(std_msgs::Float64& msg1, std_msgs::Float64& msg2, roswasm::Publisher* pub);
+bool draw_pose2d(std_msgs::Float64& msg1, std_msgs::Float64& msg2, roswasm::Publisher* pub);
 
 } // namespace roswasm_webgui
 
