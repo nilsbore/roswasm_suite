@@ -82,6 +82,21 @@ void DrawFloat32::operator()(std_msgs::Float32& msg, roswasm::Publisher* pub)
     }
 }
 
+void DrawFloat64::operator()(std_msgs::Float64& msg, roswasm::Publisher* pub)
+{
+    ImGui::PushID("Cmd slider");
+    ImGui::SliderScalar("", ImGuiDataType_Double, &msg.data, &minv, &maxv, "%.2f");
+    if (ImGui::IsItemDeactivatedAfterChange()) {
+        pub->publish(msg);
+    }
+    ImGui::PopID();
+    ImGui::SameLine();
+    ImGui::InputScalar("Cmd input",  ImGuiDataType_Double, &msg.data, NULL, NULL, "%.2f");
+    if (ImGui::IsItemDeactivatedAfterChange()) {
+        pub->publish(msg);
+    }
+}
+
 void DrawFloatPair::operator()(std_msgs::Float64& msg1, std_msgs::Float64& msg2, roswasm::Publisher* pub)
 {
     geometry_msgs::Pose2D msg;

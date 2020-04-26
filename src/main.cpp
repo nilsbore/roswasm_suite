@@ -16,6 +16,12 @@
 #include <roswasm_monlaunch.h>
 #include <roswasm_image.h>
 #include <roswasm_examples.h>
+
+//#define WITH_SAM_MSGS
+
+#ifdef WITH_SAM_MSGS
+#include <roswasm_sam.h>
+#endif
 //#include <iostream>
 
 #include <unordered_set>
@@ -23,9 +29,16 @@
 roswasm::NodeHandle* nh; 
 roswasm_webgui::MonlaunchWidget* monlaunch_widget;
 roswasm_webgui::ImageWidget* image_widget;
+#ifdef WITH_SAM_MSGS
+roswasm_webgui::SamActuatorWidget* actuator_widget;
+roswasm_webgui::SamDashboardWidget* dashboard_widget;
+roswasm_webgui::SamTeleopWidget* teleop_widget;
+#else
 roswasm_webgui::ExampleActuatorWidget* actuator_widget;
 roswasm_webgui::ExampleDashboardWidget* dashboard_widget;
 roswasm_webgui::ExampleTeleopWidget* teleop_widget;
+#endif
+
 
 GLFWwindow* g_window;
 //ImVec4 clear_color = ImVec4(0.45f, 0.55f, 0.60f, 1.00f);
@@ -63,8 +76,6 @@ void loop()
   ImGui_ImplGlfw_NewFrame();
   ImGui::NewFrame();
 
-  // 1. Show a simple window.
-  // Tip: if we don't call ImGui::Begin()/ImGui::End() the widgets automatically appears in a window called "Debug".
   {
       ImGui::SetNextWindowPos(ImVec2(30, 30), ImGuiCond_FirstUseEver);
       ImGui::SetNextWindowSize(ImVec2(482, 210), ImGuiCond_FirstUseEver);
@@ -86,7 +97,6 @@ void loop()
       ImGui::SameLine();
       ImGui::Text("%s", status_text.c_str());
 
-
       ImGui::Checkbox("Launch control", &show_monlaunch_window);
       ImGui::Checkbox("Image topic", &show_image_window);
       ImGui::Checkbox("Actuator controls", &show_actuator_window);
@@ -99,54 +109,34 @@ void loop()
       ImGui::End();
   }
 
-  //std::cout << "2nd window" << std::endl;
-
-  // 2. Show another simple window. In most cases you will use an explicit Begin/End pair to name your windows.
-  if (show_monlaunch_window)
-  {
-      ImGui::SetNextWindowPos(ImVec2(30, 270), ImGuiCond_FirstUseEver); // Normally user code doesn't need/want to call this because positions are saved in .ini file anyway. Here we just want to make the demo initial state a bit more friendly!
+  if (show_monlaunch_window) {
+      ImGui::SetNextWindowPos(ImVec2(30, 270), ImGuiCond_FirstUseEver);
       monlaunch_widget->show_window(show_monlaunch_window);
   }
 
-  if (show_image_window)
-  {
-      ImGui::SetNextWindowPos(ImVec2(1072, 30), ImGuiCond_FirstUseEver); // Normally user code doesn't need/want to call this because positions are saved in .ini file anyway. Here we just want to make the demo initial state a bit more friendly!
+  if (show_image_window) {
+      ImGui::SetNextWindowPos(ImVec2(1072, 30), ImGuiCond_FirstUseEver);
       image_widget->show_window(show_image_window);
   }
 
-  // 3. Show the ImGui demo window. Most of the sample code is in ImGui::ShowDemoWindow(). Read its code to learn more about Dear ImGui!
-  if (show_demo_window)
-  {
-      ImGui::SetNextWindowPos(ImVec2(600, 60), ImGuiCond_FirstUseEver); // Normally user code doesn't need/want to call this because positions are saved in .ini file anyway. Here we just want to make the demo initial state a bit more friendly!
+  if (show_demo_window) {
+      ImGui::SetNextWindowPos(ImVec2(600, 60), ImGuiCond_FirstUseEver);
       ImGui::ShowDemoWindow(&show_demo_window);
   }
 
-  if (show_actuator_window)
-  {
-      ImGui::SetNextWindowPos(ImVec2(542, 303), ImGuiCond_FirstUseEver); // Normally user code doesn't need/want to call this because positions are saved in .ini file anyway. Here we just want to make the demo initial state a bit more friendly!
-      /*
-        ImGui::SetNextWindowSize(ImVec2(550,680), ImGuiCond_FirstUseEver);
-        ImGui::Begin("Topic setpoints", &show_topic_window);
-        float_widget->show_widget();
-        pose2d_widget->show_widget();
-        ImGui::End();
-        */
+  if (show_actuator_window) {
+      ImGui::SetNextWindowPos(ImVec2(542, 303), ImGuiCond_FirstUseEver);
       actuator_widget->show_window(show_actuator_window);
-
   }
 
-  if (show_dashboard_window)
-  {
+  if (show_dashboard_window) {
       ImGui::SetNextWindowPos(ImVec2(542, 30), ImGuiCond_FirstUseEver);
       dashboard_widget->show_window(show_dashboard_window);
-
   }
 
-  if (show_teleop_window)
-  {
+  if (show_teleop_window) {
       ImGui::SetNextWindowPos(ImVec2(1072, 487), ImGuiCond_FirstUseEver);
       teleop_widget->show_window(show_teleop_window);
-
   }
 
   ImGui::Render();
@@ -242,11 +232,15 @@ extern "C" int main(int argc, char** argv)
   nh = new roswasm::NodeHandle(rosbridge_ip, rosbridge_port);
   monlaunch_widget = new roswasm_webgui::MonlaunchWidget(nh);
   image_widget = new roswasm_webgui::ImageWidget(nh);
-  //float_widget = new roswasm_webgui::TopicWidget<std_msgs::Float32>(nh, &roswasm_webgui::draw_float, "/test_float");
-  //pose2d_widget = new roswasm_webgui::TopicPairWidget<geometry_msgs::Pose2D, std_msgs::Float64>(nh, &roswasm_webgui::draw_pose2d, "/pose2d", "/pose2d_fb1", "/pose2d_fb2");
+#ifdef WITH_SAM_MSGS
+  actuator_widget = new roswasm_webgui::SamActuatorWidget(nh);
+  dashboard_widget = new roswasm_webgui::SamDashboardWidget(nh);
+  teleop_widget = new roswasm_webgui::SamTeleopWidget(nh);
+#else
   actuator_widget = new roswasm_webgui::ExampleActuatorWidget(nh);
   dashboard_widget = new roswasm_webgui::ExampleDashboardWidget(nh);
   teleop_widget = new roswasm_webgui::ExampleTeleopWidget(nh);
+#endif
 
   #ifdef __EMSCRIPTEN__
   emscripten_set_main_loop(loop, 20, 1);

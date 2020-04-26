@@ -42,6 +42,11 @@ private:
     FB_MSG msg;
 public:
 
+    const FB_MSG& get_msg()
+    {
+        return msg;
+    }
+
     void show_widget()
     {
         draw_cb(msg, pub);
@@ -106,6 +111,13 @@ struct DrawFloat32
     float minv, maxv;
     DrawFloat32(float minv, float maxv) : minv(minv), maxv(maxv) {}
     void operator()(std_msgs::Float32& msg, roswasm::Publisher* pub);
+};
+
+struct DrawFloat64
+{
+    double minv, maxv;
+    DrawFloat64(double minv, double maxv) : minv(minv), maxv(maxv) {}
+    void operator()(std_msgs::Float64& msg, roswasm::Publisher* pub);
 };
 
 struct DrawFloatPair
