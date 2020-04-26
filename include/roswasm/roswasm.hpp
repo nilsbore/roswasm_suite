@@ -13,6 +13,13 @@ void throwStreamOverrun()
   throw StreamOverrunException("Buffer Overrun");
 }
 }
+
+std::ostream& operator<<(std::ostream& os, const Time &rhs)
+{
+    os << rhs.sec << "." << std::setw(9) << std::setfill('0') << rhs.nsec;
+    return os;
+}
+
 }
 
 namespace roswasm {
