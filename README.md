@@ -2,6 +2,7 @@
 
 roswasm_webgui is a library for writing web GUIs for ROS using [roswasm](https://github.com/nilsbore/roswasm).
 It also provides example web interfaces, one of which is used for our [underwater robot](https://github.com/smarc-project).
+
 The latest [rosbridge_suite](https://github.com/RobotWebTools/rosbridge_suite) is needed
 to get the effective [`cbor-raw` encoding](https://github.com/RobotWebTools/rosbridge_suite/commit/dc7fcb282d1326d573abe83579cc7d989ae71739) when subscribing to messages in the browser.
 
