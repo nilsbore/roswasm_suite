@@ -11,7 +11,7 @@
 
   <node name="roswasm_webserver" type="webserver.py" pkg="roswasm_webgui" output="screen">
     <param name="html_dir" value="$(find roswasm_webgui)/www"/>
-    <param name="html_file" value="imgui.html"/>
+    <param name="html_file" value="sam_webgui.html"/>
     <param name="rosbridge_ip" value="$(arg rosbridge_ip)"/>
     <param name="rosbridge_port" value="$(arg rosbridge_port)"/>
     <param name="display_port" value="$(arg display_port)"/>

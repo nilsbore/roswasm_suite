@@ -66,7 +66,7 @@ bool draw_thruster_rpms(sam_msgs::ThrusterRPMs& msg, roswasm::Publisher* pub)
     if (ImGui::IsItemDeactivatedAfterChange()) {
         pub->publish(msg);
     }
-    lock = lock || IsItemActive();
+    lock = lock || ImGui::IsItemActive();
     ImGui::PopID();
     ImGui::SameLine();
     ImGui::InputInt("Second cmd input", &msg.thruster_2_rpm);
