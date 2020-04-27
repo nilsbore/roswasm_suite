@@ -115,7 +115,8 @@ SamActuatorWidget::SamActuatorWidget(roswasm::NodeHandle* nh) : rpm_pub_enabled(
     //thruster_angles = new TopicPairWidget<geometry_msgs::Pose2D, std_msgs::Float64>(nh, DrawFloatPair("Hori (rad)", -0.1, 0.18, "Vert (rad)", -0.1, 0.15), "/sam/core/thrust_vector_cmd", "/sam/core/thrust_fb1", "/sam/core/thrust_fb2");
     //thruster_rpms = new TopicPairWidget<geometry_msgs::Pose2D, std_msgs::Float64>(nh, DrawFloatPair("Thruster 1", -1000., 1000., "Thruster 2", -1000., 1000.), "/sam/core/rpm_cmd", "/sam/core/rpm_fb1", "/sam/core/rpm_fb2");
     thruster_angles = new TopicWidget<sam_msgs::ThrusterAngles>(nh, &draw_thruster_angles, "/sam/core/thrust_vector_cmd");
-    thruster_rpms = new TopicWidget<sam_msgs::ThrusterRPMs>(nh, &draw_thruster_rpms, "/sam/core/rpm_cmd", "/sam/core/rpm_fb");
+    //thruster_rpms = new TopicWidget<sam_msgs::ThrusterRPMs>(nh, &draw_thruster_rpms, "/sam/core/rpm_cmd", "/sam/core/rpm_fb");
+    thruster_rpms = new TopicWidget<sam_msgs::ThrusterRPMs>(nh, &draw_thruster_rpms, "/sam/core/rpm_cmd", "/sam/core/rpm_cmd");
     rpm_pub = nh->advertise<sam_msgs::ThrusterRPMs>("/sam/core/rpm_cmd");
 
     lcg_actuator = new TopicWidget<sam_msgs::PercentStamped>(nh, &draw_percent, "/sam/core/lcg_cmd", "/sam/core/lcg_fb");
