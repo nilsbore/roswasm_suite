@@ -2,7 +2,7 @@
 
   <arg name="rosbridge_ip" default="0.0.0.0" />
   <arg name="rosbridge_port" default="9090" />
-  <arg name="display_port" default="8081" />
+  <arg name="display_port" default="8080" />
 
   <include file="$(find rosbridge_server)/launch/rosbridge_websocket.launch">
     <arg name="address" value="$(arg rosbridge_ip)"/>
