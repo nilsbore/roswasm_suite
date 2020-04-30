@@ -112,24 +112,24 @@ bool draw_thruster_angles(sam_msgs::ThrusterAngles& msg, roswasm::Publisher* pub
 
 SamActuatorWidget::SamActuatorWidget(roswasm::NodeHandle* nh) : rpm_pub_enabled(false), pub_timer(nullptr)
 {
-    //thruster_angles = new TopicPairWidget<geometry_msgs::Pose2D, std_msgs::Float64>(nh, DrawFloatPair("Hori (rad)", -0.1, 0.18, "Vert (rad)", -0.1, 0.15), "/sam/core/thrust_vector_cmd", "/sam/core/thrust_fb1", "/sam/core/thrust_fb2");
-    //thruster_rpms = new TopicPairWidget<geometry_msgs::Pose2D, std_msgs::Float64>(nh, DrawFloatPair("Thruster 1", -1000., 1000., "Thruster 2", -1000., 1000.), "/sam/core/rpm_cmd", "/sam/core/rpm_fb1", "/sam/core/rpm_fb2");
-    thruster_angles = new TopicWidget<sam_msgs::ThrusterAngles>(nh, &draw_thruster_angles, "/sam/core/thrust_vector_cmd");
-    //thruster_rpms = new TopicWidget<sam_msgs::ThrusterRPMs>(nh, &draw_thruster_rpms, "/sam/core/rpm_cmd", "/sam/core/rpm_fb");
-    thruster_rpms = new TopicWidget<sam_msgs::ThrusterRPMs>(nh, &draw_thruster_rpms, "/sam/core/rpm_cmd", "/sam/core/rpm_cmd");
-    rpm_pub = nh->advertise<sam_msgs::ThrusterRPMs>("/sam/core/rpm_cmd");
+    //thruster_angles = new TopicPairWidget<geometry_msgs::Pose2D, std_msgs::Float64>(nh, DrawFloatPair("Hori (rad)", -0.1, 0.18, "Vert (rad)", -0.1, 0.15), "core/thrust_vector_cmd", "core/thrust_fb1", "core/thrust_fb2");
+    //thruster_rpms = new TopicPairWidget<geometry_msgs::Pose2D, std_msgs::Float64>(nh, DrawFloatPair("Thruster 1", -1000., 1000., "Thruster 2", -1000., 1000.), "core/rpm_cmd", "core/rpm_fb1", "core/rpm_fb2");
+    thruster_angles = new TopicWidget<sam_msgs::ThrusterAngles>(nh, &draw_thruster_angles, "core/thrust_vector_cmd");
+    //thruster_rpms = new TopicWidget<sam_msgs::ThrusterRPMs>(nh, &draw_thruster_rpms, "core/rpm_cmd", "core/rpm_fb");
+    thruster_rpms = new TopicWidget<sam_msgs::ThrusterRPMs>(nh, &draw_thruster_rpms, "core/rpm_cmd", "core/rpm_cmd");
+    rpm_pub = nh->advertise<sam_msgs::ThrusterRPMs>("core/rpm_cmd");
 
-    lcg_actuator = new TopicWidget<sam_msgs::PercentStamped>(nh, &draw_percent, "/sam/core/lcg_cmd", "/sam/core/lcg_fb");
-    lcg_control_enable = new TopicWidget<std_msgs::Bool>(nh, &draw_bool, "/sam/ctrl/lcg/pid_enable");
-    lcg_control_setpoint = new TopicWidget<std_msgs::Float64>(nh, DrawFloat64(-1.6, 1.6), "/sam/ctrl/lcg/setpoint"); //, -1.6, 1.6)
+    lcg_actuator = new TopicWidget<sam_msgs::PercentStamped>(nh, &draw_percent, "core/lcg_cmd", "core/lcg_fb");
+    lcg_control_enable = new TopicWidget<std_msgs::Bool>(nh, &draw_bool, "ctrl/lcg/pid_enable");
+    lcg_control_setpoint = new TopicWidget<std_msgs::Float64>(nh, DrawFloat64(-1.6, 1.6), "ctrl/lcg/setpoint"); //, -1.6, 1.6)
 
-    vbs_actuator = new TopicWidget<sam_msgs::PercentStamped>(nh, &draw_percent, "/sam/core/vbs_cmd", "/sam/core/vbs_fb");
-    vbs_control_enable = new TopicWidget<std_msgs::Bool>(nh, &draw_bool, "/sam/ctrl/vbs/pid_enable");
-    vbs_control_setpoint = new TopicWidget<std_msgs::Float64>(nh, DrawFloat64(0., 5.), "/sam/ctrl/vbs/setpoint"); //, 0 5)
+    vbs_actuator = new TopicWidget<sam_msgs::PercentStamped>(nh, &draw_percent, "core/vbs_cmd", "core/vbs_fb");
+    vbs_control_enable = new TopicWidget<std_msgs::Bool>(nh, &draw_bool, "ctrl/vbs/pid_enable");
+    vbs_control_setpoint = new TopicWidget<std_msgs::Float64>(nh, DrawFloat64(0., 5.), "ctrl/vbs/setpoint"); //, 0 5)
         
-    tcg_actuator = new TopicWidget<sam_msgs::BallastAngles>(nh, &draw_ballast_angles, "/sam/core/tcg_cmd");
-    tcg_control_enable = new TopicWidget<std_msgs::Bool>(nh, &draw_bool, "/sam/ctrl/tcg/pid_enable");
-    tcg_control_setpoint = new TopicWidget<std_msgs::Float64>(nh, DrawFloat64(-1.6, 1.6), "/sam/ctrl/tcg/setpoint"); //, -1.6, 1.6)
+    tcg_actuator = new TopicWidget<sam_msgs::BallastAngles>(nh, &draw_ballast_angles, "core/tcg_cmd");
+    tcg_control_enable = new TopicWidget<std_msgs::Bool>(nh, &draw_bool, "ctrl/tcg/pid_enable");
+    tcg_control_setpoint = new TopicWidget<std_msgs::Float64>(nh, DrawFloat64(-1.6, 1.6), "ctrl/tcg/setpoint"); //, -1.6, 1.6)
 
 }
 
@@ -215,17 +215,17 @@ void SamActuatorWidget::show_window(bool& show_actuator_window)
 
 SamDashboardWidget::SamDashboardWidget(roswasm::NodeHandle* nh) : was_leak(false)
 {
-    leak = new TopicBuffer<sam_msgs::Leak>(nh, "/sam/core/leak_fb");
-    gps = new TopicBuffer<sensor_msgs::NavSatFix>(nh, "/sam/core/gps");
-    battery = new TopicBuffer<sensor_msgs::BatteryState>(nh, "/sam/core/battery_fb");
-    odom = new TopicBuffer<nav_msgs::Odometry>(nh, "/sam/dr/odom", 1000);
-    vbs = new TopicBuffer<sam_msgs::PercentStamped>(nh, "/sam/core/vbs_fb", 1000);
-    lcg = new TopicBuffer<sam_msgs::PercentStamped>(nh, "/sam/core/lcg_fb", 1000);
-    rpms = new TopicBuffer<sam_msgs::ThrusterRPMs>(nh, "/sam/core/rpm_fb", 1000);
-    depth = new TopicBuffer<std_msgs::Float64>(nh, "/sam/ctrl/depth_feedback", 1000);
-    pitch = new TopicBuffer<std_msgs::Float64>(nh, "/sam/ctrl/pitch_feedback", 1000);
-    roll = new TopicBuffer<std_msgs::Float64>(nh, "/sam/ctrl/roll_feedback", 1000);
-    yaw = new TopicBuffer<std_msgs::Float64>(nh, "/sam/ctrl/yaw_feedback", 1000);
+    leak = new TopicBuffer<sam_msgs::Leak>(nh, "core/leak_fb");
+    gps = new TopicBuffer<sensor_msgs::NavSatFix>(nh, "core/gps");
+    battery = new TopicBuffer<sensor_msgs::BatteryState>(nh, "core/battery_fb");
+    odom = new TopicBuffer<nav_msgs::Odometry>(nh, "dr/odom", 1000);
+    vbs = new TopicBuffer<sam_msgs::PercentStamped>(nh, "core/vbs_fb", 1000);
+    lcg = new TopicBuffer<sam_msgs::PercentStamped>(nh, "core/lcg_fb", 1000);
+    rpms = new TopicBuffer<sam_msgs::ThrusterRPMs>(nh, "core/rpm_fb", 1000);
+    depth = new TopicBuffer<std_msgs::Float64>(nh, "ctrl/depth_feedback", 1000);
+    pitch = new TopicBuffer<std_msgs::Float64>(nh, "ctrl/pitch_feedback", 1000);
+    roll = new TopicBuffer<std_msgs::Float64>(nh, "ctrl/roll_feedback", 1000);
+    yaw = new TopicBuffer<std_msgs::Float64>(nh, "ctrl/yaw_feedback", 1000);
 }
 
 void SamDashboardWidget::show_window(bool& show_dashboard_window)
@@ -294,8 +294,8 @@ void SamDashboardWidget::show_window(bool& show_dashboard_window)
 
 SamTeleopWidget::SamTeleopWidget(roswasm::NodeHandle* nh) : enabled(false), pub_timer(nullptr)
 {
-    angle_pub = nh->advertise<sam_msgs::ThrusterAngles>("/sam/core/thrust_vector_cmd");
-    rpm_pub = nh->advertise<sam_msgs::ThrusterRPMs>("/sam/core/rpm_cmd");
+    angle_pub = nh->advertise<sam_msgs::ThrusterAngles>("core/thrust_vector_cmd");
+    rpm_pub = nh->advertise<sam_msgs::ThrusterRPMs>("core/rpm_cmd");
 }
 
 void SamTeleopWidget::pub_callback(const ros::TimerEvent& e)

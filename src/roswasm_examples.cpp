@@ -6,27 +6,27 @@ namespace roswasm_webgui {
 
 ExampleActuatorWidget::ExampleActuatorWidget(roswasm::NodeHandle* nh) : rpm_pub_enabled(false), pub_timer(nullptr)
 {
-    thruster_angles = new TopicPairWidget<geometry_msgs::Pose2D, std_msgs::Float64>(nh, DrawFloatPair("Hori (rad)", -0.1, 0.18, "Vert (rad)", -0.1, 0.15), "/sam/core/thrust_vector_cmd", "/sam/core/thrust_fb1", "/sam/core/thrust_fb2");
+    thruster_angles = new TopicPairWidget<geometry_msgs::Pose2D, std_msgs::Float64>(nh, DrawFloatPair("Hori (rad)", -0.1, 0.18, "Vert (rad)", -0.1, 0.15), "core/thrust_vector_cmd", "core/thrust_fb1", "core/thrust_fb2");
 //                                                      [{"name": "Hori.", "member": "thruster_horizontal_radians", "min": -0.1, "max": 0.18},
 //                                                       {"name": "Vert.", "member": "thruster_vertical_radians", "min": -0.1, "max": 0.15}])
-    thruster_rpms = new TopicPairWidget<geometry_msgs::Pose2D, std_msgs::Float64>(nh, DrawFloatPair("Thruster 1", -1000., 1000., "Thruster 2", -1000., 1000.), "/sam/core/rpm_cmd", "/sam/core/rpm_fb1", "/sam/core/rpm_fb2");
-    rpm_pub = nh->advertise<geometry_msgs::Pose2D>("/sam/core/rpm_cmd");
+    thruster_rpms = new TopicPairWidget<geometry_msgs::Pose2D, std_msgs::Float64>(nh, DrawFloatPair("Thruster 1", -1000., 1000., "Thruster 2", -1000., 1000.), "core/rpm_cmd", "core/rpm_fb1", "core/rpm_fb2");
+    rpm_pub = nh->advertise<geometry_msgs::Pose2D>("core/rpm_cmd");
 //                                                    [{"name": "Front", "member": "thruster_1_rpm", "min": -1000, "max": 1000, "type": "int"},
 //                                                     {"name": "Back", "member": "thruster_2_rpm", "min": -1000, "max": 1000, "type": "int"}])
 
 //            self.leak_button = flx.Button(text="No leaks...", style="background: #008000;", disabled=True)
 
-    lcg_actuator = new TopicWidget<std_msgs::Float32>(nh, DrawFloat32(0., 100.), "/sam/core/lcg_cmd", "/sam/core/lcg_fb");
-    lcg_control_enable = new TopicWidget<std_msgs::Bool>(nh, &draw_bool, "/sam/ctrl/lcg/pid_enable");
-    lcg_control_setpoint = new TopicWidget<std_msgs::Float32>(nh, DrawFloat32(-1.6, 1.6), "/sam/ctrl/lcg/setpoint"); //, -1.6, 1.6)
+    lcg_actuator = new TopicWidget<std_msgs::Float32>(nh, DrawFloat32(0., 100.), "core/lcg_cmd", "core/lcg_fb");
+    lcg_control_enable = new TopicWidget<std_msgs::Bool>(nh, &draw_bool, "ctrl/lcg/pid_enable");
+    lcg_control_setpoint = new TopicWidget<std_msgs::Float32>(nh, DrawFloat32(-1.6, 1.6), "ctrl/lcg/setpoint"); //, -1.6, 1.6)
 
-    vbs_actuator = new TopicWidget<std_msgs::Float32>(nh, DrawFloat32(0., 100.), "/sam/core/vbs_cmd", "/sam/core/vbs_fb");
-    vbs_control_enable = new TopicWidget<std_msgs::Bool>(nh, &draw_bool, "/sam/ctrl/vbs/pid_enable");
-    vbs_control_setpoint = new TopicWidget<std_msgs::Float32>(nh, DrawFloat32(0., 5.), "/sam/ctrl/vbs/setpoint"); //, 0 5)
+    vbs_actuator = new TopicWidget<std_msgs::Float32>(nh, DrawFloat32(0., 100.), "core/vbs_cmd", "core/vbs_fb");
+    vbs_control_enable = new TopicWidget<std_msgs::Bool>(nh, &draw_bool, "ctrl/vbs/pid_enable");
+    vbs_control_setpoint = new TopicWidget<std_msgs::Float32>(nh, DrawFloat32(0., 5.), "ctrl/vbs/setpoint"); //, 0 5)
         
-    tcg_actuator = new TopicWidget<std_msgs::Float32>(nh, DrawFloat32(-1.6, 1.6), "/sam/core/tcg_cmd");
-    tcg_control_enable = new TopicWidget<std_msgs::Bool>(nh, &draw_bool, "/sam/ctrl/tcg/pid_enable");
-    tcg_control_setpoint = new TopicWidget<std_msgs::Float32>(nh, DrawFloat32(-1.6, 1.6), "/sam/ctrl/tcg/setpoint"); //, -1.6, 1.6)
+    tcg_actuator = new TopicWidget<std_msgs::Float32>(nh, DrawFloat32(-1.6, 1.6), "core/tcg_cmd");
+    tcg_control_enable = new TopicWidget<std_msgs::Bool>(nh, &draw_bool, "ctrl/tcg/pid_enable");
+    tcg_control_setpoint = new TopicWidget<std_msgs::Float32>(nh, DrawFloat32(-1.6, 1.6), "ctrl/tcg/setpoint"); //, -1.6, 1.6)
 
 }
 
@@ -115,16 +115,16 @@ void ExampleActuatorWidget::show_window(bool& show_actuator_window)
 
 ExampleDashboardWidget::ExampleDashboardWidget(roswasm::NodeHandle* nh) : was_leak(false)
 {
-    leak = new TopicBuffer<std_msgs::Bool>(nh, "/sam/core/leak_fb");
-    gps = new TopicBuffer<sensor_msgs::NavSatFix>(nh, "/sam/core/gps");
-    battery = new TopicBuffer<sensor_msgs::BatteryState>(nh, "/sam/core/battery_fb");
-    odom = new TopicBuffer<nav_msgs::Odometry>(nh, "/sam/dr/odom", 1000);
-    vbs = new TopicBuffer<std_msgs::Float64>(nh, "/sam/core/vbs_fb", 1000);
-    lcg = new TopicBuffer<std_msgs::Float64>(nh, "/sam/core/lcg_fb", 1000);
-    depth = new TopicBuffer<std_msgs::Float64>(nh, "/sam/ctrl/depth_feedback", 1000);
-    pitch = new TopicBuffer<std_msgs::Float64>(nh, "/sam/ctrl/pitch_feedback", 1000);
-    roll = new TopicBuffer<std_msgs::Float64>(nh, "/sam/ctrl/roll_feedback", 1000);
-    yaw = new TopicBuffer<std_msgs::Float64>(nh, "/sam/ctrl/yaw_feedback", 1000);
+    leak = new TopicBuffer<std_msgs::Bool>(nh, "core/leak_fb");
+    gps = new TopicBuffer<sensor_msgs::NavSatFix>(nh, "core/gps");
+    battery = new TopicBuffer<sensor_msgs::BatteryState>(nh, "core/battery_fb");
+    odom = new TopicBuffer<nav_msgs::Odometry>(nh, "dr/odom", 1000);
+    vbs = new TopicBuffer<std_msgs::Float64>(nh, "core/vbs_fb", 1000);
+    lcg = new TopicBuffer<std_msgs::Float64>(nh, "core/lcg_fb", 1000);
+    depth = new TopicBuffer<std_msgs::Float64>(nh, "ctrl/depth_feedback", 1000);
+    pitch = new TopicBuffer<std_msgs::Float64>(nh, "ctrl/pitch_feedback", 1000);
+    roll = new TopicBuffer<std_msgs::Float64>(nh, "ctrl/roll_feedback", 1000);
+    yaw = new TopicBuffer<std_msgs::Float64>(nh, "ctrl/yaw_feedback", 1000);
 }
 
 void ExampleDashboardWidget::show_window(bool& show_dashboard_window)
@@ -191,8 +191,8 @@ void ExampleDashboardWidget::show_window(bool& show_dashboard_window)
 
 ExampleTeleopWidget::ExampleTeleopWidget(roswasm::NodeHandle* nh) : enabled(false), pub_timer(nullptr)
 {
-    angle_pub = nh->advertise<geometry_msgs::Pose2D>("/sam/core/thrust_vector_cmd");
-    rpm_pub = nh->advertise<geometry_msgs::Pose2D>("/sam/core/rpm_cmd");
+    angle_pub = nh->advertise<geometry_msgs::Pose2D>("core/thrust_vector_cmd");
+    rpm_pub = nh->advertise<geometry_msgs::Pose2D>("core/rpm_cmd");
 }
 
 void ExampleTeleopWidget::pub_callback(const ros::TimerEvent& e)
