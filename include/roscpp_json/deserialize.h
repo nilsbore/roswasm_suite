@@ -9,7 +9,8 @@
 namespace roscpp_json {
 
 class JSONIter {
-public:
+
+private:
 
     using ContainerAllocator = std::allocator<void>;
     using Serializer = ros::serialization::Serializer<ContainerAllocator>;
@@ -58,6 +59,44 @@ public:
         value.nsec = itr_value["nsecs"].GetInt();
     }
 
+    template <typename MSG>
+    void parse_impl(MSG& msg, const rapidjson::Value& itr_value)
+    {
+        itr = itr_value.MemberBegin();
+        ros::serialization::Serializer<MSG>::template allInOne<JSONIter, MSG&>(*this, msg);
+        assert(itr == itr_value.MemberEnd());
+    }
+
+public:
+
+    template <typename MSG>
+    MSG parse(const std::string& json)
+    {
+        rapidjson::Document document;
+        document.Parse(json.c_str());
+        assert(document.IsObject());
+        MSG msg;
+        parse_impl(msg, document);
+        return msg;
+    }
+
+    template <typename MSG>
+    MSG parse_service_list(const std::string& json)
+    {
+        rapidjson::Document document;
+        document.SetObject();
+        rapidjson::Document list_document(&document.GetAllocator());
+        list_document.Parse(json.c_str());
+        assert(list_document.IsArray());
+        size_t length = list_document.Size();
+        for (size_t i = 0; i < length; ++i) {
+            document.AddMember(rapidjson::StringRef(std::to_string(i).c_str()), list_document[i], document.GetAllocator());
+        }
+        MSG msg;
+        parse_impl(msg, document);
+        return msg;
+    }
+
     template <typename T>
     void next(T& value)
     {
@@ -87,42 +126,6 @@ public:
             extract(value[i], itr->value[i]);
         }
         ++itr;
-    }
-
-    template <typename MSG>
-    void parse_impl(MSG& msg, const rapidjson::Value& itr_value)
-    {
-        itr = itr_value.MemberBegin();
-        ros::serialization::Serializer<MSG>::template allInOne<JSONIter, MSG&>(*this, msg);
-        assert(itr == itr_value.MemberEnd());
-    }
-
-    template <typename MSG>
-    MSG parse(const std::string& json)
-    {
-        rapidjson::Document document;
-        document.Parse(json.c_str());
-        assert(document.IsObject());
-        MSG msg;
-        parse_impl(msg, document);
-        return msg;
-    }
-
-    template <typename MSG>
-    MSG parse_service_list(const std::string& json)
-    {
-        rapidjson::Document document;
-        document.SetObject();
-        rapidjson::Document list_document(&document.GetAllocator());
-        list_document.Parse(json.c_str());
-        assert(list_document.IsArray());
-        size_t length = list_document.Size();
-        for (size_t i = 0; i < length; ++i) {
-            document.AddMember(rapidjson::StringRef(std::to_string(i).c_str()), list_document[i], document.GetAllocator());
-        }
-        MSG msg;
-        parse_impl(msg, document);
-        return msg;
     }
 
     JSONIter()

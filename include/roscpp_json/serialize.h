@@ -7,7 +7,8 @@
 namespace roscpp_json {
    
 class JSONStream {
-    public:
+
+private:
 
     struct ParsingContext {
         bool has_key;
@@ -26,11 +27,6 @@ class JSONStream {
     bool output_service_list;
     std::list<ParsingContext> contexts;
 
-    JSONStream(bool output_service_list=false) : current_indent(1), initial_indent(0), indent_needs_handling(false), output_service_list(output_service_list)
-    {
-        contexts.push_back(ParsingContext());
-    }
-
     ParsingContext& context()
     {
         return contexts.back();
@@ -39,17 +35,6 @@ class JSONStream {
     std::stringstream& stream()
     {
         return context().stream;
-    }
-
-    std::string str()
-    {
-        exit_context(1);
-        if (output_service_list) {
-            return std::string("[ ") + stream().str() + " ]";
-        }
-        else {
-            return std::string("{ ") + stream().str() + " }";
-        }
     }
 
     void enter_dict()
@@ -160,19 +145,6 @@ class JSONStream {
         stream() << "\"" << value << "\"";
     }
 
-    template <typename T>
-    JSONStream& operator<<(T value)
-    {
-        if (context().is_list) {
-            add_list_value(value);
-        }
-        else if (context().has_key) {
-            add_key_value(context().key, value);
-            context().has_key = false;
-        }
-        return *this;
-    }
-
     void handle_indent(size_t indent)
     {
         size_t new_indent = initial_indent + indent;
@@ -257,6 +229,21 @@ class JSONStream {
         }
     }
 
+public:
+
+    template <typename T>
+    JSONStream& operator<<(T value)
+    {
+        if (context().is_list) {
+            add_list_value(value);
+        }
+        else if (context().has_key) {
+            add_key_value(context().key, value);
+            context().has_key = false;
+        }
+        return *this;
+    }
+
     JSONStream& operator<<(const char* value)
     {
         if (*value == '\n') {
@@ -293,6 +280,22 @@ class JSONStream {
     JSONStream& operator<<(StandardEndLine manip)
     {
         return *this;
+    }
+
+    JSONStream(bool output_service_list=false) : current_indent(1), initial_indent(0), indent_needs_handling(false), output_service_list(output_service_list)
+    {
+        contexts.push_back(ParsingContext());
+    }
+
+    std::string str()
+    {
+        exit_context(1);
+        if (output_service_list) {
+            return std::string("[ ") + stream().str() + " ]";
+        }
+        else {
+            return std::string("{ ") + stream().str() + " }";
+        }
     }
 
 };
