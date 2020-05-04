@@ -3,7 +3,7 @@
 
 #include <ros/ros.h>
 #include <ros/serialization.h>
-#include <rapidjson/document.h>
+#include "rapidjson/document.h"
 #include <cassert>
 
 namespace roscpp_json {
