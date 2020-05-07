@@ -148,6 +148,14 @@ private:
     void handle_indent(size_t indent)
     {
         size_t new_indent = initial_indent + indent;
+
+        if (new_indent <= current_indent && context().key_list) {
+            contexts.push_back(ParsingContext());
+            context().is_list = true;
+            enter_list();
+            exit_context(current_indent++);
+        }
+
         if (new_indent < current_indent) {
             exit_context(new_indent);
         }
@@ -163,6 +171,7 @@ private:
             }
             current_indent = new_indent;
         }
+
         indent_needs_handling = false;
     }
 
@@ -289,7 +298,9 @@ public:
 
     std::string str()
     {
-        exit_context(1);
+        //exit_context(1);
+        initial_indent = 0;
+        handle_indent(1);
         if (output_service_list) {
             return std::string("[ ") + stream().str() + " ]";
         }

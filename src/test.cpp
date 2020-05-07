@@ -47,11 +47,12 @@ std::pair<std::string, std::string> test_serialization(const MSG& msg)
 
     std::string json_msg = roscpp_json::serialize(msg, service_list);
 
-    //std::cout << json_msg << std::endl;
-
     std::stringstream sstream;
     ros::message_operations::Printer<MSG>::stream(sstream, "", msg);
     std::string original_def = sstream.str();
+
+    //std::cout << original_def << std::endl;
+    //std::cout << json_msg << std::endl;
 
     MSG parsed_msg = roscpp_json::deserialize<MSG>(json_msg, service_list);
 
@@ -155,6 +156,18 @@ TEST(JsonSerialization, pointCloud2)
     EXPECT_EQ(original_def, parsed_def);
 }
 
+TEST(JsonSerialization, emptyPointCloud2)
+{
+    sensor_msgs::PointCloud2 msg;
+    msg.header.frame_id = "base_link";
+    msg.header.stamp.nsec = 4;
+    msg.header.stamp.sec = 3;
+    msg.fields.resize(3);
+    std::string original_def, parsed_def;
+    tie(original_def, parsed_def) = test_serialization(msg);
+    EXPECT_EQ(original_def, parsed_def);
+}
+
 TEST(JsonSerialization, imu)
 {
     sensor_msgs::Imu msg;
@@ -233,6 +246,17 @@ TEST(JsonSerialization, path)
     msg.header.stamp.nsec = 4;
     msg.header.stamp.sec = 3;
     msg.poses.resize(100);
+    std::string original_def, parsed_def;
+    tie(original_def, parsed_def) = test_serialization(msg);
+    EXPECT_EQ(original_def, parsed_def);
+}
+
+TEST(JsonSerialization, emptyPath)
+{
+    nav_msgs::Path msg;
+    msg.header.frame_id = "base_link";
+    msg.header.stamp.nsec = 4;
+    msg.header.stamp.sec = 3;
     std::string original_def, parsed_def;
     tie(original_def, parsed_def) = test_serialization(msg);
     EXPECT_EQ(original_def, parsed_def);
