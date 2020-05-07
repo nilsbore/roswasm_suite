@@ -82,6 +82,60 @@ TEST(JsonSerialization, stdFloat32)
     EXPECT_EQ(original_def, parsed_def);
 }
 
+TEST(JsonSerialization, nanFloat32)
+{
+    std_msgs::Float32 msg;
+    msg.data = std::numeric_limits<float>::quiet_NaN();
+    std::string original_def, parsed_def;
+    tie(original_def, parsed_def) = test_serialization(msg);
+    EXPECT_EQ(original_def, parsed_def);
+}
+
+TEST(JsonSerialization, infFloat32)
+{
+    std_msgs::Float32 msg;
+    msg.data = std::numeric_limits<float>::infinity();
+    std::string original_def, parsed_def;
+    tie(original_def, parsed_def) = test_serialization(msg);
+    EXPECT_EQ(original_def, parsed_def);
+}
+
+TEST(JsonSerialization, negInfFloat32)
+{
+    std_msgs::Float32 msg;
+    msg.data = -std::numeric_limits<float>::infinity();
+    std::string original_def, parsed_def;
+    tie(original_def, parsed_def) = test_serialization(msg);
+    EXPECT_EQ(original_def, parsed_def);
+}
+
+TEST(JsonSerialization, nanFloat64)
+{
+    std_msgs::Float64 msg;
+    msg.data = std::numeric_limits<double>::quiet_NaN();
+    std::string original_def, parsed_def;
+    tie(original_def, parsed_def) = test_serialization(msg);
+    EXPECT_EQ(original_def, parsed_def);
+}
+
+TEST(JsonSerialization, infFloat64)
+{
+    std_msgs::Float64 msg;
+    msg.data = std::numeric_limits<double>::infinity();
+    std::string original_def, parsed_def;
+    tie(original_def, parsed_def) = test_serialization(msg);
+    EXPECT_EQ(original_def, parsed_def);
+}
+
+TEST(JsonSerialization, negInfFloat64)
+{
+    std_msgs::Float64 msg;
+    msg.data = -std::numeric_limits<double>::infinity();
+    std::string original_def, parsed_def;
+    tie(original_def, parsed_def) = test_serialization(msg);
+    EXPECT_EQ(original_def, parsed_def);
+}
+
 TEST(JsonSerialization, stdFloat64)
 {
     std_msgs::Float64 msg;

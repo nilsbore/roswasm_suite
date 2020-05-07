@@ -73,7 +73,7 @@ public:
     MSG parse(const std::string& json)
     {
         rapidjson::Document document;
-        document.Parse(json.c_str());
+        document.Parse<rapidjson::kParseNanAndInfFlag>(json.c_str());
         assert(document.IsObject());
         MSG msg;
         parse_impl(msg, document);
@@ -86,7 +86,7 @@ public:
         rapidjson::Document document;
         document.SetObject();
         rapidjson::Document list_document(&document.GetAllocator());
-        list_document.Parse(json.c_str());
+        list_document.Parse<rapidjson::kParseNanAndInfFlag>(json.c_str());
         assert(list_document.IsArray());
         size_t length = list_document.Size();
         for (size_t i = 0; i < length; ++i) {

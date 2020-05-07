@@ -96,6 +96,40 @@ private:
         stream() << "\"" << key << "\": \"" << value << "\"";
     }
 
+    void add_key_value_impl(const std::string& key, const float& value)
+    {
+        stream() << "\"" << key << "\": ";
+        if (std::isnan(value)) {
+            stream() << "NaN";
+        }
+        else if (std::isinf(value)) {
+            if (value < 0) {
+                stream() << "-";
+            }
+            stream() << "Infinity";
+        }
+        else {
+            stream() << value;
+        }
+    }
+
+    void add_key_value_impl(const std::string& key, const double& value)
+    {
+        stream() << "\"" << key << "\": ";
+        if (std::isnan(value)) {
+            stream() << "NaN";
+        }
+        else if (std::isinf(value)) {
+            if (value < 0) {
+                stream() << "-";
+            }
+            stream() << "Infinity";
+        }
+        else {
+            stream() << value;
+        }
+    }
+
     void add_key_value_impl(const std::string& key, const ros::Time& value)
     {
         stream() << "\"" << key << "\": { \"secs\": " << value.sec << ", \"nsecs\": " << value.nsec << " }";
