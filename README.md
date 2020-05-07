@@ -26,7 +26,7 @@ int main(int argc, char** argv)
                 "covariance": [ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 ] } }
 
     // parse a new message object with the same values as msg
-    geometry_msgs::PoseWithCovarianceStampe parsed_msg = roscpp_json::deserialize<geometry_msgs::PoseWithCovarianceStampe>(json_msg);
+    geometry_msgs::PoseWithCovarianceStamped parsed_msg = roscpp_json::deserialize<geometry_msgs::PoseWithCovarianceStamped>(json_msg);
     
     return 0;
 }
