@@ -1,7 +1,7 @@
 #include <roswasm/roswasm.h>
 #include <roswasm/service_client.h>
-#include <roscpp_json/serialize.h>
-#include <roscpp_json/deserialize.h>
+#include <roscpp_json_serialize/serialize.h>
+#include <roscpp_json_serialize/deserialize.h>
 
 namespace roswasm {
 

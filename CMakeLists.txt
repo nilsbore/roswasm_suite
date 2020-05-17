@@ -1,31 +1,36 @@
-#cmake_minimum_required(VERSION 2.8)
-cmake_minimum_required(VERSION 3.0)
-cmake_policy(SET CMP0015 NEW)
-
+cmake_minimum_required(VERSION 2.8.3)
 project(roswasm)
 
 set(CMAKE_C_COMPILER emcc)
 set(CMAKE_CXX_COMPILER em++)
 
 #set(EMSDK_ROOT $ENV{EMSDK})
-#set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${EMSDK_ROOT}/upstream/emscripten/cmake/Modules")
-#set(CMAKE_PREFIX_PATH ${CMAKE_PREFIX_PATH} "${EMSDK_ROOT}/upstream/emscripten/cmake/Modules")
-#set(CMAKE_TOOLCHAIN_FILE "${CMAKE_MODULE_PATH}/Platform/Emscripten.cmake")
+find_package(catkin REQUIRED COMPONENTS roscpp roscpp_json_serialize std_msgs sensor_msgs geometry_msgs nav_msgs) # rosmon_msgs)
 
-#find_package(Emscripten REQUIRED)
+catkin_package(
+  INCLUDE_DIRS include external/cbor-lite/include
+  LIBRARIES roswasm
+  CATKIN_DEPENDS roscpp roscpp_json_serialize
+#  DEPENDS system_lib
+)
 
 message("EMscripten include dirs: ${Emscripten_INCLUDE_DIRS}")
 message("Cmake toolchain: ${CMAKE_TOOLCHAIN_FILE}")
 message("Emscripten dir: ${EMSDK_ROOT}")
+
+#unset(ROSCONSOLE_BACKEND_LOG4CXX)
+#unset(ROS_BUILD_SHARED_LIBS)
+#set(ROS_BUILD_SHARED_LIBS 0)
+message("FLAGS: ${CMAKE_CXX_FLAGS}")
 
 # setting EMSCRIPTEN_GENERATE_BITCODE_STATIC_LIBRARIES=ON here does not
 # work, since it will only be taken into account on the next cmake
 # configuration. So we explicitly run the code guarded by
 # EMSCRIPTEN_GENERATE_BITCODE_STATIC_LIBRARIES=ON in Emscripten.cmake
 # platform file.
-SET(CMAKE_STATIC_LIBRARY_SUFFIX ".bc")
-SET(CMAKE_C_CREATE_STATIC_LIBRARY "<CMAKE_C_COMPILER> -o <TARGET> <LINK_FLAGS> <OBJECTS>")
-SET(CMAKE_CXX_CREATE_STATIC_LIBRARY "<CMAKE_CXX_COMPILER> -o <TARGET> <LINK_FLAGS> <OBJECTS>")
+set(CMAKE_STATIC_LIBRARY_SUFFIX ".bc")
+set(CMAKE_C_CREATE_STATIC_LIBRARY "<CMAKE_C_COMPILER> -o <TARGET> <LINK_FLAGS> <OBJECTS>")
+set(CMAKE_CXX_CREATE_STATIC_LIBRARY "<CMAKE_CXX_COMPILER> -o <TARGET> <LINK_FLAGS> <OBJECTS>")
 # --- end EMSCRIPTEN_GENERATE_BITCODE_STATIC_LIBRARIES
 
 set(EMCC_FLAGS "")
@@ -44,22 +49,19 @@ set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${EMCC_FLAGS}")
 add_definitions("-g4 -O2 -std=c++11") # -lwebsocket.js -O2 -s WASM=1 -s USE_BOOST_HEADERS=1")
 
 #set(CMAKE_VERBOSE_MAKEFILE on)
-#set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/build.emscripten)
-
-#include_directories("lib/assimp/include")
-
-#link_directories("lib/assimp/lib-js")
-#link_libraries("assimp")
 
 include_directories(
-    include
-    /opt/ros/melodic/include
-    external/cbor-lite/include
-    external/roscpp_json_serialize/include
-    external/roscpp_json_serialize/external/rapidjson/include
+  include
+  /usr/include
+  #/opt/ros/melodic/include
+  external/cbor-lite/include
+  #external/roscpp_json_serialize/include
+  #external/roscpp_json_serialize/external/rapidjson/include
+  ${catkin_INCLUDE_DIRS}
 )
 
-add_library(roswasm src/roswasm.cpp)
+add_library(roswasm STATIC src/roswasm.cpp)
+#set_target_properties(roswasm PROPERTIES SUFFIX ".bc")
 
 add_executable(roswasm_test src/test.cpp)
 set_target_properties(roswasm_test PROPERTIES OUTPUT_NAME "test.js")

@@ -1,6 +1,15 @@
 #ifndef ROSWASM_H
 #define ROSWASM_H
 
+#ifdef ROSCONSOLE_BACKEND_LOG4CXX
+  #undef ROSCONSOLE_BACKEND_LOG4CXX
+#endif
+
+#ifdef ROS_BUILD_SHARED_LIBS
+  //#define ROS_BUILD_SHARED_LIBS 0
+  #undef ROS_BUILD_SHARED_LIBS
+#endif
+
 // assumes we're in an emscripten environment
 #include <emscripten.h>
 #include <emscripten/websocket.h>

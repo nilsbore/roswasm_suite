@@ -1,6 +1,6 @@
 #include <roswasm/roswasm.h>
 #include <roswasm/publisher.h>
-#include <roscpp_json/serialize.h>
+#include <roscpp_json_serialize/serialize.h>
 
 namespace roswasm {
 
