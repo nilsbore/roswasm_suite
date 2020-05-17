@@ -198,10 +198,12 @@ int init()
 
   // Load Fonts
   io.Fonts->AddFontDefault();
+  /*
   io.Fonts->AddFontFromFileTTF("data/xkcd-script.ttf", 23.0f);
   io.Fonts->AddFontFromFileTTF("data/xkcd-script.ttf", 18.0f);
   io.Fonts->AddFontFromFileTTF("data/xkcd-script.ttf", 26.0f);
   io.Fonts->AddFontFromFileTTF("data/xkcd-script.ttf", 32.0f);
+  */
 
   imgui =  ImGui::GetCurrentContext();
 
