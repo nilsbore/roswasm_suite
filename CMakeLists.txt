@@ -1,6 +1,8 @@
 cmake_minimum_required(VERSION 2.8.3)
 project(roswasm_webgui)
 
+if (DEFINED ENV{EMSDK})
+
 set(CMAKE_C_COMPILER emcc)
 set(CMAKE_CXX_COMPILER em++)
 
@@ -69,7 +71,7 @@ include_directories(
   ${catkin_INCLUDE_DIRS}
 )
 
-add_library(roswasm_webgui STATIC src/imgui_impl_glfw.cpp src/imgui_impl_opengl3.cpp src/imgui.cpp src/imgui_draw.cpp src/imgui_demo.cpp src/roswasm_monlaunch.cpp src/roswasm_image.cpp src/roswasm_widget.cpp src/roswasm_examples.cpp src/roswasm_sam.cpp)
+add_library(roswasm_webgui STATIC src/imgui_impl_glfw.cpp src/imgui_impl_opengl3.cpp src/imgui.cpp src/imgui_draw.cpp src/imgui_demo.cpp src/roswasm_monlaunch.cpp src/roswasm_image.cpp src/roswasm_widget.cpp src/roswasm_examples.cpp) # src/roswasm_sam.cpp)
 #)
 #set_target_properties(roswasm PROPERTIES SUFFIX ".bc")
 
@@ -133,3 +135,10 @@ target_link_libraries(roswasm_webgui_test roswasm_webgui roswasm -lGL -lwebsocke
 
 ## Add folders to be run by python nosetests
 # catkin_add_nosetests(test)
+
+else() # no emsdk
+
+find_package(catkin REQUIRED COMPONENTS roscpp roscpp_json_serialize std_msgs sensor_msgs geometry_msgs nav_msgs) # rosmon_msgs)
+catkin_package()
+
+endif()
