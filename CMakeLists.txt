@@ -1,6 +1,8 @@
 cmake_minimum_required(VERSION 2.8.3)
 project(roswasm)
 
+if (DEFINED ENV{EMSDK})
+
 set(CMAKE_C_COMPILER emcc)
 set(CMAKE_CXX_COMPILER em++)
 
@@ -52,7 +54,7 @@ add_definitions("-g4 -O2 -std=c++11") # -lwebsocket.js -O2 -s WASM=1 -s USE_BOOS
 
 include_directories(
   include
-  /usr/include
+  #/usr/include
   #/opt/ros/melodic/include
   external/cbor-lite/include
   #external/roscpp_json_serialize/include
@@ -72,3 +74,9 @@ target_link_libraries(roswasm_test roswasm -lwebsocket.js)
 #set_target_properties(roswasm_test PROPERTIES LINK_FLAGS "-s DEMANGLE_SUPPORT=1 --preload-file ${CMAKE_SOURCE_DIR}/assets --bind")
 #set_target_properties(roswasm PROPERTIES LINK_FLAGS "-s DEMANGLE_SUPPORT=1 --preload-file ${CMAKE_SOURCE_DIR}/assets --bind")
 
+else() # no emsdk
+
+find_package(catkin REQUIRED COMPONENTS roscpp roscpp_json_serialize std_msgs sensor_msgs geometry_msgs nav_msgs) # rosmon_msgs)
+catkin_package()
+
+endif()
