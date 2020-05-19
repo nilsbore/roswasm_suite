@@ -1,0 +1,22 @@
+BasedOnStyle: LLVM
+#
+AccessModifierOffset: -4
+AlignAfterOpenBracket: DontAlign
+AlignOperands: false
+AllowShortFunctionsOnASingleLine: false
+AllowShortIfStatementsOnASingleLine: true
+AllowShortLoopsOnASingleLine: true
+AlwaysBreakTemplateDeclarations: true
+ColumnLimit: 132
+IndentWidth: 4
+KeepEmptyLinesAtTheStartOfBlocks: false
+PointerAlignment: Left
+IncludeCategories:
+  - Regex:           '^<boost/'
+    Priority:        50
+  - Regex:           '^.cbor-lite/'
+    Priority:        10
+  - Regex:           '^<'
+    Priority:        100
+  - Regex:           '^"'
+    Priority:        1
