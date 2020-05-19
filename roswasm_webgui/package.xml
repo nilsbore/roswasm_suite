@@ -37,7 +37,6 @@
   <build_depend>roscpp</build_depend>
   <build_depend>roswasm</build_depend>
   <build_depend>std_msgs</build_depend>
-  <build_depend>sam_msgs</build_depend>
   <build_depend>geometry_msgs</build_depend>
   <build_depend>sensor_msgs</build_depend>
   <build_depend>nav_msgs</build_depend>

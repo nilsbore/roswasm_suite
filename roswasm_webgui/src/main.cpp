@@ -17,11 +17,6 @@
 #include <roswasm_image.h>
 #include <roswasm_examples.h>
 
-//#define WITH_SAM_MSGS
-
-#ifdef WITH_SAM_MSGS
-#include <roswasm_sam.h>
-#endif
 //#include <iostream>
 
 #include <unordered_set>
@@ -29,16 +24,9 @@
 roswasm::NodeHandle* nh; 
 roswasm_webgui::MonlaunchWidget* monlaunch_widget;
 roswasm_webgui::ImageWidget* image_widget;
-#ifdef WITH_SAM_MSGS
-roswasm_webgui::SamActuatorWidget* actuator_widget;
-roswasm_webgui::SamDashboardWidget* dashboard_widget;
-roswasm_webgui::SamTeleopWidget* teleop_widget;
-#else
 roswasm_webgui::ExampleActuatorWidget* actuator_widget;
 roswasm_webgui::ExampleDashboardWidget* dashboard_widget;
 roswasm_webgui::ExampleTeleopWidget* teleop_widget;
-#endif
-
 
 GLFWwindow* g_window;
 //ImVec4 clear_color = ImVec4(0.45f, 0.55f, 0.60f, 1.00f);
@@ -240,15 +228,9 @@ extern "C" int main(int argc, char** argv)
   nh = new roswasm::NodeHandle(rosbridge_ip, rosbridge_port);
   monlaunch_widget = new roswasm_webgui::MonlaunchWidget(nh);
   image_widget = new roswasm_webgui::ImageWidget(nh);
-#ifdef WITH_SAM_MSGS
-  actuator_widget = new roswasm_webgui::SamActuatorWidget(nh);
-  dashboard_widget = new roswasm_webgui::SamDashboardWidget(nh);
-  teleop_widget = new roswasm_webgui::SamTeleopWidget(nh);
-#else
   actuator_widget = new roswasm_webgui::ExampleActuatorWidget(nh);
   dashboard_widget = new roswasm_webgui::ExampleDashboardWidget(nh);
   teleop_widget = new roswasm_webgui::ExampleTeleopWidget(nh);
-#endif
 
   #ifdef __EMSCRIPTEN__
   emscripten_set_main_loop(loop, 20, 1);
