@@ -44,6 +44,7 @@
   <!-- <build_depend>rosmon_msgs</build_depend> -->
   <exec_depend>roscpp</exec_depend>
   <exec_depend>roswasm</exec_depend>
+  <exec_depend>rosbridge_server</exec_depend>
   <buildtool_depend>catkin</buildtool_depend>
 
 
