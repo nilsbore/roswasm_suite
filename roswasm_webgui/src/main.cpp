@@ -22,7 +22,7 @@
 #include <unordered_set>
 
 roswasm::NodeHandle* nh; 
-roswasm_webgui::MonlaunchWidget* monlaunch_widget;
+roswasm_webgui::MonlaunchWidget* monlaunch_widge;
 roswasm_webgui::ImageWidget* image_widget;
 roswasm_webgui::ExampleActuatorWidget* actuator_widget;
 roswasm_webgui::ExampleDashboardWidget* dashboard_widget;
