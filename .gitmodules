@@ -1,3 +1,0 @@
-[submodule "external/roswasm"]
-	path = external/roswasm
-	url = https://github.com/nilsbore/roswasm
