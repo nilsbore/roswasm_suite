@@ -108,4 +108,8 @@ else() # no emsdk
 find_package(catkin REQUIRED COMPONENTS roscpp roscpp_json_serialize std_msgs sensor_msgs geometry_msgs nav_msgs) # rosmon_msgs)
 catkin_package()
 
+configure_file(www/test.html ${CATKIN_DEVEL_PREFIX}/${CATKIN_PACKAGE_BIN_DESTINATION}/test.html COPYONLY)
+configure_file(www/test.wasm ${CATKIN_DEVEL_PREFIX}/${CATKIN_PACKAGE_BIN_DESTINATION}/test.wasm COPYONLY)
+configure_file(www/test.js ${CATKIN_DEVEL_PREFIX}/${CATKIN_PACKAGE_BIN_DESTINATION}/test.js COPYONLY)
+
 endif()
