@@ -81,6 +81,8 @@ set_target_properties(roswasm_webgui_test PROPERTIES OUTPUT_NAME "webgui.js")
 target_link_libraries(roswasm_webgui roswasm -lGL -lwebsocket.js)
 target_link_libraries(roswasm_webgui_test roswasm_webgui roswasm -lGL -lwebsocket.js)
 
+configure_file(www/webgui.html ${CATKIN_DEVEL_PREFIX}/${CATKIN_PACKAGE_BIN_DESTINATION}/webgui.html COPYONLY)
+
 #############
 ## Install ##
 #############

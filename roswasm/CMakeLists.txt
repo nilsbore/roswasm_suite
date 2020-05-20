@@ -71,6 +71,8 @@ set_target_properties(roswasm_test PROPERTIES OUTPUT_NAME "test.js")
 target_link_libraries(roswasm -lwebsocket.js)
 target_link_libraries(roswasm_test roswasm -lwebsocket.js)
 
+configure_file(www/test.html ${CATKIN_DEVEL_PREFIX}/${CATKIN_PACKAGE_BIN_DESTINATION}/test.html COPYONLY)
+
 #set_target_properties(roswasm_test PROPERTIES LINK_FLAGS "-s DEMANGLE_SUPPORT=1 --preload-file ${CMAKE_SOURCE_DIR}/assets --bind")
 #set_target_properties(roswasm PROPERTIES LINK_FLAGS "-s DEMANGLE_SUPPORT=1 --preload-file ${CMAKE_SOURCE_DIR}/assets --bind")
 
