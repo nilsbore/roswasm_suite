@@ -3,27 +3,32 @@ project(roswasm)
 
 if (DEFINED ENV{EMSDK})
 
-set(CMAKE_C_COMPILER emcc)
-set(CMAKE_CXX_COMPILER em++)
-
 #set(EMSDK_ROOT $ENV{EMSDK})
 find_package(catkin REQUIRED COMPONENTS roscpp roscpp_json_serialize std_msgs sensor_msgs geometry_msgs nav_msgs) # rosmon_msgs)
 
+###################################
+## catkin specific configuration ##
+###################################
+## The catkin_package macro generates cmake config files for your package
+## Declare things to be passed to dependent projects
+## INCLUDE_DIRS: uncomment this if your package contains header files
+## LIBRARIES: libraries you create in this project that dependent projects also need
+## CATKIN_DEPENDS: catkin_packages dependent projects also need
+## DEPENDS: system dependencies of this project that dependent projects also need
 catkin_package(
   INCLUDE_DIRS include external/cbor-lite/include
-  LIBRARIES roswasm
-  CATKIN_DEPENDS roscpp roscpp_json_serialize
+  LIBRARIES #roswasm
+  CFG_EXTRAS roswasm-extras.cmake
+  CATKIN_DEPENDS roscpp_json_serialize
 #  DEPENDS system_lib
 )
 
-message("EMscripten include dirs: ${Emscripten_INCLUDE_DIRS}")
-message("Cmake toolchain: ${CMAKE_TOOLCHAIN_FILE}")
-message("Emscripten dir: ${EMSDK_ROOT}")
+###########
+## Build ##
+###########
 
-#unset(ROSCONSOLE_BACKEND_LOG4CXX)
-#unset(ROS_BUILD_SHARED_LIBS)
-#set(ROS_BUILD_SHARED_LIBS 0)
-message("FLAGS: ${CMAKE_CXX_FLAGS}")
+set(CMAKE_C_COMPILER "$ENV{EMSDK}/upstream/emscripten/emcc")
+set(CMAKE_CXX_COMPILER "$ENV{EMSDK}/upstream/emscripten/em++")
 
 # setting EMSCRIPTEN_GENERATE_BITCODE_STATIC_LIBRARIES=ON here does not
 # work, since it will only be taken into account on the next cmake
@@ -63,7 +68,7 @@ include_directories(
 )
 
 add_library(roswasm STATIC src/roswasm.cpp)
-#set_target_properties(roswasm PROPERTIES SUFFIX ".bc")
+#set_target_properties(roswasm PROPERTIES OUTPUT_NAME "libroswasm")
 
 add_executable(roswasm_test src/test.cpp)
 set_target_properties(roswasm_test PROPERTIES OUTPUT_NAME "test.js")

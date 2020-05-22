@@ -3,9 +3,6 @@ project(roswasm_webgui)
 
 if (DEFINED ENV{EMSDK})
 
-set(CMAKE_C_COMPILER emcc)
-set(CMAKE_CXX_COMPILER em++)
-
 ## Compile as C++11, supported in ROS Kinetic and newer
 # add_compile_options(-std=c++11)
 
@@ -20,16 +17,22 @@ find_package(catkin REQUIRED COMPONENTS roscpp roswasm std_msgs sensor_msgs geom
 ## LIBRARIES: libraries you create in this project that dependent projects also need
 ## CATKIN_DEPENDS: catkin_packages dependent projects also need
 ## DEPENDS: system dependencies of this project that dependent projects also need
+
+#set(CMAKE_FIND_LIBRARY_SUFFIXES "${CMAKE_FIND_LIBRARY_SUFFIXES} .bc")
 catkin_package(
   INCLUDE_DIRS include
-  LIBRARIES roswasm_webgui
-  CATKIN_DEPENDS roscpp roswasm
+  LIBRARIES #roswasm_webgui
+  CFG_EXTRAS roswasm_webgui-extras.cmake
+  CATKIN_DEPENDS roswasm
 #  DEPENDS system_lib
 )
 
 ###########
 ## Build ##
 ###########
+
+set(CMAKE_C_COMPILER "$ENV{EMSDK}/upstream/emscripten/emcc")
+set(CMAKE_CXX_COMPILER "$ENV{EMSDK}/upstream/emscripten/em++")
 
 # setting EMSCRIPTEN_GENERATE_BITCODE_STATIC_LIBRARIES=ON here does not
 # work, since it will only be taken into account on the next cmake
@@ -72,14 +75,16 @@ include_directories(
 )
 
 add_library(roswasm_webgui STATIC src/imgui_impl_glfw.cpp src/imgui_impl_opengl3.cpp src/imgui.cpp src/imgui_draw.cpp src/imgui_demo.cpp src/roswasm_monlaunch.cpp src/roswasm_image.cpp src/roswasm_widget.cpp src/roswasm_examples.cpp) # src/roswasm_sam.cpp)
+add_dependencies(roswasm_webgui ${catkin_EXPORTED_TARGETS})
 #)
 #set_target_properties(roswasm PROPERTIES SUFFIX ".bc")
 
 add_executable(roswasm_webgui_test src/main.cpp)
+add_dependencies(roswasm_webgui_test ${catkin_EXPORTED_TARGETS})
 set_target_properties(roswasm_webgui_test PROPERTIES OUTPUT_NAME "webgui.js")
 
-target_link_libraries(roswasm_webgui roswasm -lGL -lwebsocket.js)
-target_link_libraries(roswasm_webgui_test roswasm_webgui roswasm -lGL -lwebsocket.js)
+target_link_libraries(roswasm_webgui ${roswasm_LIBRARIES} -lGL -lwebsocket.js)
+target_link_libraries(roswasm_webgui_test roswasm_webgui ${roswasm_LIBRARIES} -lGL -lwebsocket.js)
 
 configure_file(www/webgui.html ${CATKIN_DEVEL_PREFIX}/${CATKIN_PACKAGE_BIN_DESTINATION}/webgui.html COPYONLY)
 
