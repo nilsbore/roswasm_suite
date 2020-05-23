@@ -13,7 +13,7 @@ Libraries for compiling C++ ROS nodes to Webassembly using Emscripten. Allows yo
 The `roswasm` client library presents an API similar to `roscpp`, with the
 main differences being that most interfaces are heap allocated, and that Emscripten
 manages the event loop. Below is a shortened version of the corresponding
-`listener` example implementation:
+`listener` example implementation.
 
 ```cpp
 #include <emscripten.h>
@@ -39,7 +39,7 @@ extern "C" int main(int argc, char** argv)
 }
 
 ```
-
+For more complete examples, see the [`roswasm_tutorials` package](https://github.com/nilsbore/roswasm_suite/tree/master/roswasm_tutorials).
 
 ## Building an Emscripten node
 
