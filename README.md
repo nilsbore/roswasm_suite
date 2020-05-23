@@ -8,6 +8,13 @@ Libraries for compiling C++ ROS nodes to Webassembly using Emscripten. Allows yo
 * [Emscripten](https://emscripten.org/docs/getting_started/downloads.html) tested with version `1.39.10` but latest should do
 * [rosbridge_suite](https://github.com/RobotWebTools/rosbridge_suite) after [the commit adding cbor-raw compression](https://github.com/RobotWebTools/rosbridge_suite/commit/dc7fcb282d1326d573abe83579cc7d989ae71739), latest develop should do
 
+## Packages
+
+* [`roscpp_json_serialize`](https://github.com/nilsbore/roswasm_suite/tree/master/roscpp_json_serialize) - library that serializes ROS messages to and from json
+* [`roswasm`](https://github.com/nilsbore/roswasm_suite/tree/master/roswasm) - contains the `roswasm` client library and configures cmake to build dependent packages using Emscripten
+* [`roswasm_tutorials`](https://github.com/nilsbore/roswasm_suite/tree/master/roswasm_tutorials) - contains examples corresponding to `talker`, `listener` and `timers` of [`roscpp`](https://github.com/ros/ros_tutorials/tree/noetic-devel/roscpp_tutorials)
+* [`roswasm_webgui`](https://github.com/nilsbore/roswasm_suite/tree/master/roswasm_webgui) - a proof of concept implementation of a ROS GUI library based on `roswasm` and [`imgui`](https://github.com/ocornut/imgui)
+
 ## Writing a roswasm node
 
 The `roswasm` client library presents an API similar to `roscpp`, with the
