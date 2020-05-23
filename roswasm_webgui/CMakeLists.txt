@@ -31,28 +31,7 @@ catkin_package(
 ## Build ##
 ###########
 
-set(CMAKE_C_COMPILER "$ENV{EMSDK}/upstream/emscripten/emcc")
-set(CMAKE_CXX_COMPILER "$ENV{EMSDK}/upstream/emscripten/em++")
-
-# setting EMSCRIPTEN_GENERATE_BITCODE_STATIC_LIBRARIES=ON here does not
-# work, since it will only be taken into account on the next cmake
-# configuration. So we explicitly run the code guarded by
-# EMSCRIPTEN_GENERATE_BITCODE_STATIC_LIBRARIES=ON in Emscripten.cmake
-# platform file.
-set(CMAKE_STATIC_LIBRARY_SUFFIX ".bc")
-set(CMAKE_C_CREATE_STATIC_LIBRARY "<CMAKE_C_COMPILER> -o <TARGET> <LINK_FLAGS> <OBJECTS>")
-set(CMAKE_CXX_CREATE_STATIC_LIBRARY "<CMAKE_CXX_COMPILER> -o <TARGET> <LINK_FLAGS> <OBJECTS>")
-# --- end EMSCRIPTEN_GENERATE_BITCODE_STATIC_LIBRARIES
-
 set(EMCC_FLAGS "")
-#set(EMCC_FLAGS "${EMCC_FLAGS} -s DISABLE_EXCEPTION_CATCHING=0")
-set(EMCC_FLAGS "${EMCC_FLAGS} -s ERROR_ON_UNDEFINED_SYMBOLS=1")
-set(EMCC_FLAGS "${EMCC_FLAGS} -s ALLOW_MEMORY_GROWTH=1")
-#set(EMCC_FLAGS "${EMCC_FLAGS} -s ASSERTIONS=1")
-set(EMCC_FLAGS "${EMCC_FLAGS} -s WASM=1")
-set(EMCC_FLAGS "${EMCC_FLAGS} -Wno-warn-absolute-paths")
-#set(EMCC_FLAGS "${EMCC_FLAGS} --memory-init-file 0")
-set(EMCC_FLAGS "${EMCC_FLAGS} -s USE_BOOST_HEADERS=1")
 
 set(EMCC_FLAGS "${EMCC_FLAGS} -s USE_WEBGL2=1")
 set(EMCC_FLAGS "${EMCC_FLAGS} -s USE_GLFW=3")
@@ -65,7 +44,6 @@ set(EMCC_FLAGS "${EMCC_FLAGS} -s SDL2_IMAGE_FORMATS='[\"png\", \"jpg\"]'")
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${EMCC_FLAGS}")
 set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${EMCC_FLAGS}")
 
-add_definitions("-g4 -O2 -std=c++11") # -lwebsocket.js -O2 -s WASM=1 -s USE_BOOST_HEADERS=1")
 
 ## Specify additional locations of header files
 ## Your package locations should be listed before other locations
@@ -83,8 +61,8 @@ add_executable(roswasm_webgui_test src/main.cpp)
 add_dependencies(roswasm_webgui_test ${catkin_EXPORTED_TARGETS})
 set_target_properties(roswasm_webgui_test PROPERTIES OUTPUT_NAME "webgui.js")
 
-target_link_libraries(roswasm_webgui ${roswasm_LIBRARIES} -lGL -lwebsocket.js)
-target_link_libraries(roswasm_webgui_test roswasm_webgui ${roswasm_LIBRARIES} -lGL -lwebsocket.js)
+target_link_libraries(roswasm_webgui ${roswasm_LIBRARIES} -lGL)
+target_link_libraries(roswasm_webgui_test roswasm_webgui ${roswasm_LIBRARIES} -lGL)
 
 configure_file(www/webgui.html ${CATKIN_DEVEL_PREFIX}/${CATKIN_PACKAGE_BIN_DESTINATION}/webgui.html COPYONLY)
 
