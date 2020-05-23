@@ -1,4 +1,6 @@
 # roswasm_suite
+![](https://github.com/nilsbore/roswasm_suite/workflows/CI/badge.svg)
+
 Libraries for compiling C++ ROS nodes to Webassembly using Emscripten. Allows you to write c++ ROS nodes similar to how you would otherwise, and to then have them run in a webbrowser and communicate with ROS through `rosbridge_websocket`.
 
 ## Dependencies
