@@ -8,6 +8,11 @@ Libraries for compiling C++ ROS nodes to Webassembly using Emscripten. Allows yo
 * [Emscripten](https://emscripten.org/docs/getting_started/downloads.html) tested with version `1.39.10` but latest should do
 * [rosbridge_suite](https://github.com/RobotWebTools/rosbridge_suite) after [the commit adding cbor-raw compression](https://github.com/RobotWebTools/rosbridge_suite/commit/dc7fcb282d1326d573abe83579cc7d989ae71739), latest develop should do
 
+## Building
+
+`catkin build` is recommended, since `catkin_make` might leak configurations to other packages.
+Make sure to source the Emscripten environment before building the package, especially the first time.
+
 ## Packages
 
 * [`roscpp_json_serialize`](https://github.com/nilsbore/roswasm_suite/tree/master/roscpp_json_serialize) - library that serializes ROS messages to and from json
