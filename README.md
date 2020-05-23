@@ -73,9 +73,7 @@ catkin_package()
 
 if (DEFINED ENV{EMSDK})
 
-include_directories(
-  ${catkin_INCLUDE_DIRS}
-)
+include_directories(${catkin_INCLUDE_DIRS})
 add_executable(listener src/listener.cpp)
 set_target_properties(listener PROPERTIES OUTPUT_NAME "listener.js")
 target_link_libraries(listener ${roswasm_LIBRARIES})
