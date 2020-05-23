@@ -86,6 +86,10 @@ endif()
 
 ## Running an Emscripten node
 
+Before starting any of the roswasm nodes, you need to have one instance of `rosbridge_websocket` running:
+```
+roslaunch rosbridge_server rosbridge_websocket.launch
+```
 After building your node, you can run it similar to the following command:
 ```
 rosrun roswasm run.py _pkg:=roswasm_tutorials _node:=listener.html _display_port:=8080
