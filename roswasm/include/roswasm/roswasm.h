@@ -37,6 +37,7 @@ public:
     std::string rosbridge_ip;
     std::string rosbridge_port;
     Timer* timer;
+    static bool debug_print;
 
     bool ok()
     {

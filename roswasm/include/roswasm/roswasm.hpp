@@ -24,6 +24,8 @@ std::ostream& operator<<(std::ostream& os, const Time &rhs)
 
 namespace roswasm {
 
+bool NodeHandle::debug_print = false;
+
 void NodeHandle::unsubscribe(const std::string& id)
 {
     if (subscribers.count(id) == 0) {
@@ -40,20 +42,22 @@ void NodeHandle::websocket_open()
 {
     socket_open = true;
 
+    printf("Connection open, clearing message queue!\n");
+
     for (std::pair<const std::string, Subscriber*>& sub : subscribers) {
         std::string message = sub.second->json_subscribe_message();
-        printf("Sending: %s\n", message.c_str());
+        printf("To rosbridge sending: %s\n", message.c_str());
         emscripten_websocket_send_utf8_text(socket, message.c_str());
     }
 
     for (std::pair<const std::string, Publisher*>& pub : publishers) {
         std::string message = pub.second->json_advertise_message();
-        printf("Sending: %s\n", message.c_str());
+        printf("To rosbridge sending: %s\n", message.c_str());
         emscripten_websocket_send_utf8_text(socket, message.c_str());
     }
 
     for (const std::string& message : message_queue) {
-        printf("Sending: %s\n", message.c_str());
+        printf("To rosbridge sending: %s\n", message.c_str());
         emscripten_websocket_send_utf8_text(socket, message.c_str());
     }
     message_queue.clear();
@@ -132,10 +136,10 @@ EM_BOOL NodeHandle::WebSocketError(int eventType, const EmscriptenWebSocketError
 
 EM_BOOL NodeHandle::WebSocketMessage(int eventType, const EmscriptenWebSocketMessageEvent *e, void *userData)
 {
-    printf("message(eventType=%d, userData=%d, data=%p, numBytes=%d, isText=%d)\n", eventType, (int)userData, e->data, e->numBytes, e->isText);
+    if (debug_print) printf("message(eventType=%d, userData=%d, data=%p, numBytes=%d, isText=%d)\n", eventType, (int)userData, e->data, e->numBytes, e->isText);
     NodeHandle* nh = (NodeHandle*)(userData);
     if (e->isText) {
-        printf("text data: \"%s\"\n", e->data);
+        if (debug_print) printf("text data: \"%s\"\n", e->data);
         nh->handle_string(e);
     }
     else {
@@ -150,13 +154,6 @@ void NodeHandle::handle_bytes(const EmscriptenWebSocketMessageEvent* e)
     std::vector<uint8_t> buffer;
     std::string topic;
 
-    /*
-    printf("binary data:");
-    for(int i = 0; i < e->numBytes; ++i)
-        printf(" %02X", e->data[i]);
-    printf("\n");
-    */
-
     CborLite::Flags flags = CborLite::Flag::none;
     std::vector<uint8_t> buff_vec(e->data, e->data+e->numBytes);
     auto vpos = buff_vec.begin();
@@ -165,20 +162,22 @@ void NodeHandle::handle_bytes(const EmscriptenWebSocketMessageEvent* e)
     CborLite::Tag tag, additional;
     size_t len = CborLite::decodeMapSize(vpos, vend, nItems, flags);
 
-    printf("Number items: %zu\n", nItems);
+    if (debug_print) printf("Number items: %zu\n", nItems);
     for (int i = 0; i < nItems; ++i) {
         std::string key;
         len += CborLite::decodeText(vpos, vend, key, flags);
-        printf("Key: %s\n", key.c_str());
+        if (debug_print) printf("Key: %s\n", key.c_str());
         auto rpos = vpos;
         CborLite::decodeTagAndAdditional(vpos, vend, tag, additional, flags);
         vpos = rpos;
         if (tag == CborLite::Major::textString) {
             std::string text;
             len += CborLite::decodeText(vpos, vend, text, flags);
-            printf("Tag: %llu\n", tag);
-            printf("Additional: %llu\n", additional);
-            printf("Text: %s\n", text.c_str());
+            if (debug_print) {
+                printf("Tag: %llu\n", tag);
+                printf("Additional: %llu\n", additional);
+                printf("Text: %s\n", text.c_str());
+            }
             if (key == "topic") {
                 topic = text;
             }
@@ -186,45 +185,49 @@ void NodeHandle::handle_bytes(const EmscriptenWebSocketMessageEvent* e)
         else if (tag == CborLite::Major::map) {
             size_t mItems;
             len += CborLite::decodeMapSize(vpos, vend, mItems, flags);
-            printf("Number items: %zu\n", nItems);
+            if (debug_print) printf("Number items: %zu\n", nItems);
             for (int j = 0; j < mItems; ++j) {
                 std::string mkey;
                 len += CborLite::decodeText(vpos, vend, mkey, flags);
-                printf("Key: %s\n", mkey.c_str());
+                if (debug_print) printf("Key: %s\n", mkey.c_str());
                 rpos = vpos;
                 CborLite::decodeTagAndAdditional(vpos, vend, tag, additional, flags);
                 vpos = rpos;
                 if (tag == CborLite::Major::textString) {
                     std::string text;
                     len += CborLite::decodeText(vpos, vend, text, flags);
-                    printf("Tag: %llu\n", tag);
-                    printf("Additional: %llu\n", additional);
-                    printf("Text: %s\n", text.c_str());
+                    if (debug_print) {
+                        printf("Tag: %llu\n", tag);
+                        printf("Additional: %llu\n", additional);
+                        printf("Text: %s\n", text.c_str());
+                    }
                 }
                 else if (tag == CborLite::Major::byteString) {
                     len += CborLite::decodeBytes(vpos, vend, buffer, flags);
-                    printf("Tag: %llu\n", tag);
-                    printf("Additional: %llu\n", additional);
-                    printf("Bytes len: %zu\n", buffer.size());
+                    if (debug_print) {
+                        printf("Tag: %llu\n", tag);
+                        printf("Additional: %llu\n", additional);
+                        printf("Bytes len: %zu\n", buffer.size());
+                    }
                 }
                 else if (tag == CborLite::Major::unsignedInteger) {
                     unsigned int value;
                     len += CborLite::decodeUnsigned(vpos, vend, value, flags);
-                    printf("Value: %u\n", value);
+                    if (debug_print) printf("Value: %u\n", value);
                 }
                 else {
-                    printf("Unknown tag: %llu\n", tag);
+                    if (debug_print) printf("Unknown tag: %llu\n", tag);
                 }
             }
 
         }
         else {
-            printf("Unknown tag: %llu\n", tag);
+            if (debug_print) printf("Unknown tag: %llu\n", tag);
         }
 
     }
-    printf("Total len: %zu\n", len);
-    printf("Buffer size: %zu, calling subscriber callback\n", buffer.size());
+    if (debug_print) printf("Total len: %zu\n", len);
+    if (debug_print) printf("Buffer size: %zu, calling subscriber callback\n", buffer.size());
     //subscribers[id]->callback(buffer);
     for (std::pair<const std::string, Subscriber*>& sub : subscribers) {
         if (sub.second->topic == topic) {
@@ -241,11 +244,8 @@ void NodeHandle::handle_string(const EmscriptenWebSocketMessageEvent* e)
     assert(document.HasMember("op"));
     assert(document["op"].IsString());
     std::string op = document["op"].GetString();
-    if (op == "publish") {
-        printf("Got string message!\n");
-    }
-    else if (op == "service_response") {
-        printf("Got string service response!\n");
+    if (op == "service_response") {
+        printf("Rosbridge sent service response!\n");
         assert(document.HasMember("values"));
         assert(document.HasMember("service"));
         assert(document["service"].IsString());
@@ -261,12 +261,15 @@ void NodeHandle::handle_string(const EmscriptenWebSocketMessageEvent* e)
         std::string json_values = sb.GetString();
         std::string id = document["id"].GetString();
         if (service_clients.count(id)) {
-            printf("Response: %s, calling service client callback\n", json_values.c_str());
+            //printf("Response: %s, calling service client callback\n", json_values.c_str());
             service_clients[id]->callback(json_values, result);
         }
     }
+    else if (op == "publish") {
+        printf("ERROR: Rosbridge sent string message!\n");
+    }
     else {
-        printf("Unknown operation!\n");
+        printf("ERROR: Rosbridge sent unknown operation %s!\n", op.c_str());
     }
 }
 
@@ -283,6 +286,7 @@ void NodeHandle::send_message(const std::string& message)
 NodeHandle::NodeHandle(const std::string& rosbridge_ip, const std::string& rosbridge_port)
     : rosbridge_ip(rosbridge_ip), rosbridge_port(rosbridge_port), timer(nullptr)
 {
+    debug_print = false;
     socket_open = false;
 
     if (!emscripten_websocket_is_supported())
@@ -319,3 +323,4 @@ NodeHandle::NodeHandle(const std::string& rosbridge_ip, const std::string& rosbr
 }
 
 } // namespace roswasm
+
