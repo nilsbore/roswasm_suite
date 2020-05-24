@@ -2,7 +2,7 @@
 Header library for off-the-shelf JSON serialization for ROS messages in C++
 
 The following example illustrates the functionality:
-```
+```cpp
 #include <roscpp_json_serialize/serialize.h>
 #include <roscpp_json_serialize/deserialize.h>
 
