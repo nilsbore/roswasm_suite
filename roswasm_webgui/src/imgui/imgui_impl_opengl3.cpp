@@ -27,8 +27,8 @@
 #define GLFW_INCLUDE_ES3
 
 
-#include "imgui.h"
-#include "imgui_impl_opengl3.h"
+#include "imgui/imgui.h"
+#include "imgui/imgui_impl_opengl3.h"
 //#include <GL/gl3w.h>    // This example is using gl3w to access OpenGL functions. You may freely use any other OpenGL loader such as: glew, glad, glLoadGen, etc.
 //#include <glew.h>
 #include <GLES3/gl3.h>

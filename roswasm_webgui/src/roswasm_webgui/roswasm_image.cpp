@@ -1,9 +1,9 @@
-#include <roswasm_image.h>
+#include <roswasm_webgui/roswasm_image.h>
 
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_image.h>
 
-#include "imgui.h"
+#include "imgui/imgui.h"
 
 namespace roswasm_webgui {
 

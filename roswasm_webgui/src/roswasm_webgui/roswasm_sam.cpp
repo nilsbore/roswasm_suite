@@ -1,6 +1,6 @@
-#include <roswasm_sam.h>
+#include <roswasm_webgui/roswasm_sam.h>
 
-#include "imgui.h"
+#include "imgui/imgui.h"
 
 namespace roswasm_webgui {
 

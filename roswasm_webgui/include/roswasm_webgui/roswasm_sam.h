@@ -1,7 +1,7 @@
 #ifndef ROSWASM_SAM_H
 #define ROSWASM_SAM_H
 
-#include <roswasm_widget.h>
+#include <roswasm_webgui/roswasm_widget.h>
 
 #include <sensor_msgs/NavSatFix.h>
 #include <sensor_msgs/BatteryState.h>
