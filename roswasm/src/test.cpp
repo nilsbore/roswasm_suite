@@ -10,7 +10,7 @@
 
 roswasm::NodeHandle* nh; 
 roswasm::Subscriber* string_sub;
-roswasm::Subscriber* gps_sub;
+roswasm::Subscriber* gps_sb;
 roswasm::Publisher* string_pub;
 roswasm::ServiceClient* service;
 roswasm::Timer* timer;
