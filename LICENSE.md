@@ -32,7 +32,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 # Included code
 
-# [imgui](https://github.com/ocornut/imgui)
+## [imgui](https://github.com/ocornut/imgui)
 
 Code adapted from [jnmaloney](https://github.com/jnmaloney/WebGui). Files included
 in [roswasm_webgui/src/imgui*.cpp](https://github.com/nilsbore/roswasm_suite/tree/master/roswasm_webgui/src)
@@ -63,6 +63,44 @@ SOFTWARE.
 ```
 
 # External dependencies
+
+## [rapidjson](https://github.com/Tencent/rapidjson)
+
+Subtree at [roscpp_json_serialize/external/rapidjson](https://github.com/nilsbore/roswasm_suite/tree/master/roscpp_json_serialize/external/rapidjson)
+
+```
+Copyright (C) 2015 THL A29 Limited, a Tencent company, and Milo Yip.  All rights reserved.
+
+If you have downloaded a copy of the RapidJSON binary from Tencent, please note that the
+RapidJSON binary is licensed under the MIT License. If you have downloaded a copy of the
+RapidJSON source code from Tencent, please note that RapidJSON source code is licensed
+under the MIT License, except for the third-party components listed below which are subject
+to different license terms.  Your integration of RapidJSON into your own projects may require
+compliance with the MIT License, as well as the other licenses applicable to the third-party
+components included within RapidJSON. To avoid the problematic JSON license in your own projects,
+it's sufficient to exclude the bin/jsonchecker/ directory, as it's the only code under the JSON
+license. A copy of the MIT License is included in this file.
+
+The MIT License (MIT)
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+```
 
 ## [cbor-lite](https://bitbucket.org/isode/cbor-lite/src/master/)
 
