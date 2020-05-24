@@ -61,10 +61,16 @@ add_executable(roswasm_webgui_test src/main.cpp)
 add_dependencies(roswasm_webgui_test ${catkin_EXPORTED_TARGETS})
 set_target_properties(roswasm_webgui_test PROPERTIES OUTPUT_NAME "webgui.js")
 
+add_executable(monlaunch_test src/monlaunch_test.cpp)
+add_dependencies(monlaunch_test ${catkin_EXPORTED_TARGETS})
+set_target_properties(monlaunch_test PROPERTIES OUTPUT_NAME "monlaunch.js")
+
 target_link_libraries(roswasm_webgui ${roswasm_LIBRARIES} -lGL)
 target_link_libraries(roswasm_webgui_test roswasm_webgui ${roswasm_LIBRARIES} -lGL)
+target_link_libraries(monlaunch_test roswasm_webgui ${roswasm_LIBRARIES} -lGL)
 
 configure_file(www/webgui.html ${CATKIN_DEVEL_PREFIX}/${CATKIN_PACKAGE_BIN_DESTINATION}/webgui.html COPYONLY)
+configure_file(www/monlaunch.html ${CATKIN_DEVEL_PREFIX}/${CATKIN_PACKAGE_BIN_DESTINATION}/monlaunch.html COPYONLY)
 
 #############
 ## Install ##
@@ -75,13 +81,13 @@ configure_file(www/webgui.html ${CATKIN_DEVEL_PREFIX}/${CATKIN_PACKAGE_BIN_DESTI
 
 ## Mark executable scripts (Python etc.) for installation
 ## in contrast to setup.py, you can choose the destination
-install(PROGRAMS www/webgui.html ${CATKIN_DEVEL_PREFIX}/${CATKIN_PACKAGE_BIN_DESTINATION}/webgui.wasm
+install(PROGRAMS www/monlaunch.html ${CATKIN_DEVEL_PREFIX}/${CATKIN_PACKAGE_BIN_DESTINATION}/monlaunch.wasm www/webgui.html ${CATKIN_DEVEL_PREFIX}/${CATKIN_PACKAGE_BIN_DESTINATION}/webgui.wasm
   DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
 )
 
 ## Mark executables for installation
 ## See http://docs.ros.org/melodic/api/catkin/html/howto/format1/building_executables.html
-install(TARGETS roswasm_webgui_test
+install(TARGETS roswasm_webgui_test monlaunch_test
   RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
 )
 
