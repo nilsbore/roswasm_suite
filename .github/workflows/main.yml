@@ -7,8 +7,8 @@ jobs:
     strategy:
       matrix:
         env:
-          - {ROS_DISTRO: melodic, ROS_REPO: testing}
-          - {ROS_DISTRO: melodic, ROS_REPO: main}
+          - {ROS_DISTRO: melodic, ROS_REPO: testing, DOCKER_RUN_OPTS: "-e EMSDK"}
+          - {ROS_DISTRO: melodic, ROS_REPO: main, DOCKER_RUN_OPTS: "-e EMSDK"}
     runs-on: ubuntu-18.04
     steps:
       - uses: actions/checkout@v1
