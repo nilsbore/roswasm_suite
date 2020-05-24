@@ -35,8 +35,8 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 ## [imgui](https://github.com/ocornut/imgui)
 
 Code adapted from [jnmaloney](https://github.com/jnmaloney/WebGui). Files included
-in [roswasm_webgui/src/imgui*.cpp](https://github.com/nilsbore/roswasm_suite/tree/master/roswasm_webgui/src)
-and [roswasm_webgui/include/imgui*.h](https://github.com/nilsbore/roswasm_suite/tree/master/roswasm_webgui/include).
+in [roswasm_webgui/src/imgui](https://github.com/nilsbore/roswasm_suite/tree/master/roswasm_webgui/src/imgui)
+and [roswasm_webgui/include/imgui](https://github.com/nilsbore/roswasm_suite/tree/master/roswasm_webgui/include/imgui).
 
 ```
 The MIT License (MIT)
