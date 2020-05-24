@@ -54,7 +54,7 @@ extern "C" int main(int argc, char** argv)
 ```
 For more complete examples, see the [`roswasm_tutorials` package](https://github.com/nilsbore/roswasm_suite/tree/master/roswasm_tutorials).
 
-## Building an Emscripten node
+## Building a roswasm package
 
 The `roswasm` library uses `catkin` to build an emscripten project.
 All you have to do in your package that is using `roswasm` is to add
