@@ -107,6 +107,8 @@ SOFTWARE.
 Subtree at [roswasm/external/cbor-lite](https://github.com/nilsbore/roswasm_suite/tree/master/roswasm/external/cbor-lite)
 
 ```
+The MIT License (MIT)
+
 Copyright 2018-2019 Isode Limited.
 All rights reserved.
 
