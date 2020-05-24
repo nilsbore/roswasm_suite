@@ -7,8 +7,8 @@ jobs:
     strategy:
       matrix:
         env:
-          - {ROS_DISTRO: melodic, ROS_REPO: testing, DOCKER_RUN_OPTS: "-e EMSDK"}
-          - {ROS_DISTRO: melodic, ROS_REPO: main, DOCKER_RUN_OPTS: "-e EMSDK"}
+          - {ROS_DISTRO: melodic, ROS_REPO: testing, DOCKER_RUN_OPTS: "-e EMSDK -e EM_CONFIG=/root/.emscripten -e EM_CACHE -e EMSDK_NODE -v /opt/hostedtoolcache/emscripten:/opt/hostedtoolcache/emscripten -v /home/runner/.emscripten:/root/.emscripten"}
+          - {ROS_DISTRO: melodic, ROS_REPO: main, DOCKER_RUN_OPTS: "-e EMSDK -e EM_CONFIG=/root/.emscripten -e EM_CACHE -e EMSDK_NODE -v /opt/hostedtoolcache/emscripten:/opt/hostedtoolcache/emscripten -v /home/runner/.emscripten:/root/.emscripten"}
     runs-on: ubuntu-18.04
     steps:
       - uses: actions/checkout@v1
