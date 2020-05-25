@@ -1,7 +1,5 @@
 #include <roswasm/roswasm.h>
-#include <rapidjson/document.h>
-#include <rapidjson/stringbuffer.h>
-#include <rapidjson/writer.h>
+#include <roscpp_json_serialize/local_rapidjson.h>
 #include <cbor-lite/codec.h>
 
 namespace ros
