@@ -6,7 +6,7 @@ if (DEFINED ENV{EMSDK})
 ## Compile as C++11, supported in ROS Kinetic and newer
 # add_compile_options(-std=c++11)
 
-find_package(catkin REQUIRED COMPONENTS roscpp roswasm std_msgs sensor_msgs geometry_msgs nav_msgs)
+find_package(catkin REQUIRED COMPONENTS roscpp roswasm std_msgs sensor_msgs geometry_msgs nav_msgs rosmon_msgs)
 
 ###################################
 ## catkin specific configuration ##
