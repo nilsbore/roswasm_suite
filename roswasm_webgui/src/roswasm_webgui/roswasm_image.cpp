@@ -3,7 +3,7 @@
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_image.h>
 
-#include "imgui/imgui.h"
+#include "roswasm_webgui/imgui/imgui.h"
 
 namespace roswasm_webgui {
 

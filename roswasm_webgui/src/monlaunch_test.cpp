@@ -8,9 +8,9 @@
 #include <GLES3/gl3.h>
 #include <GLFW/glfw3.h>
 
-#include "imgui/imgui.h"
-#include "imgui/imgui_impl_glfw.h"
-#include "imgui/imgui_impl_opengl3.h"
+#include "roswasm_webgui/imgui/imgui.h"
+#include "roswasm_webgui/imgui/imgui_impl_glfw.h"
+#include "roswasm_webgui/imgui/imgui_impl_opengl3.h"
 
 #include <roswasm/roswasm.h>
 #include <roswasm_webgui/roswasm_monlaunch.h>

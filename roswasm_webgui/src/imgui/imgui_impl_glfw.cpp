@@ -29,8 +29,8 @@
 //  2016-10-15: Misc: Added a void* user_data parameter to Clipboard function handlers.
 #define GLFW_INCLUDE_ES3
 
-#include "imgui/imgui.h"
-#include "imgui/imgui_impl_glfw.h"
+#include "roswasm_webgui/imgui/imgui.h"
+#include "roswasm_webgui/imgui/imgui_impl_glfw.h"
 
 // GLFW
 #include <GLFW/glfw3.h>
