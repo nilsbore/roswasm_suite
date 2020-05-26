@@ -1,0 +1,20 @@
+<launch>
+
+    <arg name="rosbridge_port" value="9090"/>
+
+    <include file="$(find rosbridge_server)/launch/rosbridge_websocket.launch">
+        <arg name="port" value="$(arg rosbridge_port)"/>
+    </include>
+
+    <node name="run" pkg="roswasm" type="run.py">
+        <param name="pkg" value="roswasm_tutorials"/>
+        <param name="node" value="talker.html"/>
+        <param name="display_port" value="8080"/>
+        <param name="rosbridge_port" value="$(arg rosbridge_port)"/>
+    </node>
+
+    <node name="chromium" pkg="roswasm_tutorials" type="chromium.sh" />
+
+    <test test-name="talker_listener_test" pkg="roswasm_tutorials" type="talker_listener_test.py" />
+
+</launch>

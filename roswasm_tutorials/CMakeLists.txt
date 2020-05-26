@@ -83,6 +83,13 @@ install(TARGETS talker listener timers
   RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
 )
 
+if(CATKIN_ENABLE_TESTING)
+  find_package(rostest)
+  add_rostest(test/test-talker-listener.launch)
+endif()
+
+
+
 else() # no emsdk
 
 find_package(catkin REQUIRED COMPONENTS roscpp roswasm std_msgs)
