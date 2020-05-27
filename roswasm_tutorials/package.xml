@@ -58,6 +58,10 @@
   <exec_depend>roscpp</exec_depend>
   <exec_depend>roswasm</exec_depend>
   <exec_depend>std_msgs</exec_depend>
+  <exec_depend>rosbridge_server</exec_depend>
+  <exec_depend>python-tornado</exec_depend>
+  <exec_depend>python-twisted-core</exec_depend>
+  <exec_depend>python-autobahn</exec_depend>
 
   <test_depend>rostest</test_depend>
   <test_depend>chromium-browser</test_depend>
