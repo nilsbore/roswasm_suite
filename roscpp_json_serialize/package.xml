@@ -39,6 +39,7 @@
   <build_depend>geometry_msgs</build_depend>
   <build_depend>sensor_msgs</build_depend>
   <build_depend>nav_msgs</build_depend>
+  <build_depend>g++-static</build_depend>
   <!-- <build_depend>rosmon_msgs</build_depend> -->
   <exec_depend>roscpp</exec_depend>
   <!-- Use build_depend for packages you need at compile time: -->
