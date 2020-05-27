@@ -57,7 +57,7 @@ class TestTalkerListener(unittest.TestCase):
         rospy.loginfo("Starting to listen for test...")
         rospy.init_node(NAME, anonymous=True)
         rospy.Subscriber("chatter", String, self.callback)
-        timeout_t = time.time() + 20.0 #10 seconds
+        timeout_t = time.time() + 30.0 #10 seconds
         while not rospy.is_shutdown() and not self.success and time.time() < timeout_t:
             time.sleep(0.1)
         self.assert_(self.success)
