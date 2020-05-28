@@ -1,0 +1,19 @@
+language: generic
+services:
+  - docker
+
+env:
+  matrix:
+    - ROS_DISTRO="melodic" ROS_REPO="main" DOCKER_RUN_OPTS="-e EMSDK -e EM_CONFIG=/root/.emscripten -e EM_CACHE -e EMSDK_NODE -v $(pwd)/.emsdk:$(pwd)/.emsdk -v ${HOME}/.emscripten:/root/.emscripten"
+    - ROS_DISTRO="melodic" ROS_REPO="testing" DOCKER_RUN_OPTS="-e EMSDK -e EM_CONFIG=/root/.emscripten -e EM_CACHE -e EMSDK_NODE -v $(pwd)/.emsdk:$(pwd)/.emsdk -v ${HOME}/.emscripten:/root/.emscripten"
+
+install:
+  - git clone https://github.com/emscripten-core/emsdk.git .emsdk
+  - cd .emsdk
+  - ./emsdk install latest
+  - ./emsdk activate latest
+  - cd ..
+  - git clone --quiet --depth 1 https://github.com/ros-industrial/industrial_ci.git .industrial_ci -b master
+script:
+  - .emsdk/emsdk_env.sh
+  - .industrial_ci/travis.sh
