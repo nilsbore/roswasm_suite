@@ -1,14 +1,16 @@
 # roswasm
 ROS C++ client library for emscripten WASM
 
+## Intro
 
 Under the hood, roswasm uses both native ROS binary serialization and [json serialization](https://github.com/nilsbore/roswasm_suite/tree/master/roscpp_json_serialize)
 to provide an interface that looks like native roscpp when communcating through
 `rosbridge_websocket` (see details below).
 
-roswasm supports the following primitives, mirroring the ones in roscpp:
+roswasm supports the following primitives, mirroring the ones in roscpp.
+For complete example nodes, see [roswasm_tutorials](https://github.com/nilsbore/roswasm_suite/tree/master/roswasm_tutorials).
 
-## NodeHandle
+### NodeHandle
 
 You can create several NodeHandles. They can not be configured with a namespace.
 To achieve this, namespace the `rosbridge_websocket` instance instead.
@@ -18,7 +20,7 @@ To achieve this, namespace the `rosbridge_websocket` instance instead.
 roswasm::NodeHandle* nh = new roswasm::NodeHandle();
 ```
 
-## Subscriber
+### Subscriber
 
 Subscribers receive data through the new [cbor-raw](https://github.com/RobotWebTools/rosbridge_suite/commit/dc7fcb282d1326d573abe83579cc7d989ae71739)
 compression protocol. In practice, this means `rosbridge_websocket` transmits the binary
@@ -33,7 +35,7 @@ To throttle the rate of messages to at most 1 message every 100 ms (10Hz), chang
 roswasm::Subscriber* sub = nh->subscribe<std_msgs::String>("test", callback, 100);
 ```
 
-## Publisher
+### Publisher
 
 Publishers use the `json` compression protocol, since it is expected that the
 bandwidth of publishers will be low.
@@ -44,7 +46,7 @@ msg.data = "TEST";
 pub->publish(msg);
 ```
 
-## ServiceClient
+### ServiceClient
 
 Similarly, ServiceClients also send and receive data using json serialization.
 ```cpp
@@ -54,7 +56,7 @@ req.topic = "/connected_clients";
 service->call<rosapi::TopicType>(req);
 ```
 
-## Timer
+### Timer
 
 Timers adhere to the roscpp timer callback interface. However, the `TimerEvent` will
 not contain any meaningful data.
@@ -63,3 +65,14 @@ void callback(const ros::TimerEvent& ev) {}
 ...
 roswasm::Timer* timer = nh->createTimer(5., callback);
 ```
+
+## Building
+
+Any nodes that are to use roswasm and compile using Emscripten
+just need to depend on `roswasm` in the catkin build configuration.
+This will automatically pull in the build configuration by
+importing a [`CFG_EXTRAS` Cmake file](https://github.com/nilsbore/roswasm_suite/blob/master/roswasm/cmake/roswasm-extras.cmake.in).
+Note that some configurations still are necessary and that the
+produced Webassembly and JavaScript files need to be imported
+by and html file. See the [tutorials package](https://github.com/nilsbore/roswasm_suite/tree/master/roswasm_tutorials)
+for examples on the necessary configurations.
