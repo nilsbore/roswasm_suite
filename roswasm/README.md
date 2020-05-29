@@ -77,3 +77,17 @@ produced Webassembly and JavaScript files need to be imported
 by an html file in order to run in the web browser.
 See the [tutorials package](https://github.com/nilsbore/roswasm_suite/tree/master/roswasm_tutorials)
 for examples on the necessary configurations.
+
+## Running
+
+
+Before starting any of the roswasm nodes, you need to have one instance of `rosbridge_websocket` running:
+```
+roslaunch rosbridge_server rosbridge_websocket.launch
+```
+After building your node, you can run it similar to the following command:
+```
+rosrun roswasm run.py _pkg:=roswasm_tutorials _node:=listener.html _display_port:=8080
+```
+This will start a webserver and allow you to view the page at `localhost:8080`.
+If you want to see the output from the node, open the browser debug console.
