@@ -74,5 +74,6 @@ This will automatically pull in the build configuration by
 importing a [`CFG_EXTRAS` Cmake file](https://github.com/nilsbore/roswasm_suite/blob/master/roswasm/cmake/roswasm-extras.cmake.in).
 Note that some configurations still are necessary and that the
 produced Webassembly and JavaScript files need to be imported
-by and html file. See the [tutorials package](https://github.com/nilsbore/roswasm_suite/tree/master/roswasm_tutorials)
+by an html file in order to run in the web browser.
+See the [tutorials package](https://github.com/nilsbore/roswasm_suite/tree/master/roswasm_tutorials)
 for examples on the necessary configurations.
