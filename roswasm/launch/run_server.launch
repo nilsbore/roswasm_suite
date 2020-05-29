@@ -5,7 +5,7 @@
 <arg name="rosbridge_ip" default="0.0.0.0" />
 <arg name="rosbridge_port" default="9090" />
 <arg name="display_port" default="8080" />
-<arg name="namespace" default="roswasm"/>
+<arg name="namespace" default="/"/>
 
 <group ns="$(arg namespace)">
 
