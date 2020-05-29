@@ -4,7 +4,7 @@ services:
 
 env:
   global:
-    - DOCKER_RUN_OPTS="-e EMSDK -e EM_CONFIG=/root/.emscripten -e EM_CACHE -e EMSDK_NODE -v ${TRAVIS_BUILD_DIR}/.emsdk:${TRAVIS_BUILD_DIR}/.emsdk -v ${HOME}/.emscripten:/root/.emscripten"
+    - DOCKER_RUN_OPTS="-e EMSDK -e EM_CONFIG -e EM_CACHE -e EMSDK_NODE -v ${TRAVIS_BUILD_DIR}/.emsdk:${TRAVIS_BUILD_DIR}/.emsdk"
   matrix:
     - ROS_DISTRO="melodic" ROS_REPO="main"
     - ROS_DISTRO="melodic" ROS_REPO="testing"
