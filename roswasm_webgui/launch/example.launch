@@ -1,25 +1,17 @@
 <launch>
 
-  <arg name="rosbridge_ip" default="0.0.0.0" />
-  <arg name="rosbridge_port" default="9090" />
-  <arg name="display_port" default="8080" />
-  <arg name="namespace" default="sam"/>
+<arg name="rosbridge_ip" default="0.0.0.0" />
+<arg name="rosbridge_port" default="9090" />
+<arg name="display_port" default="8080" />
+<arg name="namespace" default="sam"/>
 
-  <group ns="$(arg namespace)">
-
-    <include file="$(find rosbridge_server)/launch/rosbridge_websocket.launch">
-      <arg name="address" value="$(arg rosbridge_ip)"/>
-      <arg name="port" value="$(arg rosbridge_port)"/>
-    </include>
-
-    <node name="roswasm_webserver" type="webserver.py" pkg="roswasm_webgui" output="screen">
-      <param name="html_dir" value="$(find roswasm_webgui)/www"/>
-      <param name="html_file" value="imgui.html"/>
-      <param name="rosbridge_ip" value="$(arg rosbridge_ip)"/>
-      <param name="rosbridge_port" value="$(arg rosbridge_port)"/>
-      <param name="display_port" value="$(arg display_port)"/>
-    </node>
-
-  </group>
+<include file="$(find roswasm)/launch/run_server.launch">
+    <arg name="namespace" value="$(arg namespace)"/>
+    <arg name="pkg" value="roswasm_webgui"/>
+    <arg name="node" value="webgui.html"/>
+    <arg name="rosbridge_ip" value="$(arg rosbridge_ip)"/>
+    <arg name="rosbridge_port" value="$(arg rosbridge_port)"/>
+    <arg name="display_port" value="$(arg display_port)"/>
+</include>
 
 </launch>
