@@ -116,8 +116,9 @@ install(DIRECTORY include/roswasm/ external/cbor-lite/include/
 )
 
 ## Mark other files for installation (e.g. launch and bag files, etc.)
-install(FILES launch/run_server.launch
-  DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}
+install(DIRECTORY launch/
+  DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}/launch
+  PATTERN ".svn" EXCLUDE
 )
 
 else() # no emsdk
