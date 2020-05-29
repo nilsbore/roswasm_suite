@@ -115,6 +115,11 @@ install(DIRECTORY include/roswasm/ external/cbor-lite/include/
   PATTERN ".svn" EXCLUDE
 )
 
+## Mark other files for installation (e.g. launch and bag files, etc.)
+install(FILES launch/run_server.launch
+  DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}
+)
+
 else() # no emsdk
 
 find_package(catkin REQUIRED COMPONENTS roscpp roscpp_json_serialize std_msgs sensor_msgs geometry_msgs nav_msgs) # rosmon_msgs)
