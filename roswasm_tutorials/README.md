@@ -2,6 +2,8 @@
 
 Contains the following examples, mirroring the ones from [roscpp_tutorials](https://github.com/ros/ros_tutorials/tree/melodic-devel/roscpp_tutorials)
 
+[The cmake file](https://github.com/nilsbore/roswasm_suite/blob/master/roswasm_tutorials/CMakeLists.txt) demonstrates how to set up a roswasm package.
+
 ## talker
 
 [roswasm talker](https://github.com/nilsbore/roswasm_suite/blob/master/roswasm_tutorials/src/talker.cpp) corresponding ro [roscpp talker](https://github.com/ros/ros_tutorials/blob/melodic-devel/roscpp_tutorials/talker/talker.cpp)
