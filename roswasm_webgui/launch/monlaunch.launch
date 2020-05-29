@@ -1,0 +1,17 @@
+<launch>
+
+<arg name="rosbridge_ip" default="0.0.0.0" />
+<arg name="rosbridge_port" default="9090" />
+<arg name="display_port" default="8080" />
+<arg name="namespace" default="sam"/>
+
+<include file="$(find roswasm)/launch/run_server.launch">
+    <arg name="namespace" value="$(arg namespace)"/>
+    <arg name="pkg" value="roswasm_webgui"/>
+    <arg name="node" value="monlaunch.html"/>
+    <arg name="rosbridge_ip" value="$(arg rosbridge_ip)"/>
+    <arg name="rosbridge_port" value="$(arg rosbridge_port)"/>
+    <arg name="display_port" value="$(arg display_port)"/>
+</include>
+
+</launch>
