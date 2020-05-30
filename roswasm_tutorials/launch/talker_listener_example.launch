@@ -1,0 +1,27 @@
+<launch>
+
+<arg name="rosbridge_ip" default="0.0.0.0" />
+<arg name="rosbridge_port" default="9090" />
+<arg name="talker_port" default="8080" />
+<arg name="listener_port" default="8081" />
+
+<include file="$(find roswasm)/launch/run_server.launch">
+    <arg name="pkg" value="roswasm_tutorials"/>
+    <arg name="node" value="talker.html"/>
+    <arg name="server_name" value="talker" />
+    <arg name="rosbridge_ip" value="$(arg rosbridge_ip)"/>
+    <arg name="rosbridge_port" value="$(arg rosbridge_port)"/>
+    <arg name="display_port" value="$(arg talker_port)"/>
+</include>
+
+<include file="$(find roswasm)/launch/run_server.launch">
+    <arg name="pkg" value="roswasm_tutorials"/>
+    <arg name="node" value="listener.html"/>
+    <arg name="server_name" value="listener" />
+    <arg name="with_rosbridge" value="false"/>
+    <arg name="rosbridge_ip" value="$(arg rosbridge_ip)"/>
+    <arg name="rosbridge_port" value="$(arg rosbridge_port)"/>
+    <arg name="display_port" value="$(arg listener_port)"/>
+</include>
+
+</launch>

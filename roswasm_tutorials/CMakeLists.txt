@@ -83,6 +83,12 @@ install(TARGETS talker listener timers
   RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
 )
 
+## Mark other files for installation (e.g. launch and bag files, etc.)
+install(DIRECTORY launch/
+  DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}/launch
+  PATTERN ".svn" EXCLUDE
+)
+
 if(CATKIN_ENABLE_TESTING)
   find_package(rostest)
   add_rostest(test/test-talker-listener.launch)
