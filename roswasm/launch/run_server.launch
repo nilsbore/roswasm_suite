@@ -2,19 +2,21 @@
 
 <arg name="pkg" />
 <arg name="node" />
+<arg name="with_rosbridge" default="true"/>
 <arg name="rosbridge_ip" default="0.0.0.0" />
 <arg name="rosbridge_port" default="9090" />
 <arg name="display_port" default="8080" />
+<arg name="server_name" default="run" />
 <arg name="namespace" default="/"/>
 
 <group ns="$(arg namespace)">
 
-    <include file="$(find rosbridge_server)/launch/rosbridge_websocket.launch">
+    <include file="$(find rosbridge_server)/launch/rosbridge_websocket.launch" if="$(arg with_rosbridge)">
         <arg name="address" value="$(arg rosbridge_ip)"/>
         <arg name="port" value="$(arg rosbridge_port)"/>
     </include>
 
-    <node name="run" type="run.py" pkg="roswasm" output="screen">
+    <node name="$(arg server_name)" type="run.py" pkg="roswasm" output="screen">
         <param name="pkg" value="$(arg pkg)"/>
         <param name="node" value="$(arg node)"/>
         <param name="rosbridge_ip" value="$(arg rosbridge_ip)"/>
