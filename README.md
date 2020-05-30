@@ -17,7 +17,7 @@ before building the package, especially the first time.
 ## Packages
 
 * [`roscpp_json_serialize`](https://github.com/nilsbore/roswasm_suite/tree/master/roscpp_json_serialize) - library that serializes ROS messages to and from json
-* [`roswasm`](https://github.com/nilsbore/roswasm_suite/tree/master/roswasm) - contains the `roswasm` client library and configures cmake to build dependent packages using Emscripten
+* [`roswasm`](https://github.com/nilsbore/roswasm_suite/tree/master/roswasm) - contains the `roswasm` client library and configures cmake to build dependent packages using Emscripten. It supports [publishers](https://github.com/nilsbore/roswasm_suite/tree/master/roswasm#publisher), [subscribers](https://github.com/nilsbore/roswasm_suite/tree/master/roswasm#subscriber), [service clients](https://github.com/nilsbore/roswasm_suite/tree/master/roswasm#serviceclient) and [timers](https://github.com/nilsbore/roswasm_suite/tree/master/roswasm#timer)
 * [`roswasm_tutorials`](https://github.com/nilsbore/roswasm_suite/tree/master/roswasm_tutorials) - contains examples corresponding to `talker`, `listener` and `timers` of [`roscpp`](https://github.com/ros/ros_tutorials/tree/noetic-devel/roscpp_tutorials)
 * [`roswasm_webgui`](https://github.com/nilsbore/roswasm_suite/tree/master/roswasm_webgui) - a proof of concept implementation of a ROS GUI library based on `roswasm` and [`imgui`](https://github.com/ocornut/imgui)
 
