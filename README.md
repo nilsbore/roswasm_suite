@@ -13,7 +13,7 @@ Libraries for compiling C++ ROS nodes to Webassembly using Emscripten. Allows yo
 
 ## Building
 
-`catkin build` is recommended, since `catkican I get dark terminal colors in github readmen_make` might leak configurations to other packages.
+`catkin build` is recommended, since `catkin_make` might leak configurations to other packages.
 Make sure to [source the Emscripten environment](https://emscripten.org/docs/getting_started/downloads.html#installation-instructions)
 before building the package:
 ```bash
