@@ -1,5 +1,7 @@
 # roswasm_webgui
 
+![Example GUI](https://raw.githubusercontent.com/nilsbore/roswasm_suite/master/roswasm_webgui/media/example_gui.png)
+
 roswasm_webgui is a library for writing web GUIs for ROS using [roswasm](https://github.com/nilsbore/roswasm_suite/tree/master/roswasm).
 It also provides example web interfaces, one of which is used for our [underwater robot](https://github.com/nilsbore/sam_webgui).
 The resulting web pages are built using wasm and have been tested using Chrome and Firefox.
@@ -30,15 +32,22 @@ There are two example classes that facilitate writing ROS GUIs using imgui.
 
 There are plenty of examples of the usage of both in [the examples library](https://github.com/nilsbore/roswasm_suite/blob/master/roswasm_webgui/include/roswasm_webgui/roswasm_examples.h).
 
+### Implemented Widgets
+
+![Monlaunch GUI](https://raw.githubusercontent.com/nilsbore/roswasm_suite/master/roswasm_webgui/media/monlaunch_gui.png)
+
+* [ImageWidget](https://github.com/nilsbore/roswasm_suite/blob/master/roswasm_webgui/include/roswasm_webgui/roswasm_image.h) allows you to subscribe to and display images published as `sensor_msgs/CompressedImage` (see example in GUI at page start)
+* [MonlaunchWidget](https://github.com/nilsbore/roswasm_suite/blob/master/roswasm_webgui/include/roswasm_webgui/roswasm_monlaunch.h) allows displaying all launch instances launched using `mon launch` and startup and restart nodes together or individually (see image above)
+
 ## Running the example with std_msgs
 
 First clone the latest rosbridge_suite to your catkin workspace:
-```
+```bash
 git clone https://github.com/RobotWebTools/rosbridge_suite
 ```
 Then compile that aswell as this package within the catkin workspace, source and launch using
-```
-roslaunch roswasm_webgui example.launch
+```bash
+roslaunch roswasm_webgui example_gui.launch
 ```
 Then navigate to `localhost:8080` to the see the webpage.
 
