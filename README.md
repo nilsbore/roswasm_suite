@@ -91,6 +91,8 @@ endif()
 
 ## Running an Emscripten node
 
+## Run node separately
+
 Before starting any of the roswasm nodes, you need to have one instance of `rosbridge_websocket` running:
 ```bash
 roslaunch rosbridge_server rosbridge_websocket.launch
@@ -101,3 +103,11 @@ rosrun roswasm run.py _pkg:=roswasm_tutorials _node:=listener.html _display_port
 ```
 This will start a webserver and allow you to view the page at `localhost:8080`.
 If you want to see the output from the node, open the browser debug console.
+
+## Combined launch file (alternative)
+
+There is a also a convenience launch file to run both `rosbridge_websocket`
+as well as your `roswasm` node at the same time:
+```bash
+roslaunch roswasm run_server.launch pkg:=roswasm_tutorials node:=listener.html
+```
