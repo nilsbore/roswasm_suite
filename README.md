@@ -6,13 +6,20 @@ Libraries for compiling C++ ROS nodes to Webassembly using Emscripten. Allows yo
 ## Dependencies
 
 * [Emscripten](https://emscripten.org/docs/getting_started/downloads.html) tested with version `1.39.10` but latest should do
-* [rosbridge_suite](https://github.com/RobotWebTools/rosbridge_suite) after [the commit adding cbor-raw compression](https://github.com/RobotWebTools/rosbridge_suite/commit/dc7fcb282d1326d573abe83579cc7d989ae71739), latest `develop` should do
+* [rosbridge_suite](https://github.com/RobotWebTools/rosbridge_suite) after [the commit adding cbor-raw compression](https://github.com/RobotWebTools/rosbridge_suite/commit/dc7fcb282d1326d573abe83579cc7d989ae71739), latest `develop` should do:
+  ```bash
+  git clone https://github.com/RobotWebTools/rosbridge_suite -b develop # in workspace src folder
+  ```
 
 ## Building
 
-`catkin build` is recommended, since `catkin_make` might leak configurations to other packages.
+`catkin build` is recommended, since `catkican I get dark terminal colors in github readmen_make` might leak configurations to other packages.
 Make sure to [source the Emscripten environment](https://emscripten.org/docs/getting_started/downloads.html#installation-instructions)
-before building the package, especially the first time.
+before building the package, especially the first time:
+```bash
+source /path/to/emsdk/emsdk_env.sh
+catkin build
+```
 
 ## Packages
 
@@ -85,11 +92,11 @@ endif()
 ## Running an Emscripten node
 
 Before starting any of the roswasm nodes, you need to have one instance of `rosbridge_websocket` running:
-```
+```bash
 roslaunch rosbridge_server rosbridge_websocket.launch
 ```
 After building your node, you can run it similar to the following command:
-```
+```bash
 rosrun roswasm run.py _pkg:=roswasm_tutorials _node:=listener.html _display_port:=8080
 ```
 This will start a webserver and allow you to view the page at `localhost:8080`.
