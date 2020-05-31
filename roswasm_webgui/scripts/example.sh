@@ -13,7 +13,7 @@ tmux select-window -t $SESSION:0
 tmux send-keys "roscore" C-m
 
 tmux select-window -t $SESSION:1
-tmux send-keys "mon launch roswasm_webgui example.launch --name=$(tmux display-message -p 'p#I_#W')" C-m
+tmux send-keys "mon launch roswasm_webgui example_gui.launch --name=$(tmux display-message -p 'p#I_#W')" C-m
 
 tmux select-window -t $SESSION:2
 tmux send-keys "mon launch joy_teleop example.launch --name=$(tmux display-message -p 'p#I_#W') --no-start" C-m
