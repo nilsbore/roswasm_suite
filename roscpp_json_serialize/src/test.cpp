@@ -48,6 +48,7 @@ std::pair<std::string, std::string> test_serialization(const MSG& msg)
     std::string json_msg = roscpp_json::serialize(msg, service_list);
 
     std::stringstream sstream;
+    sstream.precision(17);
     ros::message_operations::Printer<MSG>::stream(sstream, "", msg);
     std::string original_def = sstream.str();
 
@@ -77,6 +78,15 @@ TEST(JsonSerialization, stdFloat32)
 {
     std_msgs::Float32 msg;
     msg.data = 3.14f;
+    std::string original_def, parsed_def;
+    tie(original_def, parsed_def) = test_serialization(msg);
+    EXPECT_EQ(original_def, parsed_def);
+}
+
+TEST(JsonSerialization, precisionFloat32)
+{
+    std_msgs::Float32 msg;
+    msg.data = 3.14159265359f;
     std::string original_def, parsed_def;
     tie(original_def, parsed_def) = test_serialization(msg);
     EXPECT_EQ(original_def, parsed_def);
@@ -140,6 +150,15 @@ TEST(JsonSerialization, stdFloat64)
 {
     std_msgs::Float64 msg;
     msg.data = 3.14;
+    std::string original_def, parsed_def;
+    tie(original_def, parsed_def) = test_serialization(msg);
+    EXPECT_EQ(original_def, parsed_def);
+}
+
+TEST(JsonSerialization, precisionFloat64)
+{
+    std_msgs::Float64 msg;
+    msg.data = 3.14159265359f;
     std::string original_def, parsed_def;
     tie(original_def, parsed_def) = test_serialization(msg);
     EXPECT_EQ(original_def, parsed_def);

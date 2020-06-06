@@ -4,6 +4,9 @@
 #include <ros/ros.h>
 #include <ros/message_operations.h>
 
+//#include <iomanip>
+//#include <limits>
+
 namespace roscpp_json {
    
 class JSONStream {
@@ -109,7 +112,7 @@ private:
             stream() << "Infinity";
         }
         else {
-            stream() << value;
+            stream() << std::setprecision(std::numeric_limits<float>::max_digits10) << value;
         }
     }
 
@@ -126,7 +129,7 @@ private:
             stream() << "Infinity";
         }
         else {
-            stream() << value;
+            stream() << std::setprecision(std::numeric_limits<double>::max_digits10) << value;
         }
     }
 
