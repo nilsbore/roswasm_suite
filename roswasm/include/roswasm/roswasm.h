@@ -18,6 +18,7 @@
 #include <roswasm/subscriber.h>
 #include <roswasm/service_client.h>
 #include <roswasm/timer.h>
+#include <roswasm/time.h>
 
 #include <unordered_map>
 #include <list>
