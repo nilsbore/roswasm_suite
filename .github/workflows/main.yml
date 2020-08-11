@@ -15,6 +15,7 @@ jobs:
       - uses: mymindstorm/setup-emsdk@v6       
         with:
           version: '1.39.10'
+          actions-cache-folder: emsdk-cache
       #- uses: lovasoa/setup-emscripten@master
       #  with:
       #    emscripten-version: '1.39.10'
