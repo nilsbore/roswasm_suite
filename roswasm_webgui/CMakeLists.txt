@@ -52,7 +52,8 @@ include_directories(
   ${catkin_INCLUDE_DIRS}
 )
 
-add_library(roswasm_webgui STATIC src/imgui/imgui_impl_glfw.cpp src/imgui/imgui_impl_opengl3.cpp src/imgui/imgui.cpp src/imgui/imgui_draw.cpp src/imgui/imgui_demo.cpp src/roswasm_webgui/roswasm_monlaunch.cpp src/roswasm_webgui/roswasm_image.cpp src/roswasm_webgui/roswasm_widget.cpp src/roswasm_webgui/roswasm_examples.cpp) # src/roswasm_sam.cpp)
+add_library(roswasm_webgui src/imgui/imgui_impl_glfw.cpp src/imgui/imgui_impl_opengl3.cpp src/imgui/imgui.cpp src/imgui/imgui_draw.cpp src/imgui/imgui_demo.cpp src/roswasm_webgui/roswasm_monlaunch.cpp src/roswasm_webgui/roswasm_image.cpp src/roswasm_webgui/roswasm_widget.cpp src/roswasm_webgui/roswasm_examples.cpp) # src/roswasm_sam.cpp)
+#add_library(roswasm_webgui STATIC src/imgui/imgui_impl_glfw.cpp src/imgui/imgui_impl_opengl3.cpp src/imgui/imgui.cpp src/imgui/imgui_draw.cpp src/imgui/imgui_demo.cpp src/roswasm_webgui/roswasm_monlaunch.cpp src/roswasm_webgui/roswasm_image.cpp src/roswasm_webgui/roswasm_widget.cpp src/roswasm_webgui/roswasm_examples.cpp) # src/roswasm_sam.cpp)
 add_dependencies(roswasm_webgui ${catkin_EXPORTED_TARGETS})
 #)
 #set_target_properties(roswasm PROPERTIES SUFFIX ".bc")
