@@ -12,9 +12,12 @@ jobs:
     runs-on: ubuntu-18.04
     steps:
       - uses: actions/checkout@v1
-      #- uses: mymindstorm/setup-emsdk@v4
-      - uses: lovasoa/setup-emscripten@master
+      - uses: mymindstorm/setup-emsdk@v6       
         with:
-          emscripten-version: '1.39.10'
+          version: '2.0.7'
+          actions-cache-folder: emsdk-cache
+      #- uses: lovasoa/setup-emscripten@master
+      #  with:
+      #    emscripten-version: '1.39.10'
       - uses: 'ros-industrial/industrial_ci@master'
         env: ${{matrix.env}}
