@@ -117,16 +117,19 @@ void loop()
 
   if (show_actuator_window) {
       ImGui::SetNextWindowPos(ImVec2(542, 303), ImGuiCond_FirstUseEver);
+      ImGui::SetNextWindowSize(ImVec2(500, 478), ImGuiCond_FirstUseEver);
       actuator_widget->show_window(show_actuator_window);
   }
 
   if (show_dashboard_window) {
       ImGui::SetNextWindowPos(ImVec2(542, 30), ImGuiCond_FirstUseEver);
+      ImGui::SetNextWindowSize(ImVec2(500, 243), ImGuiCond_FirstUseEver);
       dashboard_widget->show_window(show_dashboard_window);
   }
 
   if (show_teleop_window) {
       ImGui::SetNextWindowPos(ImVec2(1072, 487), ImGuiCond_FirstUseEver);
+      ImGui::SetNextWindowSize(ImVec2(472, 80), ImGuiCond_FirstUseEver);
       teleop_widget->show_window(show_teleop_window);
   }
 
