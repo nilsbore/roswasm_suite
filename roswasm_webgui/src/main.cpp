@@ -100,11 +100,13 @@ void loop()
 
   if (show_monlaunch_window) {
       ImGui::SetNextWindowPos(ImVec2(30, 270), ImGuiCond_FirstUseEver);
+      ImGui::SetNextWindowSize(ImVec2(482, 511), ImGuiCond_FirstUseEver);
       monlaunch_widget->show_window(show_monlaunch_window);
   }
 
   if (show_image_window) {
       ImGui::SetNextWindowPos(ImVec2(1072, 30), ImGuiCond_FirstUseEver);
+      ImGui::SetNextWindowSize(ImVec2(472, 427), ImGuiCond_FirstUseEver);
       image_widget->show_window(show_image_window);
   }
 
