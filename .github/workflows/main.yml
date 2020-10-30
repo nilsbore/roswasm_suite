@@ -7,14 +7,19 @@ jobs:
     strategy:
       matrix:
         env:
-          - {ROS_DISTRO: melodic, ROS_REPO: testing, DOCKER_RUN_OPTS: "-e EMSDK -e EM_CONFIG -e EM_CACHE -e EMSDK_NODE -v /opt/hostedtoolcache/emscripten:/opt/hostedtoolcache/emscripten"}
-          - {ROS_DISTRO: melodic, ROS_REPO: main, DOCKER_RUN_OPTS: "-e EMSDK -e EM_CONFIG -e EM_CACHE -e EMSDK_NODE -v /opt/hostedtoolcache/emscripten:/opt/hostedtoolcache/emscripten"}
+          - {ROS_DISTRO: melodic, ROS_REPO: testing, DOCKER_RUN_OPTS: "-e EMSDK -e EM_CONFIG -e EM_CACHE -e EMSDK_NODE -v ${EMSDK}:${EMSDK}"}
+          - {ROS_DISTRO: melodic, ROS_REPO: main, DOCKER_RUN_OPTS: "-e EMSDK -e EM_CONFIG -e EM_CACHE -e EMSDK_NODE -v ${EMSDK}:${EMSDK}"}
+          - {ROS_DISTRO: melodic, ROS_REPO: main}
     runs-on: ubuntu-18.04
     steps:
       - uses: actions/checkout@v1
-      #- uses: mymindstorm/setup-emsdk@v4
-      - uses: lovasoa/setup-emscripten@master
+      - uses: mymindstorm/setup-emsdk@v6       
         with:
-          emscripten-version: '1.39.10'
+          version: '2.0.7'
+      #    no-cache: true
+      #    actions-cache-folder: emsdk-cache
+      #- uses: lovasoa/setup-emscripten@master
+      #  with:
+      #    emscripten-version: '1.39.10'
       - uses: 'ros-industrial/industrial_ci@master'
         env: ${{matrix.env}}

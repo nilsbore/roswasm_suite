@@ -35,7 +35,10 @@ set(CMAKE_CXX_COMPILER "$ENV{EMSDK}/upstream/emscripten/em++")
 # configuration. So we explicitly run the code guarded by
 # EMSCRIPTEN_GENERATE_BITCODE_STATIC_LIBRARIES=ON in Emscripten.cmake
 # platform file.
-set(CMAKE_STATIC_LIBRARY_SUFFIX ".bc")
+#set(CMAKE_STATIC_LIBRARY_SUFFIX ".bc")
+#set(CMAKE_STATIC_LIBRARY_SUFFIX ".wasm")
+#set(CMAKE_C_CREATE_STATIC_LIBRARY "<CMAKE_C_COMPILER> -r -o <TARGET> <LINK_FLAGS> <OBJECTS>")
+#set(CMAKE_CXX_CREATE_STATIC_LIBRARY "<CMAKE_CXX_COMPILER> -r -o <TARGET> <LINK_FLAGS> <OBJECTS>")
 set(CMAKE_C_CREATE_STATIC_LIBRARY "<CMAKE_C_COMPILER> -o <TARGET> <LINK_FLAGS> <OBJECTS>")
 set(CMAKE_CXX_CREATE_STATIC_LIBRARY "<CMAKE_CXX_COMPILER> -o <TARGET> <LINK_FLAGS> <OBJECTS>")
 # --- end EMSCRIPTEN_GENERATE_BITCODE_STATIC_LIBRARIES
@@ -67,7 +70,8 @@ include_directories(
   ${catkin_INCLUDE_DIRS}
 )
 
-add_library(roswasm STATIC src/roswasm.cpp)
+#add_library(roswasm STATIC src/roswasm.cpp)
+add_library(roswasm src/roswasm.cpp)
 #set_target_properties(roswasm PROPERTIES OUTPUT_NAME "libroswasm")
 
 add_executable(roswasm_test src/test.cpp)
