@@ -8,7 +8,7 @@ namespace serialization
 {
 void throwStreamOverrun()
 {
-  throw StreamOverrunException("Buffer Overrun");
+    throw StreamOverrunException("Buffer Overrun");
 }
 }
 
@@ -16,6 +16,75 @@ std::ostream& operator<<(std::ostream& os, const Time &rhs)
 {
     os << rhs.sec << "." << std::setw(9) << std::setfill('0') << rhs.nsec;
     return os;
+}
+
+void normalizeSecNSec(uint64_t& sec, uint64_t& nsec)
+{
+    uint64_t nsec_part = nsec % 1000000000UL;
+    uint64_t sec_part = nsec / 1000000000UL;
+
+    if (sec + sec_part > std::numeric_limits<uint32_t>::max())
+        throw std::runtime_error("Time is out of dual 32-bit range");
+
+    sec += sec_part;
+    nsec = nsec_part;
+}
+
+void normalizeSecNSec(uint32_t& sec, uint32_t& nsec)
+{
+    uint64_t sec64 = sec;
+    uint64_t nsec64 = nsec;
+
+    normalizeSecNSec(sec64, nsec64);
+
+    sec = (uint32_t)sec64;
+    nsec = (uint32_t)nsec64;
+}
+
+void normalizeSecNSecUnsigned(int64_t& sec, int64_t& nsec)
+{
+    int64_t nsec_part = nsec % 1000000000L;
+    int64_t sec_part = sec + nsec / 1000000000L;
+    if (nsec_part < 0)
+    {
+        nsec_part += 1000000000L;
+        --sec_part;
+    }
+
+    if (sec_part < 0 || sec_part > std::numeric_limits<uint32_t>::max())
+        throw std::runtime_error("Time is out of dual 32-bit range");
+
+    sec = sec_part;
+    nsec = nsec_part;
+}
+
+
+void normalizeSecNSecSigned(int64_t& sec, int64_t& nsec)
+{
+    int64_t nsec_part = nsec % 1000000000L;
+    int64_t sec_part = sec + nsec / 1000000000L;
+    if (nsec_part < 0)
+    {
+        nsec_part += 1000000000L;
+        --sec_part;
+    }
+
+    if (sec_part < std::numeric_limits<int32_t>::min() || sec_part > std::numeric_limits<int32_t>::max())
+        throw std::runtime_error("Duration is out of dual 32-bit range");
+
+    sec = sec_part;
+    nsec = nsec_part;
+}
+
+void normalizeSecNSecSigned(int32_t& sec, int32_t& nsec)
+{
+    int64_t sec64 = sec;
+    int64_t nsec64 = nsec;
+
+    normalizeSecNSecSigned(sec64, nsec64);
+
+    sec = (int32_t)sec64;
+    nsec = (int32_t)nsec64;
 }
 
 }
