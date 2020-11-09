@@ -42,7 +42,6 @@ void ExampleActuatorWidget::pub_callback(const ros::TimerEvent& e)
 
 void ExampleActuatorWidget::show_window(bool& show_actuator_window)
 {
-    ImGui::SetNextWindowSize(ImVec2(500, 478), ImGuiCond_FirstUseEver);
     ImGui::Begin("Actuator controls", &show_actuator_window);
 
     if (ImGui::CollapsingHeader("Thruster Angles", ImGuiTreeNodeFlags_Framed | ImGuiTreeNodeFlags_DefaultOpen)) {
@@ -129,7 +128,6 @@ ExampleDashboardWidget::ExampleDashboardWidget(roswasm::NodeHandle* nh) : was_le
 
 void ExampleDashboardWidget::show_window(bool& show_dashboard_window)
 {
-    ImGui::SetNextWindowSize(ImVec2(500, 243), ImGuiCond_FirstUseEver);
     ImGui::Begin("Status dashboard", &show_dashboard_window);
 
     if (ImGui::CollapsingHeader("Critical Info", ImGuiTreeNodeFlags_Framed | ImGuiTreeNodeFlags_DefaultOpen)) {
@@ -208,7 +206,6 @@ void ExampleTeleopWidget::show_window(bool& show_teleop_window)
     ImGuiIO& io = ImGui::GetIO();
     ImVec4 col = ImGui::GetStyle().Colors[23];
 
-    ImGui::SetNextWindowSize(ImVec2(472, 80), ImGuiCond_FirstUseEver);
     ImGui::Begin("Keyboard teleop", &show_teleop_window);
 
     angles_msg.x = angles_msg.y = rpm_msg.x = rpm_msg.y = 0.;

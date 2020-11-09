@@ -14,6 +14,7 @@ roswasm::Subscriber* gps_sub;
 roswasm::Publisher* string_pub;
 roswasm::ServiceClient* service;
 roswasm::Timer* timer;
+roswasm::Time previous;
 
 void string_callback(const std_msgs::String& msg)
 {
@@ -33,6 +34,11 @@ void service_callback(const rosapi::TopicType::Response& res, bool result)
 void timer_callback(const ros::TimerEvent& ev)
 {
     printf("Got timer callback!\n");
+    roswasm::Time t = roswasm::Time::now();
+    printf("Got time: %d sec, %d, nsec\n", t.sec, t.nsec);
+    roswasm::Duration diff = t - previous;
+    printf("Time since last: %f\n", diff.toSec());
+    previous = t;
 }
 
 void loop()
@@ -52,6 +58,7 @@ extern "C" int main(int argc, char** argv)
   rosapi::TopicType::Request req;
   req.topic = "/connected_clients";
   service->call<rosapi::TopicType>(req);
+  previous = roswasm::Time::now();
   timer = nh->createTimer(5., timer_callback);
 
 
