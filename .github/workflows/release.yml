@@ -1,0 +1,43 @@
+name: release-deb
+
+on:
+  push:
+    tags:
+    - '*'
+
+jobs:
+  release_build:
+      runs-on: ubuntu-latest
+      container:
+        image: rostooling/setup-ros-docker:ubuntu-bionic-ros-melodic-ros-base-latest
+      steps:
+      - uses: actions/checkout@v2
+        with:
+          path: '.'
+      - uses: mymindstorm/setup-emsdk@v7      
+        with:
+          version: '2.0.7'
+      - name: Install deps
+        run: |
+          ls
+          rosdep update
+          rosdep install --from-path . --ignore-src --rosdistro melodic -y
+          sudo apt install -y python-bloom fakeroot dpkg-dev debhelper zip
+      - name: Build package
+        run: |
+          ls
+          bloom-release  --version
+          bloom-generate rosdebian --os-name ubuntu --os-version bionic --ros-distro melodic
+          fakeroot debian/rules binary
+          mv ../ros-melodic-*.deb .
+          zip bloom-release-deb.zip ros-melodic-*.deb
+          ls
+      - name: Upload binaries to release
+        uses: svenstaro/upload-release-action@v2
+        with:
+          repo_token: ${{ secrets.GITHUB_TOKEN }}
+          file: ./bloom-release-deb.zip
+          asset_name: bloom-release-deb.zip
+          tag: ${{ github.ref }}
+          overwrite: true
+          body: "Debian release generated using bloom"
