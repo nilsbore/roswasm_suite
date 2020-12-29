@@ -15,6 +15,9 @@ jobs:
       - uses: actions/checkout@v2
         with:
           path: '.'
+      - name: Setups deps for EMSDK
+        run: |
+          sudo apt install zip unzip
       - uses: mymindstorm/setup-emsdk@v7      
         with:
           version: '2.0.7'
@@ -22,7 +25,7 @@ jobs:
         run: |
           ls
           rosdep update
-          sudo apt install -y python-bloom fakeroot dpkg-dev debhelper zip
+          sudo apt install -y python-bloom fakeroot dpkg-dev debhelper
       - name: Build package
         run: |
           mkdir bloom-release-debs
