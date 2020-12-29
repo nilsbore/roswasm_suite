@@ -13,7 +13,7 @@ jobs:
     runs-on: ubuntu-18.04
     steps:
       - uses: actions/checkout@v1
-      - uses: mymindstorm/setup-emsdk@v6       
+      - uses: mymindstorm/setup-emsdk@v7      
         with:
           version: '2.0.7'
       #    no-cache: true

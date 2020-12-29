@@ -43,6 +43,7 @@ set(EMCC_FLAGS "${EMCC_FLAGS} -s WASM=1")
 set(EMCC_FLAGS "${EMCC_FLAGS} -Wno-warn-absolute-paths")
 #set(EMCC_FLAGS "${EMCC_FLAGS} --memory-init-file 0")
 set(EMCC_FLAGS "${EMCC_FLAGS} -s USE_BOOST_HEADERS=1")
+set(EMCC_FLAGS "${EMCC_FLAGS} -fno-stack-protector")
 
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${EMCC_FLAGS}")
 set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${EMCC_FLAGS}")
