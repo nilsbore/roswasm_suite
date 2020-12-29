@@ -21,10 +21,13 @@ jobs:
       - uses: mymindstorm/setup-emsdk@v7      
         with:
           version: '2.0.7'
+      - name: Setup environment
+        run: |
+          sudo curl https://raw.githubusercontent.com/smarc-project/rosinstall/master/rosdep/50-smarc.list -o /etc/ros/rosdep/sources.list.d/50-smarc.list  
+          rosdep update
       - name: Install deps
         run: |
           ls
-          rosdep update
           sudo apt install -y python-bloom fakeroot dpkg-dev debhelper
       - name: Build package
         run: |
