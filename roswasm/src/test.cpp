@@ -1,18 +1,16 @@
 #include <stdio.h>
 
-#include <emscripten.h>
-
 #include <iostream>
 #include <roswasm/roswasm.h>
 #include <std_msgs/String.h>
 #include <sensor_msgs/NavSatFix.h>
 #include <rosapi/TopicType.h>
 
-roswasm::NodeHandle nh; 
+roswasm::NodeHandle* nh; 
 roswasm::Subscriber string_sub;
 roswasm::Subscriber gps_sub;
 roswasm::Publisher string_pub;
-roswasm::ServiceClient* service;
+//roswasm::ServiceClient* service;
 roswasm::Timer timer;
 roswasm::Time previous;
 
@@ -52,17 +50,22 @@ extern "C" int main(int argc, char** argv)
 {
   roswasm::init(argc, argv, "test");
   //nh = roswasm::NodeHandle("test");
-  string_sub = nh.subscribe<std_msgs::String>("test", 1000, string_callback);
-  gps_sub = nh.subscribe<sensor_msgs::NavSatFix>("test2", 1000, gps_callback);
-  string_pub = nh.advertise<std_msgs::String>("test", 1000);
-  service = nh.serviceClient<rosapi::TopicType>("/rosapi/topic_type", service_callback);
+  nh = new roswasm::NodeHandle();
+  string_sub = nh->subscribe("test", 1000, string_callback);
+  gps_sub = nh->subscribe("test2", 1000, gps_callback);
+  string_pub = nh->advertise<std_msgs::String>("test", 1000);
+  //service = nh.serviceClient<rosapi::TopicType>("/rosapi/topic_type", service_callback);
   rosapi::TopicType::Request req;
   req.topic = "/connected_clients";
-  service->call<rosapi::TopicType>(req);
+  //service->call<rosapi::TopicType>(req);
   previous = roswasm::Time::now();
-  timer = nh.createTimer(roswasm::Duration(5.), timer_callback);
+  timer = nh->createTimer(roswasm::Duration(5.), timer_callback);
 
-  emscripten_set_main_loop(loop, 1, 1);
+#ifdef ROSWASM_NATIVE
+    ros::spin();
+#else
+    emscripten_set_main_loop(loop, 1, 1);
+#endif
 
   return 0;
 }
