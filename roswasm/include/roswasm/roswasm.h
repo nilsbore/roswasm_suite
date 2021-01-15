@@ -58,6 +58,7 @@ public:
     }
 
     template <typename MSG>
+    //Subscriber subscribe(const std::string& topic, void(*callback)(const MSG&), int throttle_rate = -1, int queue_length = -1, int fragment_size = -1);
     Subscriber subscribe(const std::string& topic, std::function<void(const MSG&)> callback, int throttle_rate = -1, int queue_length = -1, int fragment_size = -1);
 
     void unsubscribe(const std::string& id);
@@ -110,9 +111,9 @@ public:
     }
 
     template <typename MSG>
-    Subscriber subscribe(const std::string& topic, uint32_t queue_size, std::function<void(const MSG&)> callback, int throttle_rate = -1, int queue_length = -1, int fragment_size = -1)
+    Subscriber subscribe(const std::string& topic, uint32_t queue_size, void(*callback)(const MSG&), int throttle_rate = -1, int queue_length = -1, int fragment_size = -1)
     {
-        return impl->subscribe<MSG>(topic, callback, throttle_rate, queue_length, fragment_size);
+        return impl->subscribe<MSG>(topic, std::function<void(const MSG&)>(callback), throttle_rate, queue_length, fragment_size);
     }
 
     void unsubscribe(const std::string& id)
