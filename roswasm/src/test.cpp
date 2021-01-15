@@ -50,7 +50,7 @@ void loop()
 
 extern "C" int main(int argc, char** argv)
 {
-  nh = roswasm::NodeHandle("test");
+  //nh = roswasm::NodeHandle("test");
   string_sub = nh.subscribe<std_msgs::String>("test", 1000, string_callback);
   gps_sub = nh.subscribe<sensor_msgs::NavSatFix>("test2", 1000, gps_callback);
   string_pub = nh.advertise<std_msgs::String>("test", 1000);

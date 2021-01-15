@@ -69,7 +69,7 @@ extern "C" int main(int argc, char** argv)
      * The first NodeHandle constructed will fully initialize this node, and the last
      * NodeHandle destructed will close down the node.
      */
-    n = roswasm::NodeHandle("talker");
+    //n = roswasm::NodeHandle("talker");
     //n = new roswasm::NodeHandleImpl(); //"talker");
 
     /**

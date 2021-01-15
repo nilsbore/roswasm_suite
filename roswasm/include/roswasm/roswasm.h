@@ -125,9 +125,9 @@ public:
         return impl->serviceClient<SRV>(service_name, callback);
     }
     
-    NodeHandle() = default; // : impl(nullptr) {}
+    //NodeHandle() = default; // : impl(nullptr) {}
 
-    NodeHandle(const std::string& node_name, const std::string& rosbridge_ip="127.0.0.1", const std::string& rosbridge_port="9090") : impl(new NodeHandleImpl(rosbridge_ip, rosbridge_port))
+    NodeHandle(const std::string& rosbridge_ip="127.0.0.1", const std::string& rosbridge_port="9090") : impl(new NodeHandleImpl(rosbridge_ip, rosbridge_port))
     {
 
     }
