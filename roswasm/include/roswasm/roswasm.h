@@ -25,19 +25,19 @@
 
 namespace roswasm {
 
-class NodeHandle
+class NodeHandleImpl
 {
 public:
 
     EMSCRIPTEN_WEBSOCKET_T socket;
     std::list<std::string> message_queue;
     bool socket_open;
-    std::unordered_map<std::string, Subscriber*> subscribers;
-    std::unordered_map<std::string, Publisher*> publishers;
+    std::unordered_map<std::string, SubscriberImplBase*> subscribers;
+    std::unordered_map<std::string, PublisherImplBase*> publishers;
     std::unordered_map<std::string, ServiceClient*> service_clients;
     std::string rosbridge_ip;
     std::string rosbridge_port;
-    Timer* timer;
+    Timer timer;
     static bool debug_print;
 
     bool ok()
@@ -45,18 +45,18 @@ public:
         return socket_open;
     }
 
-    Timer* createTimer(double seconds, std::function<void(const ros::TimerEvent&)> cb)
+    Timer createTimer(roswasm::Duration duration, std::function<void(const ros::TimerEvent&)> cb)
     {
-        return new Timer(seconds, cb);
+        return Timer(duration, cb);
     }
 
     template <typename MSG>
-    Subscriber* subscribe(const std::string& topic, std::function<void(const MSG&)> callback, int throttle_rate = -1, int queue_length = -1, int fragment_size = -1);
+    Subscriber subscribe(const std::string& topic, std::function<void(const MSG&)> callback, int throttle_rate = -1, int queue_length = -1, int fragment_size = -1);
 
     void unsubscribe(const std::string& id);
 
     template <typename MSG>
-    Publisher* advertise(const std::string& topic, const std::string& id="");
+    Publisher advertise(const std::string& topic, const std::string& id="");
 
     template <typename SRV>
     ServiceClient* serviceClient(const std::string& service_name, std::function<void(const typename SRV::Response&, bool result)> callback);
@@ -76,7 +76,7 @@ public:
 
     void send_message(const std::string& message);
 
-    NodeHandle(const std::string& rosbridge_ip="127.0.0.1", const std::string& rosbridge_port="9090");
+    NodeHandleImpl(const std::string& rosbridge_ip="127.0.0.1", const std::string& rosbridge_port="9090");
 
     /*
     ~NodeHandle()
@@ -88,36 +88,98 @@ public:
     */
 };
 
-template <typename MSG>
-Subscriber* NodeHandle::subscribe(const std::string& topic, std::function<void(const MSG&)> callback, int throttle_rate, int queue_length, int fragment_size)
-{
-    Subscriber* subscriber = new Subscriber(new SubscriberImpl<MSG>(callback, this), topic, throttle_rate, queue_length, fragment_size);
+class NodeHandle {
+private:
+    std::unique_ptr<NodeHandleImpl> impl;
+public:
+    bool ok()
+    {
+        return impl->ok();
+    }
 
-    if (NodeHandle::socket_open) {
-        std::string message = subscriber->json_subscribe_message();
+    Timer createTimer(roswasm::Duration duration, std::function<void(const ros::TimerEvent&)> cb)
+    {
+        return impl->createTimer(duration, cb);
+    }
+
+    template <typename MSG>
+    Subscriber subscribe(const std::string& topic, std::function<void(const MSG&)> callback, int throttle_rate = -1, int queue_length = -1, int fragment_size = -1)
+    {
+        return impl->subscribe<MSG>(topic, callback, throttle_rate, queue_length, fragment_size);
+    }
+
+    void unsubscribe(const std::string& id)
+    {
+        impl->unsubscribe(id);
+    }
+
+    template <typename MSG>
+    Publisher advertise(const std::string& topic, const std::string& id="")
+    {
+        return impl->advertise<MSG>(topic, id);
+    }
+
+    template <typename SRV>
+    ServiceClient* serviceClient(const std::string& service_name, std::function<void(const typename SRV::Response&, bool result)> callback)
+    {
+        return impl->serviceClient<SRV>(service_name, callback);
+    }
+    
+    NodeHandle() = default; // : impl(nullptr) {}
+
+    NodeHandle(const std::string& node_name, const std::string& rosbridge_ip="127.0.0.1", const std::string& rosbridge_port="9090") : impl(new NodeHandleImpl(rosbridge_ip, rosbridge_port))
+    {
+
+    }
+
+    /*
+    virtual ~NodeHandle()
+    {
+        //delete impl;
+    }
+    */
+
+    NodeHandle(NodeHandle&& other) noexcept : impl(std::move(other.impl))
+    {
+    }
+
+    NodeHandle& operator=(NodeHandle&& other)
+    {
+        impl = std::move(other.impl);
+        return *this;
+    }
+};
+
+template <typename MSG>
+Subscriber NodeHandleImpl::subscribe(const std::string& topic, std::function<void(const MSG&)> callback, int throttle_rate, int queue_length, int fragment_size)
+{
+    SubscriberImplBase* impl = new SubscriberImpl<MSG>(callback, this, topic, throttle_rate, queue_length, fragment_size);
+
+    if (NodeHandleImpl::socket_open) {
+        std::string message = impl->json_subscribe_message();
         emscripten_websocket_send_utf8_text(socket, message.c_str());
     }
 
-    subscribers[subscriber->get_id()] = subscriber;
-    return subscriber;
+    subscribers[impl->get_id()] = impl;
+    return Subscriber(impl);
 }
 
 template <typename MSG>
-Publisher* NodeHandle::advertise(const std::string& topic, const std::string& id)
+Publisher NodeHandleImpl::advertise(const std::string& topic, const std::string& id)
 {
-    Publisher* publisher = new Publisher(new PublisherImpl<MSG>(this), topic);
+    PublisherImplBase* impl = new PublisherImpl<MSG>(this, topic);
 
-    if (NodeHandle::socket_open) {
-        std::string message = publisher->json_advertise_message();
+    if (NodeHandleImpl::socket_open) {
+        std::string message = impl->json_advertise_message();
         emscripten_websocket_send_utf8_text(socket, message.c_str());
     }
 
-    publishers[publisher->get_id()] = publisher;
-    return publisher;
+    publishers[impl->get_id()] = impl;
+    return Publisher(impl);
 }
 
 template <typename SRV>
-ServiceClient* NodeHandle::serviceClient(const std::string& service_name, std::function<void(const typename SRV::Response&, bool result)> callback)
+ServiceClient* NodeHandleImpl::serviceClient(const std::string& service_name, std::function<void(const typename SRV::Response&, bool result)> callback)
 {
     ServiceClient* service_client = new ServiceClient(new ServiceClientImpl<SRV>(callback, this), service_name);
 

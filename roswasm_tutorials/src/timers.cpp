@@ -28,9 +28,9 @@
 #include <emscripten.h>
 #include <roswasm/roswasm.h>
 
-roswasm::NodeHandle* n; 
-roswasm::Timer* timer1;
-roswasm::Timer* timer2;
+roswasm::NodeHandle n; 
+roswasm::Timer timer1;
+roswasm::Timer timer2;
 
 /**
  * This tutorial demonstrates the use of timer callbacks.
@@ -58,15 +58,15 @@ extern "C" int main(int argc, char** argv)
      * The first NodeHandle constructed will fully initialize this node, and the last
      * NodeHandle destructed will close down the node.
      */
-    n = new roswasm::NodeHandle();
+    n = roswasm::NodeHandle("timers");
 
 
     /**
      * Timers allow you to get a callback at a specified rate.  Here we create
      * two timers at different rates as a demonstration.
      */
-    timer1 = n->createTimer(0.1, callback1);
-    timer2 = n->createTimer(1.0, callback2);
+    timer1 = n.createTimer(roswasm::Duration(0.1), callback1);
+    timer2 = n.createTimer(roswasm::Duration(1.0), callback2);
 
     emscripten_set_main_loop(loop, 10, 1);
 

@@ -30,8 +30,9 @@
 #include <std_msgs/String.h>
 #include <sstream>
 
-roswasm::NodeHandle* n;
-roswasm::Publisher* chatter_pub;
+roswasm::NodeHandle n;
+//roswasm::NodeHandleImpl* n;
+roswasm::Publisher chatter_pub;
 int count;
 
 void loop()
@@ -53,7 +54,7 @@ void loop()
      * given as a template parameter to the advertise<>() call, as was done
      * in the constructor above.
      */
-    chatter_pub->publish(msg);
+    chatter_pub.publish(msg);
 
     ++count;
 }
@@ -68,7 +69,8 @@ extern "C" int main(int argc, char** argv)
      * The first NodeHandle constructed will fully initialize this node, and the last
      * NodeHandle destructed will close down the node.
      */
-    n = new roswasm::NodeHandle();
+    n = roswasm::NodeHandle("talker");
+    //n = new roswasm::NodeHandleImpl(); //"talker");
 
     /**
      * The advertise() function is how you tell ROS that you want to
@@ -87,7 +89,8 @@ extern "C" int main(int argc, char** argv)
      * than we can send them, the number here specifies how many messages to
      * buffer up before throwing some away.
      */
-    chatter_pub = n->advertise<std_msgs::String>("chatter");
+    //chatter_pub = n.advertise<std_msgs::String>("chatter");
+    chatter_pub = n.advertise<std_msgs::String>("chatter");
 
     int loop_rate = 10;
 

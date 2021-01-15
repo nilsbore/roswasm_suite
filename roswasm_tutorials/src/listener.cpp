@@ -29,8 +29,9 @@
 #include <roswasm/roswasm.h>
 #include <std_msgs/String.h>
 
-roswasm::NodeHandle* n;
-roswasm::Subscriber* sub;
+//roswasm::NodeHandleImpl* n;
+roswasm::NodeHandle n;
+roswasm::Subscriber sub;
 
 /**
  * This tutorial demonstrates simple receipt of messages over the ROS system.
@@ -55,7 +56,8 @@ extern "C" int main(int argc, char** argv)
      * The first NodeHandle constructed will fully initialize this node, and the last
      * NodeHandle destructed will close down the node.
      */
-    n = new roswasm::NodeHandle();
+    n = roswasm::NodeHandle("listener");
+    //n = new roswasm::NodeHandleImpl(); //"listener");
 
     /**
      * The subscribe() call is how you tell ROS that you want to receive messages
@@ -72,7 +74,8 @@ extern "C" int main(int argc, char** argv)
      * is the number of messages that will be buffered up before beginning to throw
      * away the oldest ones.
      */
-    sub = n->subscribe<std_msgs::String>("chatter", chatterCallback);
+    //sub = n.subscribe<std_msgs::String>("chatter", chatterCallback);
+    sub = n.subscribe<std_msgs::String>("chatter", chatterCallback);
 
     emscripten_set_main_loop(loop, 10, 1);
 

@@ -2,24 +2,36 @@
 #define ROSWASM_TIMER_H
 
 #include <ros/ros.h>
+#include <roswasm/time.h>
 
 namespace roswasm {
 
-struct Timer {
+struct TimerImpl {
 
     long id;
     std::function<void(const ros::TimerEvent&)> callback;
 
     static void impl_callback(void* user_data)
     {
-        Timer* timer = (Timer*)(user_data);
+        TimerImpl* timer = (TimerImpl*)(user_data);
         ros::TimerEvent ev;
         timer->callback(ev);
     }
 
+    TimerImpl(double seconds, std::function<void(const ros::TimerEvent&)> cb);
+
+    ~TimerImpl();
+
+};
+
+struct Timer {
+
+    TimerImpl* impl;
+
     void stop();
 
-    Timer(double seconds, std::function<void(const ros::TimerEvent&)> cb);
+    Timer();
+    Timer(roswasm::Duration duration, std::function<void(const ros::TimerEvent&)> cb);
 
     ~Timer();
 };

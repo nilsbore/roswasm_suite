@@ -6,7 +6,7 @@
 
 namespace roswasm {
 
-class NodeHandle;
+class NodeHandleImpl;
 
 class ServiceClientImplBase {
     public:
@@ -27,7 +27,7 @@ template <typename SRV>
 class ServiceClientImpl : public ServiceClientImplBase {
 private:
 
-    NodeHandle* nh;
+    NodeHandleImpl* nh;
 
 public:
 
@@ -37,7 +37,7 @@ public:
     
     void callback(const std::string& buffer, bool result);
 
-    ServiceClientImpl(std::function<void(const typename SRV::Response&, bool)> cb, NodeHandle* nh) : impl_callback(cb), nh(nh)
+    ServiceClientImpl(std::function<void(const typename SRV::Response&, bool)> cb, NodeHandleImpl* nh) : impl_callback(cb), nh(nh)
     {
     }
     ~ServiceClientImpl() {}

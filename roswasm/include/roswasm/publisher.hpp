@@ -5,7 +5,7 @@
 namespace roswasm {
 
 template <typename MSG>
-void PublisherImpl<MSG>::publish(const MSG& msg, const std::string& topic)
+void PublisherImpl<MSG>::publish(const MSG& msg)
 {
     std::string json_msg = roscpp_json::serialize(msg);
     std::string message = "\"op\":\"publish\", \"topic\":\"" + topic + "\", \"msg\":" + json_msg;
