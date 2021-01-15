@@ -25,7 +25,6 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include <emscripten.h>
 #include <roswasm/roswasm.h>
 
 roswasm::NodeHandle n; 
@@ -53,6 +52,7 @@ void loop()
 
 extern "C" int main(int argc, char** argv)
 {
+    roswasm::init(argc, argv, "timers");
     /**
      * NodeHandle is the main access point to communications with the ROS system.
      * The first NodeHandle constructed will fully initialize this node, and the last
@@ -68,7 +68,11 @@ extern "C" int main(int argc, char** argv)
     timer1 = n.createTimer(roswasm::Duration(0.1), callback1);
     timer2 = n.createTimer(roswasm::Duration(1.0), callback2);
 
+#ifdef ROSWASM_NATIVE
+    ros::spin();
+#else
     emscripten_set_main_loop(loop, 10, 1);
+#endif
 
     return 0;
 }

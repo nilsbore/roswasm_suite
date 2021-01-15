@@ -1,6 +1,10 @@
 #ifndef ROSWASM_H
 #define ROSWASM_H
 
+#ifdef ROSWASM_NATIVE
+#include <roswasm/roswasm_native.h>
+#else
+
 #ifdef ROSCONSOLE_BACKEND_LOG4CXX
   #undef ROSCONSOLE_BACKEND_LOG4CXX
 #endif
@@ -24,6 +28,9 @@
 #include <list>
 
 namespace roswasm {
+
+// dummy init
+void init(int argc, const char* const* argv, const std::string& arg);
 
 class NodeHandleImpl
 {
@@ -197,5 +204,7 @@ ServiceClient* NodeHandleImpl::serviceClient(const std::string& service_name, st
 #include "roswasm.hpp"
 #include "timer.hpp"
 #endif
+
+#endif // !ROSWASM_NATIVE
 
 #endif // ROSWASM_H

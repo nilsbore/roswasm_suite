@@ -91,6 +91,10 @@ void normalizeSecNSecSigned(int32_t& sec, int32_t& nsec)
 
 namespace roswasm {
 
+void init(int argc, const char* const* argv, const std::string& arg)
+{
+}
+
 bool NodeHandleImpl::debug_print = false;
 
 void NodeHandleImpl::unsubscribe(const std::string& id)

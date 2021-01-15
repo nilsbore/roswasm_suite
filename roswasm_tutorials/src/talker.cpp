@@ -25,7 +25,6 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include <emscripten.h>
 #include <roswasm/roswasm.h>
 #include <std_msgs/String.h>
 #include <sstream>
@@ -64,6 +63,7 @@ void loop()
  */
 extern "C" int main(int argc, char** argv)
 {
+    roswasm::init(argc, argv, "talker");
     /**
      * NodeHandle is the main access point to communications with the ROS system.
      * The first NodeHandle constructed will fully initialize this node, and the last
