@@ -103,7 +103,7 @@ public:
     }
 
     template <typename MSG>
-    Subscriber subscribe(const std::string& topic, std::function<void(const MSG&)> callback, int throttle_rate = -1, int queue_length = -1, int fragment_size = -1)
+    Subscriber subscribe(const std::string& topic, uint32_t queue_size, std::function<void(const MSG&)> callback, int throttle_rate = -1, int queue_length = -1, int fragment_size = -1)
     {
         return impl->subscribe<MSG>(topic, callback, throttle_rate, queue_length, fragment_size);
     }
@@ -114,7 +114,7 @@ public:
     }
 
     template <typename MSG>
-    Publisher advertise(const std::string& topic, const std::string& id="")
+    Publisher advertise(const std::string& topic, uint32_t queue_size, const std::string& id="")
     {
         return impl->advertise<MSG>(topic, id);
     }

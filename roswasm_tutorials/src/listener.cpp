@@ -75,7 +75,7 @@ extern "C" int main(int argc, char** argv)
      * away the oldest ones.
      */
     //sub = n.subscribe<std_msgs::String>("chatter", chatterCallback);
-    sub = n.subscribe<std_msgs::String>("chatter", chatterCallback);
+    sub = n.subscribe<std_msgs::String>("chatter", 1000, chatterCallback);
 
     emscripten_set_main_loop(loop, 10, 1);
 
