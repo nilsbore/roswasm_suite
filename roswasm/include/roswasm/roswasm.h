@@ -41,7 +41,7 @@ public:
     bool socket_open;
     std::unordered_map<std::string, SubscriberImplBase*> subscribers;
     std::unordered_map<std::string, PublisherImplBase*> publishers;
-    std::unordered_map<std::string, ServiceClient*> service_clients;
+    std::unordered_map<std::string, ServiceCallbackClientImplBase*> service_clients;
     std::string rosbridge_ip;
     std::string rosbridge_port;
     Timer timer;
@@ -67,7 +67,7 @@ public:
     Publisher advertise(const std::string& topic, const std::string& id="");
 
     template <typename SRV>
-    ServiceClient* serviceClient(const std::string& service_name, std::function<void(const typename SRV::Response&, bool result)> callback);
+    ServiceCallbackClient serviceCallbackClient(const std::string& service_name, std::function<void(const typename SRV::Response&, bool result)> callback);
 
     void try_websocket_connect();
     void websocket_open();
@@ -128,9 +128,9 @@ public:
     }
 
     template <typename SRV>
-    ServiceClient* serviceClient(const std::string& service_name, std::function<void(const typename SRV::Response&, bool result)> callback)
+    ServiceCallbackClient serviceCallbackClient(const std::string& service_name, std::function<void(const typename SRV::Response&, bool result)> callback)
     {
-        return impl->serviceClient<SRV>(service_name, callback);
+        return impl->serviceCallbackClient<SRV>(service_name, callback);
     }
     
     //NodeHandle() = default; // : impl(nullptr) {}
@@ -157,6 +157,12 @@ public:
         return *this;
     }
 };
+
+template <typename SRV>
+ServiceCallbackClient createServiceCallbackClient(roswasm::NodeHandle& nh, const std::string& service_name, std::function<void(const typename SRV::Response&, bool result)> callback)
+{
+    return nh.serviceCallbackClient(service_name, callback);
+}
 
 template <typename MSG>
 Subscriber NodeHandleImpl::subscribe(const std::string& topic, std::function<void(const MSG&)> callback, int throttle_rate, int queue_length, int fragment_size)
@@ -187,12 +193,12 @@ Publisher NodeHandleImpl::advertise(const std::string& topic, const std::string&
 }
 
 template <typename SRV>
-ServiceClient* NodeHandleImpl::serviceClient(const std::string& service_name, std::function<void(const typename SRV::Response&, bool result)> callback)
+ServiceCallbackClient NodeHandleImpl::serviceCallbackClient(const std::string& service_name, std::function<void(const typename SRV::Response&, bool result)> callback)
 {
-    ServiceClient* service_client = new ServiceClient(new ServiceClientImpl<SRV>(callback, this), service_name);
+    ServiceCallbackClientImplBase* impl = new ServiceCallbackClientImpl<SRV>(callback, this, service_name);
 
-    service_clients[service_client->get_id()] = service_client;
-    return service_client;
+    service_clients[impl->get_id()] = impl;
+    return ServiceCallbackClient(impl);
 }
 
 } // namespace wasmros
