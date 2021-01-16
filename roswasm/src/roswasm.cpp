@@ -11,6 +11,15 @@ void init(int argc, char** argv, const std::string& arg)
     ros::init(argc, argv, arg);
 }
 
+void spin_loop(void(*loop)(), roswasm::Duration loop_rate)
+{
+    ros::Rate rate(1./loop_rate.toSec()); // 10 hz
+    while (ros::ok()) {
+        ros::spinOnce();
+        rate.sleep();
+    }
+}
+
 void ServiceCallbackClient::timerCallback(const ros::TimerEvent& ev)
 {
     
@@ -19,7 +28,11 @@ void ServiceCallbackClient::timerCallback(const ros::TimerEvent& ev)
     calls.erase(std::remove_if(calls.begin(), calls.end(),
                 [](ServiceCallbackCallBase* c)
                 {
-                    return c->is_done();
+                    bool done = c->is_done();
+                    if (done) {
+                        delete c;
+                    }
+                    return done;
                 }), calls.end());
 
     if (calls.empty()) {

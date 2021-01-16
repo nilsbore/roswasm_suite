@@ -95,6 +95,11 @@ void init(int argc, const char* const* argv, const std::string& arg)
 {
 }
 
+void spin_loop(void(*loop)(), roswasm::Duration loop_rate)
+{
+    emscripten_set_main_loop(loop, int(1./loop_rate.toSec()), 1);
+}
+
 bool NodeHandleImpl::debug_print = false;
 
 void NodeHandleImpl::unsubscribe(const std::string& id)

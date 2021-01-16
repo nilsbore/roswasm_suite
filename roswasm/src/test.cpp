@@ -62,11 +62,16 @@ extern "C" int main(int argc, char** argv)
     previous = roswasm::Time::now();
     timer = nh->createTimer(roswasm::Duration(5.), timer_callback);
 
+    roswasm::Duration loop_rate(1.);
+    roswasm::spin_loop(loop, loop_rate);
+
+/*
 #ifdef ROSWASM_NATIVE
     ros::spin();
 #else
     emscripten_set_main_loop(loop, 1, 1);
 #endif
+*/
 
     return 0;
 }
