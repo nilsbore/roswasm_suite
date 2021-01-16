@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 2.8.3)
 project(roswasm_tutorials)
 
-if (DEFINED ENV{EMSDK})
+if (DEFINED ENV{EMSDK} OR ${ROSWASM_NATIVE})
 
 ## Find catkin macros and libraries
 ## if COMPONENTS list like find_package(catkin REQUIRED COMPONENTS xyz)
@@ -45,9 +45,12 @@ add_executable(timers src/timers.cpp)
 ## The above recommended prefix causes long target names, the following renames the
 ## target back to the shorter version for ease of user use
 ## e.g. "rosrun someones_pkg node" instead of "rosrun someones_pkg someones_pkg_node"
+
+if (NOT ${ROSWASM_NATIVE})
 set_target_properties(talker PROPERTIES OUTPUT_NAME "talker.js")
 set_target_properties(listener PROPERTIES OUTPUT_NAME "listener.js")
 set_target_properties(timers PROPERTIES OUTPUT_NAME "timers.js")
+endif()
 
 ## Add cmake target dependencies of the executable
 ## same as for the library above
@@ -56,13 +59,15 @@ add_dependencies(listener ${catkin_EXPORTED_TARGETS})
 add_dependencies(timers ${catkin_EXPORTED_TARGETS})
 
 ## Specify libraries to link a library or executable target against
+if (NOT ${ROSWASM_NATIVE})
 target_link_libraries(talker ${roswasm_LIBRARIES})
 target_link_libraries(listener ${roswasm_LIBRARIES})
 target_link_libraries(timers ${roswasm_LIBRARIES})
-
-configure_file(www/talker.html ${CATKIN_DEVEL_PREFIX}/${CATKIN_PACKAGE_BIN_DESTINATION}/talker.html COPYONLY)
-configure_file(www/listener.html ${CATKIN_DEVEL_PREFIX}/${CATKIN_PACKAGE_BIN_DESTINATION}/listener.html COPYONLY)
-configure_file(www/timers.html ${CATKIN_DEVEL_PREFIX}/${CATKIN_PACKAGE_BIN_DESTINATION}/timers.html COPYONLY)
+else()
+target_link_libraries(talker ${catkin_LIBRARIES})
+target_link_libraries(listener ${catkin_LIBRARIES})
+target_link_libraries(timers ${catkin_LIBRARIES})
+endif()
 
 #############
 ## Install ##
@@ -94,11 +99,13 @@ if(CATKIN_ENABLE_TESTING)
   add_rostest(test/test-talker-listener.launch)
 endif()
 
-
-
 else() # no emsdk
 
 find_package(catkin REQUIRED COMPONENTS roscpp roswasm std_msgs)
 catkin_package()
+
+configure_file(www/talker.html ${CATKIN_DEVEL_PREFIX}/${CATKIN_PACKAGE_BIN_DESTINATION}/talker.html COPYONLY)
+configure_file(www/listener.html ${CATKIN_DEVEL_PREFIX}/${CATKIN_PACKAGE_BIN_DESTINATION}/listener.html COPYONLY)
+configure_file(www/timers.html ${CATKIN_DEVEL_PREFIX}/${CATKIN_PACKAGE_BIN_DESTINATION}/timers.html COPYONLY)
 
 endif()

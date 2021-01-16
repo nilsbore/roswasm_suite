@@ -15,6 +15,7 @@ find_package(catkin REQUIRED COMPONENTS roscpp roscpp_json_serialize std_msgs se
 ## LIBRARIES: libraries you create in this project that dependent projects also need
 ## CATKIN_DEPENDS: catkin_packages dependent projects also need
 ## DEPENDS: system dependencies of this project that dependent projects also need
+if (NOT ${ROSWASM_NATIVE})
 catkin_package(
   INCLUDE_DIRS include external/cbor-lite/include
   LIBRARIES #roswasm
@@ -22,6 +23,15 @@ catkin_package(
   CATKIN_DEPENDS roscpp_json_serialize
 #  DEPENDS system_lib
 )
+else()
+catkin_package(
+  INCLUDE_DIRS include
+  LIBRARIES roswasm
+  CFG_EXTRAS roswasm-extras.cmake
+#  CATKIN_DEPENDS roscpp_json_serialize
+#  DEPENDS system_lib
+)
+endif()
 
 ###########
 ## Build ##

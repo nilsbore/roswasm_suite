@@ -29,7 +29,7 @@
 #include <std_msgs/String.h>
 #include <sstream>
 
-roswasm::NodeHandle n;
+roswasm::NodeHandle* n;
 //roswasm::NodeHandleImpl* n;
 roswasm::Publisher chatter_pub;
 int count;
@@ -69,7 +69,7 @@ extern "C" int main(int argc, char** argv)
      * The first NodeHandle constructed will fully initialize this node, and the last
      * NodeHandle destructed will close down the node.
      */
-    //n = roswasm::NodeHandle("talker");
+    n = new roswasm::NodeHandle();
     //n = new roswasm::NodeHandleImpl(); //"talker");
 
     /**
@@ -90,9 +90,7 @@ extern "C" int main(int argc, char** argv)
      * buffer up before throwing some away.
      */
     //chatter_pub = n.advertise<std_msgs::String>("chatter");
-    chatter_pub = n.advertise<std_msgs::String>("chatter", 1000);
-
-    int loop_rate = 10;
+    chatter_pub = n->advertise<std_msgs::String>("chatter", 1000);
 
     /**
      * A count of how many messages we have sent. This is used to create
@@ -100,7 +98,9 @@ extern "C" int main(int argc, char** argv)
      */
     count = 0;
 
-    emscripten_set_main_loop(loop, loop_rate, 1);
+    roswasm::Duration loop_rate(1./10.);
+    roswasm::spin_loop(loop, loop_rate);
+    //emscripten_set_main_loop(loop, loop_rate, 1);
 
     return 0;
 }

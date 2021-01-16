@@ -1,6 +1,8 @@
 #list(APPEND CMAKE_FIND_LIBRARY_SUFFIXES ".bc")
 #list(APPEND CMAKE_FIND_LIBRARY_SUFFIXES ".wasm")
 
+if (NOT ${ROSWASM_NATIVE})
+
 find_library(@PROJECT_NAME@_LIBRARY
             NAMES "@PROJECT_NAME@"
             PATHS "${@PROJECT_NAME@_DIR}/../../../@CATKIN_GLOBAL_LIB_DESTINATION@"
@@ -49,3 +51,12 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${EMCC_FLAGS}")
 set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${EMCC_FLAGS}")
 
 add_definitions("-g4 -O2 -std=c++11") # -lwebsocket.js -O2 -s WASM=1 -s USE_BOOST_HEADERS=1")
+
+else()
+
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DROSWASM_NATIVE")
+set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -DROSWASM_NATIVE")
+
+add_definitions("-g -O2 -std=c++11")
+
+endif() # NOT ROSWASM_NATIVE
