@@ -54,10 +54,11 @@ extern "C" int main(int argc, char** argv)
     string_sub = nh->subscribe("test", 1000, string_callback);
     gps_sub = nh->subscribe("test2", 1000, gps_callback);
     string_pub = nh->advertise<std_msgs::String>("test", 1000);
-    service = nh->serviceCallbackClient<rosapi::TopicType>("/rosapi/topic_type", service_callback);
+    //service = nh->serviceCallbackClient<rosapi::TopicType>("/rosapi/topic_type", service_callback);
+    service = roswasm::createServiceCallbackClient<rosapi::TopicType>(*nh, "/rosapi/topic_type");
     rosapi::TopicType::Request req;
     req.topic = "/connected_clients";
-    service.call<rosapi::TopicType>(req);
+    service.call<rosapi::TopicType>(req, service_callback);
     previous = roswasm::Time::now();
     timer = nh->createTimer(roswasm::Duration(5.), timer_callback);
 

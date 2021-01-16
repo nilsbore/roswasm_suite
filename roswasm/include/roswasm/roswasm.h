@@ -67,7 +67,7 @@ public:
     Publisher advertise(const std::string& topic, const std::string& id="");
 
     template <typename SRV>
-    ServiceCallbackClient serviceCallbackClient(const std::string& service_name, std::function<void(const typename SRV::Response&, bool result)> callback);
+    ServiceCallbackClient serviceCallbackClient(const std::string& service_name); //, std::function<void(const typename SRV::Response&, bool result)> callback);
 
     void try_websocket_connect();
     void websocket_open();
@@ -128,9 +128,9 @@ public:
     }
 
     template <typename SRV>
-    ServiceCallbackClient serviceCallbackClient(const std::string& service_name, std::function<void(const typename SRV::Response&, bool result)> callback)
+    ServiceCallbackClient serviceCallbackClient(const std::string& service_name)
     {
-        return impl->serviceCallbackClient<SRV>(service_name, callback);
+        return impl->serviceCallbackClient<SRV>(service_name);
     }
     
     //NodeHandle() = default; // : impl(nullptr) {}
@@ -159,9 +159,9 @@ public:
 };
 
 template <typename SRV>
-ServiceCallbackClient createServiceCallbackClient(roswasm::NodeHandle& nh, const std::string& service_name, std::function<void(const typename SRV::Response&, bool result)> callback)
+ServiceCallbackClient createServiceCallbackClient(roswasm::NodeHandle& nh, const std::string& service_name)
 {
-    return nh.serviceCallbackClient(service_name, callback);
+    return nh.serviceCallbackClient<SRV>(service_name);
 }
 
 template <typename MSG>
@@ -193,9 +193,9 @@ Publisher NodeHandleImpl::advertise(const std::string& topic, const std::string&
 }
 
 template <typename SRV>
-ServiceCallbackClient NodeHandleImpl::serviceCallbackClient(const std::string& service_name, std::function<void(const typename SRV::Response&, bool result)> callback)
+ServiceCallbackClient NodeHandleImpl::serviceCallbackClient(const std::string& service_name) //, std::function<void(const typename SRV::Response&, bool result)> callback)
 {
-    ServiceCallbackClientImplBase* impl = new ServiceCallbackClientImpl<SRV>(callback, this, service_name);
+    ServiceCallbackClientImplBase* impl = new ServiceCallbackClientImpl<SRV>(this, service_name);
 
     service_clients[impl->get_id()] = impl;
     return ServiceCallbackClient(impl);

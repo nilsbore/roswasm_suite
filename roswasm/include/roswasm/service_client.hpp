@@ -6,8 +6,9 @@
 namespace roswasm {
 
 template <typename SRV>
-void ServiceCallbackClientImpl<SRV>::call(const typename SRV::Request& req)
+void ServiceCallbackClientImpl<SRV>::call(const typename SRV::Request& req, CallbT cb)
 {
+    impl_callback = cb;
     std::string json_msg = roscpp_json::serialize(req, false);
     std::string message = "\"op\":\"call_service\", \"service\":\"" + service_name + "\", \"args\":" + json_msg + ", \"id\":\"" + id + "\"";
     message = std::string("{ ") + message + " }";
