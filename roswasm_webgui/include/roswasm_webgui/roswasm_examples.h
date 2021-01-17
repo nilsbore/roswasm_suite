@@ -13,8 +13,8 @@ class ExampleActuatorWidget {
 private:
     TopicPairWidget<geometry_msgs::Pose2D, std_msgs::Float64>* thruster_angles;
     TopicPairWidget<geometry_msgs::Pose2D, std_msgs::Float64>* thruster_rpms;
-    roswasm::Publisher* rpm_pub;
-    roswasm::Timer* pub_timer;
+    roswasm::Publisher rpm_pub;
+    roswasm::Timer pub_timer;
     bool rpm_pub_enabled;
     TopicWidget<std_msgs::Float32>* lcg_actuator;
     TopicWidget<std_msgs::Bool>* lcg_control_enable;
@@ -29,7 +29,7 @@ private:
 public:
     void pub_callback(const ros::TimerEvent& e);
     void show_window(bool& show_actuator_window);
-    ExampleActuatorWidget(roswasm::NodeHandle* nh);
+    ExampleActuatorWidget(roswasm::NodeHandle& nh);
 };
 
 class ExampleDashboardWidget {
@@ -48,7 +48,7 @@ private:
 public:
     bool is_emergency() { return was_leak; }
     void show_window(bool& show_dashboard_window);
-    ExampleDashboardWidget(roswasm::NodeHandle* nh);
+    ExampleDashboardWidget(roswasm::NodeHandle& nh);
 };
 
 class ExampleTeleopWidget {
@@ -56,13 +56,13 @@ private:
     bool enabled;
     geometry_msgs::Pose2D angles_msg;
     geometry_msgs::Pose2D rpm_msg;
-    roswasm::Publisher* rpm_pub;
-    roswasm::Publisher* angle_pub;
-    roswasm::Timer* pub_timer;
+    roswasm::Publisher rpm_pub;
+    roswasm::Publisher angle_pub;
+    roswasm::Timer pub_timer;
 public:
     void pub_callback(const ros::TimerEvent& e);
     void show_window(bool& show_teleop_window);
-    ExampleTeleopWidget(roswasm::NodeHandle* nh);
+    ExampleTeleopWidget(roswasm::NodeHandle& nh);
 };
 
 } // namespace roswasm_webgui

@@ -165,11 +165,17 @@ extern "C" int main(int argc, char** argv)
       return 1;
   }
 
+  roswasm::init(argc, argv, "roswasm_monlaunch");
+
+#ifdef ROSWASM_NATIVE
+  nh = new roswasm::NodeHandle();
+#else
   std::string rosbridge_ip(argv[1]);
   std::string rosbridge_port(argv[2]);
-
   nh = new roswasm::NodeHandle(rosbridge_ip, rosbridge_port);
-  monlaunch_widget = new roswasm_webgui::MonlaunchWidget(nh);
+#endif
+
+  monlaunch_widget = new roswasm_webgui::MonlaunchWidget(*nh);
 
   #ifdef __EMSCRIPTEN__
   emscripten_set_main_loop(loop, 20, 1);

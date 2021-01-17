@@ -4,38 +4,38 @@
 
 namespace roswasm_webgui {
 
-bool draw_float(std_msgs::Float32& msg, roswasm::Publisher* pub)
+bool draw_float(std_msgs::Float32& msg, roswasm::Publisher& pub)
 {
     ImGui::PushID("Float");
     ImGui::SliderFloat("Float slider", &msg.data, 0.0f, 100.0f);
     if (ImGui::IsItemDeactivatedAfterChange()) {
-        pub->publish(msg);
+        pub.publish(msg);
     }
     ImGui::SameLine();
     ImGui::InputFloat("Float value", &msg.data);
     if (ImGui::IsItemDeactivatedAfterChange()) {
-        pub->publish(msg);
+        pub.publish(msg);
     }
     ImGui::PopID();
 
     return false;
 }
 
-bool draw_bool(std_msgs::Bool& msg, roswasm::Publisher* pub)
+bool draw_bool(std_msgs::Bool& msg, roswasm::Publisher& pub)
 {
     ImGui::PushID("Bool");
     bool value = msg.data;
     ImGui::Checkbox("Controller active", &value);
     msg.data = value;
     if (ImGui::IsItemDeactivatedAfterChange()) {
-        pub->publish(msg);
+        pub.publish(msg);
     }
     ImGui::PopID();
 
     return false;
 }
 
-bool draw_pose2d(std_msgs::Float64& msg1, std_msgs::Float64& msg2, roswasm::Publisher* pub)
+bool draw_pose2d(std_msgs::Float64& msg1, std_msgs::Float64& msg2, roswasm::Publisher& pub)
 {
     geometry_msgs::Pose2D msg;
     msg.x = msg1.data;
@@ -49,25 +49,25 @@ bool draw_pose2d(std_msgs::Float64& msg1, std_msgs::Float64& msg2, roswasm::Publ
     ImGui::SliderScalar("First cmd slider", ImGuiDataType_Double, &msg1.data, &min_value, &max_value, "%.10f grams");
     if (ImGui::IsItemDeactivatedAfterChange()) {
         msg.x = msg1.data;
-        pub->publish(msg);
+        pub.publish(msg);
     }
     ImGui::SameLine();
     ImGui::InputScalar("First cmd input",  ImGuiDataType_Double, &msg1.data);
     if (ImGui::IsItemDeactivatedAfterChange()) {
         msg.x = msg1.data;
-        pub->publish(msg);
+        pub.publish(msg);
     }
 
     ImGui::SliderScalar("Second cmd slider", ImGuiDataType_Double, &msg2.data, &min_value, &max_value, "%.10f grams");
     if (ImGui::IsItemDeactivatedAfterChange()) {
         msg.y = msg2.data;
-        pub->publish(msg);
+        pub.publish(msg);
     }
     ImGui::SameLine();
     ImGui::InputScalar("Second cmd input",  ImGuiDataType_Double, &msg2.data);
     if (ImGui::IsItemDeactivatedAfterChange()) {
         msg.y = msg2.data;
-        pub->publish(msg);
+        pub.publish(msg);
     }
 
     ImGui::PopID();
@@ -75,39 +75,39 @@ bool draw_pose2d(std_msgs::Float64& msg1, std_msgs::Float64& msg2, roswasm::Publ
     return false;
 }
 
-bool DrawFloat32::operator()(std_msgs::Float32& msg, roswasm::Publisher* pub)
+bool DrawFloat32::operator()(std_msgs::Float32& msg, roswasm::Publisher& pub)
 {
     ImGui::SliderFloat("", &msg.data, minv, maxv, "%.2f");
     if (ImGui::IsItemDeactivatedAfterChange()) {
-        pub->publish(msg);
+        pub.publish(msg);
     }
     ImGui::SameLine();
     ImGui::InputFloat("Float value", &msg.data, 0.0f, 0.0f, "%.2f");
     if (ImGui::IsItemDeactivatedAfterChange()) {
-        pub->publish(msg);
+        pub.publish(msg);
     }
 
     return false;
 }
 
-bool DrawFloat64::operator()(std_msgs::Float64& msg, roswasm::Publisher* pub)
+bool DrawFloat64::operator()(std_msgs::Float64& msg, roswasm::Publisher& pub)
 {
     ImGui::PushID("Cmd slider");
     ImGui::SliderScalar("", ImGuiDataType_Double, &msg.data, &minv, &maxv, "%.2f");
     if (ImGui::IsItemDeactivatedAfterChange()) {
-        pub->publish(msg);
+        pub.publish(msg);
     }
     ImGui::PopID();
     ImGui::SameLine();
     ImGui::InputScalar("Cmd input",  ImGuiDataType_Double, &msg.data, NULL, NULL, "%.2f");
     if (ImGui::IsItemDeactivatedAfterChange()) {
-        pub->publish(msg);
+        pub.publish(msg);
     }
 
     return false;
 }
 
-bool DrawFloatPair::operator()(std_msgs::Float64& msg1, std_msgs::Float64& msg2, roswasm::Publisher* pub)
+bool DrawFloatPair::operator()(std_msgs::Float64& msg1, std_msgs::Float64& msg2, roswasm::Publisher& pub)
 {
     geometry_msgs::Pose2D msg;
     msg.x = msg1.data;
@@ -119,14 +119,14 @@ bool DrawFloatPair::operator()(std_msgs::Float64& msg1, std_msgs::Float64& msg2,
     ImGui::SliderScalar("", ImGuiDataType_Double, &msg1.data, &minv1, &maxv1, "%.2f");
     if (ImGui::IsItemDeactivatedAfterChange()) {
         msg.x = msg1.data;
-        pub->publish(msg);
+        pub.publish(msg);
     }
     ImGui::PopID();
     ImGui::SameLine();
     ImGui::InputScalar("First cmd input",  ImGuiDataType_Double, &msg1.data, NULL, NULL, "%.2f");
     if (ImGui::IsItemDeactivatedAfterChange()) {
         msg.x = msg1.data;
-        pub->publish(msg);
+        pub.publish(msg);
     }
 
     ImGui::PushID("Second cmd slider");
@@ -135,14 +135,14 @@ bool DrawFloatPair::operator()(std_msgs::Float64& msg1, std_msgs::Float64& msg2,
     ImGui::SliderScalar("", ImGuiDataType_Double, &msg2.data, &minv1, &maxv1, "%.2f");
     if (ImGui::IsItemDeactivatedAfterChange()) {
         msg.y = msg2.data;
-        pub->publish(msg);
+        pub.publish(msg);
     }
     ImGui::PopID();
     ImGui::SameLine();
     ImGui::InputScalar("Second cmd input",  ImGuiDataType_Double, &msg2.data, NULL, NULL, "%.2f");
     if (ImGui::IsItemDeactivatedAfterChange()) {
         msg.y = msg2.data;
-        pub->publish(msg);
+        pub.publish(msg);
     }
 
     return false;

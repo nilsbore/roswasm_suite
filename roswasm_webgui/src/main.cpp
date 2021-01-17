@@ -227,19 +227,30 @@ extern "C" int main(int argc, char** argv)
       return 1;
   }
 
+  roswasm::init(argc, argv, "roswasm_webgui");
+
+#ifdef ROSWASM_NATIVE
+  nh = new roswasm::NodeHandle();
+#else
   std::string rosbridge_ip(argv[1]);
   std::string rosbridge_port(argv[2]);
-
   nh = new roswasm::NodeHandle(rosbridge_ip, rosbridge_port);
-  monlaunch_widget = new roswasm_webgui::MonlaunchWidget(nh);
-  image_widget = new roswasm_webgui::ImageWidget(nh);
-  actuator_widget = new roswasm_webgui::ExampleActuatorWidget(nh);
-  dashboard_widget = new roswasm_webgui::ExampleDashboardWidget(nh);
-  teleop_widget = new roswasm_webgui::ExampleTeleopWidget(nh);
+#endif
 
+  monlaunch_widget = new roswasm_webgui::MonlaunchWidget(*nh);
+  image_widget = new roswasm_webgui::ImageWidget(*nh);
+  actuator_widget = new roswasm_webgui::ExampleActuatorWidget(*nh);
+  dashboard_widget = new roswasm_webgui::ExampleDashboardWidget(*nh);
+  teleop_widget = new roswasm_webgui::ExampleTeleopWidget(*nh);
+
+  roswasm::Duration loop_rate(1./20.);
+  roswasm::spin_loop(loop, loop_rate);
+  
+  /*
   #ifdef __EMSCRIPTEN__
   emscripten_set_main_loop(loop, 20, 1);
   #endif
+  */
 
   quit();
 
