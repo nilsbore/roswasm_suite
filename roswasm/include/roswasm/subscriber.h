@@ -90,6 +90,21 @@ public:
     //SubscriberImplBase* impl;
     std::unique_ptr<SubscriberImplBase> impl;
 
+    void shutdown()
+    {
+        impl.reset();
+    }
+
+    std::string getTopic()
+    {
+        if (impl) {
+            return impl->get_topic();
+        }
+        else {
+            return "";
+        }
+    }
+
     Subscriber(Subscriber&& other) noexcept : impl(std::move(other.impl))
     {
     }

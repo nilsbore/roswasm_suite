@@ -17,11 +17,20 @@ TimerImpl::~TimerImpl()
 
 void Timer::stop()
 {
-    delete impl;
-    impl = nullptr;
+    if (impl != nullptr) {
+        delete impl;
+        impl = nullptr;
+    }
 }
 
-Timer::Timer(roswasm::Duration duration, std::function<void(const ros::TimerEvent&)> cb) : impl(new TimerImpl(duration.toSec(), cb))
+void Timer::start()
+{
+    if (impl == nullptr) {
+        impl = new TimerImpl(sec, cb);
+    }
+}
+
+Timer::Timer(roswasm::Duration duration, std::function<void(const ros::TimerEvent&)> cb) : sec(duration.toSec()), cb(cb), impl(new TimerImpl(duration.toSec(), cb))
 {
 }
 

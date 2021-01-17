@@ -27,8 +27,11 @@ struct TimerImpl {
 struct Timer {
 
     TimerImpl* impl;
+    double sec;
+    std::function<void(const ros::TimerEvent&)> cb;
 
     void stop();
+    void start();
 
     Timer();
     Timer(roswasm::Duration duration, std::function<void(const ros::TimerEvent&)> cb);

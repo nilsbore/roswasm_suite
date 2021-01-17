@@ -106,6 +106,11 @@ public:
         return impl->ok();
     }
 
+    std::string get_websocket_url()
+    {
+        return impl->get_websocket_url();
+    }
+
     Timer createTimer(roswasm::Duration duration, std::function<void(const ros::TimerEvent&)> cb)
     {
         return impl->createTimer(duration, cb);
@@ -115,6 +120,12 @@ public:
     Subscriber subscribe(const std::string& topic, uint32_t queue_size, void(*callback)(const MSG&), int throttle_rate = -1, int queue_length = -1, int fragment_size = -1)
     {
         return impl->subscribe<MSG>(topic, std::function<void(const MSG&)>(callback), throttle_rate, queue_length, fragment_size);
+    }
+
+    template <typename MSG, typename T>
+    Subscriber subscribe(const std::string& topic, uint32_t queue_size, void(T::*callback)(const MSG&), T* obj, int throttle_rate = -1, int queue_length = -1, int fragment_size = -1)
+    {
+        return impl->subscribe<MSG>(topic, std::function<void(const MSG&)>(std::bind(callback, obj, std::placeholders::_1)), throttle_rate, queue_length, fragment_size);
     }
 
     void unsubscribe(const std::string& id)
