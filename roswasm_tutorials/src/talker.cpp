@@ -99,7 +99,7 @@ extern "C" int main(int argc, char** argv)
     count = 0;
 
     roswasm::Duration loop_rate(1./10.);
-    roswasm::spin_loop(loop, loop_rate);
+    roswasm::spinLoop(loop, loop_rate);
     //emscripten_set_main_loop(loop, loop_rate, 1);
 
     return 0;

@@ -95,7 +95,12 @@ void init(int argc, const char* const* argv, const std::string& arg)
 {
 }
 
-void spin_loop(void(*loop)(), roswasm::Duration loop_rate)
+void spinLoop(void(*loop)())
+{
+    emscripten_set_main_loop(loop, -1, 1);
+}
+
+void spinLoop(void(*loop)(), roswasm::Duration loop_rate)
 {
     emscripten_set_main_loop(loop, int(1./loop_rate.toSec()), 1);
 }

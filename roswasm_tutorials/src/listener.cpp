@@ -78,7 +78,7 @@ extern "C" int main(int argc, char** argv)
     sub = n->subscribe("chatter", 1000, chatterCallback);
 
     roswasm::Duration loop_rate(1./10.);
-    roswasm::spin_loop(loop, loop_rate);
+    roswasm::spinLoop(loop, loop_rate);
     //emscripten_set_main_loop(loop, 10, 1);
 
     return 0;

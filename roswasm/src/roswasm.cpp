@@ -11,11 +11,20 @@ void init(int argc, char** argv, const std::string& arg)
     ros::init(argc, argv, arg);
 }
 
-void spin_loop(void(*loop)(), roswasm::Duration loop_rate)
+void spinLoop(void(*loop)())
 {
-    ros::Rate rate(1./loop_rate.toSec()); // 10 hz
     while (ros::ok()) {
         ros::spinOnce();
+        (*loop)();
+    }
+}
+
+void spinLoop(void(*loop)(), roswasm::Duration loop_rate)
+{
+    ros::Rate rate(1./(1./20.)); //loop_rate.toSec()); // 10 hz
+    while (ros::ok()) {
+        ros::spinOnce();
+        (*loop)();
         rate.sleep();
     }
 }

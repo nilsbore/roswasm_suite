@@ -69,7 +69,7 @@ extern "C" int main(int argc, char** argv)
     timer2 = n->createTimer(roswasm::Duration(1.0), callback2);
 
     roswasm::Duration loop_rate(1./10.);
-    roswasm::spin_loop(loop, loop_rate);
+    roswasm::spinLoop(loop, loop_rate);
 
     return 0;
 }
