@@ -102,7 +102,7 @@ LaunchState::LaunchState(roswasm::NodeHandle& node_handle, const std::string& to
     //sub = node_handle->subscribe<rosmon_msgs::State>(topic, simple_callback);
 }
 
-LaunchState::LaunchState() : sub(nullptr) {}
+LaunchState::LaunchState() {} // : sub(nullptr) {}
 
 const char* LaunchState::status[] = { "IDLE", "RUNNING", "CRASHED", "WAITING" };
 

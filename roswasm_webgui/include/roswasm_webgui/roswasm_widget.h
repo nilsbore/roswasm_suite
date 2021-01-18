@@ -29,7 +29,11 @@ public:
     TopicBuffer(roswasm::NodeHandle& nh, const std::string& topic, int throttle_rate=-1)
     {
         //sub = nh.subscribe(topic, 1000, std::bind(&TopicBuffer::callback, this, std::placeholders::_1), throttle_rate);
+#ifdef ROSWASM_NATIVE
+        sub = nh.subscribe(topic, 1000, &TopicBuffer::callback, this);
+#else
         sub = nh.subscribe(topic, 1000, &TopicBuffer::callback, this, throttle_rate);
+#endif
     }
 
 };
@@ -66,11 +70,13 @@ public:
         pub = nh.advertise<MSG>(topic, 1000);
         if (fb_topic.empty()) {
             //sub = nh.subscribe<FB_MSG>(topic, 1000, std::bind(&TopicWidget::callback, this, std::placeholders::_1));
-            sub = nh.subscribe<FB_MSG>(topic, 1000, &TopicWidget::callback, this);
+            //sub = nh.subscribe<FB_MSG>(topic, 1000, &TopicWidget::callback, this);
+            sub = nh.subscribe(topic, 1000, &TopicWidget::callback, this);
         }
         else {
             //sub = nh.subscribe<FB_MSG>(fb_topic, 1000, std::bind(&TopicWidget::callback, this, std::placeholders::_1));
-            sub = nh.subscribe<FB_MSG>(fb_topic, 1000, &TopicWidget::callback, this);
+            //sub = nh.subscribe<FB_MSG>(fb_topic, 1000, &TopicWidget::callback, this);
+            sub = nh.subscribe(fb_topic, 1000, &TopicWidget::callback, this);
         }
     }
 };

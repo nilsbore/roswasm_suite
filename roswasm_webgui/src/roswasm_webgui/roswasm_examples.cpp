@@ -123,8 +123,8 @@ ExampleDashboardWidget::ExampleDashboardWidget(roswasm::NodeHandle& nh) : was_le
     gps = new TopicBuffer<sensor_msgs::NavSatFix>(nh, "core/gps");
     battery = new TopicBuffer<sensor_msgs::BatteryState>(nh, "core/battery_fb");
     odom = new TopicBuffer<nav_msgs::Odometry>(nh, "dr/odom", 1000);
-    vbs = new TopicBuffer<std_msgs::Float64>(nh, "core/vbs_fb", 1000);
-    lcg = new TopicBuffer<std_msgs::Float64>(nh, "core/lcg_fb", 1000);
+    vbs = new TopicBuffer<std_msgs::Float32>(nh, "core/vbs_fb", 1000);
+    lcg = new TopicBuffer<std_msgs::Float32>(nh, "core/lcg_fb", 1000);
     depth = new TopicBuffer<std_msgs::Float64>(nh, "ctrl/depth_feedback", 1000);
     pitch = new TopicBuffer<std_msgs::Float64>(nh, "ctrl/pitch_feedback", 1000);
     roll = new TopicBuffer<std_msgs::Float64>(nh, "ctrl/roll_feedback", 1000);

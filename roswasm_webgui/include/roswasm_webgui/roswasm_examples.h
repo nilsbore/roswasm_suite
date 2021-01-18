@@ -39,8 +39,8 @@ private:
     TopicBuffer<sensor_msgs::NavSatFix>* gps;
     TopicBuffer<sensor_msgs::BatteryState>* battery;
     TopicBuffer<nav_msgs::Odometry>* odom;
-    TopicBuffer<std_msgs::Float64>* vbs;
-    TopicBuffer<std_msgs::Float64>* lcg;
+    TopicBuffer<std_msgs::Float32>* vbs;
+    TopicBuffer<std_msgs::Float32>* lcg;
     TopicBuffer<std_msgs::Float64>* depth;
     TopicBuffer<std_msgs::Float64>* pitch;
     TopicBuffer<std_msgs::Float64>* roll;
