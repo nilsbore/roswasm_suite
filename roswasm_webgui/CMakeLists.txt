@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 2.8.3)
 project(roswasm_webgui)
 
-if (DEFINED ENV{EMSDK})
+if (DEFINED ENV{EMSDK} OR ${ROSWASM_NATIVE})
 
 ## Compile as C++11, supported in ROS Kinetic and newer
 # add_compile_options(-std=c++11)
