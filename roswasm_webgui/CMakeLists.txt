@@ -19,6 +19,7 @@ find_package(catkin REQUIRED COMPONENTS roscpp roswasm std_msgs sensor_msgs geom
 ## DEPENDS: system dependencies of this project that dependent projects also need
 
 #set(CMAKE_FIND_LIBRARY_SUFFIXES "${CMAKE_FIND_LIBRARY_SUFFIXES} .bc")
+if (NOT ${ROSWASM_NATIVE})
 catkin_package(
   INCLUDE_DIRS include
   LIBRARIES #roswasm_webgui
@@ -26,6 +27,15 @@ catkin_package(
   CATKIN_DEPENDS roswasm
 #  DEPENDS system_lib
 )
+else()
+catkin_package(
+  INCLUDE_DIRS include
+  LIBRARIES roswasm_webgui
+  CFG_EXTRAS roswasm_webgui-extras.cmake
+  CATKIN_DEPENDS roswasm
+#  DEPENDS system_lib
+)
+endif()
 
 ###########
 ## Build ##
@@ -114,9 +124,11 @@ endif()
 
 ## Mark executable scripts (Python etc.) for installation
 ## in contrast to setup.py, you can choose the destination
+if (NOT ${ROSWASM_NATIVE})
 install(PROGRAMS www/monlaunch.html ${CATKIN_DEVEL_PREFIX}/${CATKIN_PACKAGE_BIN_DESTINATION}/monlaunch.wasm www/webgui.html ${CATKIN_DEVEL_PREFIX}/${CATKIN_PACKAGE_BIN_DESTINATION}/webgui.wasm scripts/example.sh
   DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
 )
+endif()
 
 ## Mark executables for installation
 ## See http://docs.ros.org/melodic/api/catkin/html/howto/format1/building_executables.html
