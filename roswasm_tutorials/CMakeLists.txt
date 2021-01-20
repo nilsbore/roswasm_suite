@@ -1,6 +1,8 @@
 cmake_minimum_required(VERSION 2.8.3)
 project(roswasm_tutorials)
 
+option(ROSWASM_NATIVE "Compile with ROS Native version of ROSWASM" OFF)
+
 if (DEFINED ENV{EMSDK} OR ${ROSWASM_NATIVE})
 
 ## Find catkin macros and libraries

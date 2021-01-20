@@ -2,7 +2,11 @@
 #define ROSWASM_IMAGE_H
 
 //#include <GLES3/gl3.h>
+#ifdef ROSWASM_NATIVE
 #include <GL/glew.h> 
+#else
+#include <GLES3/gl3.h>
+#endif
 #include <roswasm/roswasm.h>
 #include <rosapi/TopicsForType.h>
 #include <sensor_msgs/CompressedImage.h>
