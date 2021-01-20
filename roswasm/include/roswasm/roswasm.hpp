@@ -154,7 +154,7 @@ void NodeHandleImpl::websocket_close()
     socket_open = false;
     emscripten_websocket_delete(socket);
     // try again in 5 seconds
-    timer = createTimer(roswasm::Duration(5.), std::bind(&NodeHandleImpl::try_websocket_connect, this));
+    timer.start();
 }
 
 std::string NodeHandleImpl::get_websocket_url()
@@ -367,7 +367,7 @@ void NodeHandleImpl::send_message(const std::string& message)
 }
 
 NodeHandleImpl::NodeHandleImpl(const std::string& rosbridge_ip, const std::string& rosbridge_port)
-    : rosbridge_ip(rosbridge_ip), rosbridge_port(rosbridge_port), timer()
+    : rosbridge_ip(rosbridge_ip), rosbridge_port(rosbridge_port)
 {
     debug_print = false;
     socket_open = false;
@@ -377,6 +377,9 @@ NodeHandleImpl::NodeHandleImpl(const std::string& rosbridge_ip, const std::strin
         printf("WebSockets are not supported, cannot continue!\n");
         exit(1);
     }
+
+    timer = createTimer(roswasm::Duration(5.), std::bind(&NodeHandleImpl::try_websocket_connect, this));
+    timer.stop();
 
     /*
     EmscriptenWebSocketCreateAttributes attr;
