@@ -9,7 +9,7 @@ jobs:
         env:
           - {ROS_DISTRO: melodic, ROS_REPO: testing, DOCKER_RUN_OPTS: "-e EMSDK -e EM_CONFIG -e EM_CACHE -e EMSDK_NODE -v ${EMSDK}:${EMSDK}"}
           - {ROS_DISTRO: melodic, ROS_REPO: main, DOCKER_RUN_OPTS: "-e EMSDK -e EM_CONFIG -e EM_CACHE -e EMSDK_NODE -v ${EMSDK}:${EMSDK}"}
-          - {ROS_DISTRO: melodic, ROS_REPO: main, CMAKE_ARGS: "-DROSWASM_NATIVE=ON"}
+          - {ROS_DISTRO: melodic, ROS_REPO: main, CMAKE_ARGS: "-DROSWASM_NATIVE=ON", ADDITIONAL_DEBS: "libsdl2-image-dev"}
           - {ROS_DISTRO: melodic, ROS_REPO: main}
     runs-on: ubuntu-18.04
     steps:
