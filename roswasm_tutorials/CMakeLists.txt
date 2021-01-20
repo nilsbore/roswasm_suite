@@ -98,7 +98,7 @@ install(DIRECTORY launch/
   PATTERN ".svn" EXCLUDE
 )
 
-if(CATKIN_ENABLE_TESTING)
+if(NOT ${ROSWASM_NATIVE} AND CATKIN_ENABLE_TESTING)
   find_package(rostest)
   add_rostest(test/test-talker-listener.launch)
 endif()
