@@ -20,6 +20,7 @@ using Duration = ros::Duration;
 void init(int argc, char** argv, const std::string& arg);
 void spinLoop(void(*loop)());
 void spinLoop(void(*loop)(), roswasm::Duration loop_rate);
+void shutdown();
 
 class ServiceCallbackCallBase
 {

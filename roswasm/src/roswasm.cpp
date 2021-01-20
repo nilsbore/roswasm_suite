@@ -29,6 +29,11 @@ void spinLoop(void(*loop)(), roswasm::Duration loop_rate)
     }
 }
 
+void shutdown()
+{
+    ros::shutdown();
+}
+
 void ServiceCallbackClient::timerCallback(const ros::TimerEvent& ev)
 {
     

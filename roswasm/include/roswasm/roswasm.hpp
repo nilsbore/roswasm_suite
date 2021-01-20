@@ -105,6 +105,11 @@ void spinLoop(void(*loop)(), roswasm::Duration loop_rate)
     emscripten_set_main_loop(loop, int(1./loop_rate.toSec()), 1);
 }
 
+void shutdown()
+{
+    emscripten_exit_with_live_runtime();
+}
+
 bool NodeHandleImpl::debug_print = false;
 
 void NodeHandleImpl::unsubscribe(const std::string& id)

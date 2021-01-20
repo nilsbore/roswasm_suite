@@ -33,6 +33,7 @@ namespace roswasm {
 void init(int argc, const char* const* argv, const std::string& arg);
 void spinLoop(void(*loop)());
 void spinLoop(void(*loop)(), roswasm::Duration loop_rate);
+void shutdown();
 
 class NodeHandleImpl
 {
