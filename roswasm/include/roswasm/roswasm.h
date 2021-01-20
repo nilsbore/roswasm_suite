@@ -1,6 +1,10 @@
 #ifndef ROSWASM_H
 #define ROSWASM_H
 
+#ifdef ROSWASM_NATIVE
+#include <roswasm/roswasm_native.h>
+#else
+
 #ifdef ROSCONSOLE_BACKEND_LOG4CXX
   #undef ROSCONSOLE_BACKEND_LOG4CXX
 #endif
@@ -25,19 +29,25 @@
 
 namespace roswasm {
 
-class NodeHandle
+// dummy init
+void init(int argc, const char* const* argv, const std::string& arg);
+void spinLoop(void(*loop)());
+void spinLoop(void(*loop)(), roswasm::Duration loop_rate);
+void shutdown();
+
+class NodeHandleImpl
 {
 public:
 
     EMSCRIPTEN_WEBSOCKET_T socket;
     std::list<std::string> message_queue;
     bool socket_open;
-    std::unordered_map<std::string, Subscriber*> subscribers;
-    std::unordered_map<std::string, Publisher*> publishers;
-    std::unordered_map<std::string, ServiceClient*> service_clients;
+    std::unordered_map<std::string, SubscriberImplBase*> subscribers;
+    std::unordered_map<std::string, PublisherImplBase*> publishers;
+    std::unordered_map<std::string, ServiceCallbackClientImplBase*> service_clients;
     std::string rosbridge_ip;
     std::string rosbridge_port;
-    Timer* timer;
+    Timer timer;
     static bool debug_print;
 
     bool ok()
@@ -45,21 +55,22 @@ public:
         return socket_open;
     }
 
-    Timer* createTimer(double seconds, std::function<void(const ros::TimerEvent&)> cb)
+    Timer createTimer(roswasm::Duration duration, std::function<void(const ros::TimerEvent&)> cb)
     {
-        return new Timer(seconds, cb);
+        return Timer(duration, cb);
     }
 
     template <typename MSG>
-    Subscriber* subscribe(const std::string& topic, std::function<void(const MSG&)> callback, int throttle_rate = -1, int queue_length = -1, int fragment_size = -1);
+    //Subscriber subscribe(const std::string& topic, void(*callback)(const MSG&), int throttle_rate = -1, int queue_length = -1, int fragment_size = -1);
+    Subscriber subscribe(const std::string& topic, std::function<void(const MSG&)> callback, int throttle_rate = -1, int queue_length = -1, int fragment_size = -1);
 
     void unsubscribe(const std::string& id);
 
     template <typename MSG>
-    Publisher* advertise(const std::string& topic, const std::string& id="");
+    Publisher advertise(const std::string& topic, const std::string& id="");
 
     template <typename SRV>
-    ServiceClient* serviceClient(const std::string& service_name, std::function<void(const typename SRV::Response&, bool result)> callback);
+    ServiceCallbackClient serviceCallbackClient(const std::string& service_name); //, std::function<void(const typename SRV::Response&, bool result)> callback);
 
     void try_websocket_connect();
     void websocket_open();
@@ -76,7 +87,7 @@ public:
 
     void send_message(const std::string& message);
 
-    NodeHandle(const std::string& rosbridge_ip="127.0.0.1", const std::string& rosbridge_port="9090");
+    NodeHandleImpl(const std::string& rosbridge_ip="127.0.0.1", const std::string& rosbridge_port="9090");
 
     /*
     ~NodeHandle()
@@ -88,41 +99,120 @@ public:
     */
 };
 
-template <typename MSG>
-Subscriber* NodeHandle::subscribe(const std::string& topic, std::function<void(const MSG&)> callback, int throttle_rate, int queue_length, int fragment_size)
-{
-    Subscriber* subscriber = new Subscriber(new SubscriberImpl<MSG>(callback, this), topic, throttle_rate, queue_length, fragment_size);
-
-    if (NodeHandle::socket_open) {
-        std::string message = subscriber->json_subscribe_message();
-        emscripten_websocket_send_utf8_text(socket, message.c_str());
+class NodeHandle {
+private:
+    std::unique_ptr<NodeHandleImpl> impl;
+public:
+    bool ok()
+    {
+        return impl->ok();
     }
 
-    subscribers[subscriber->get_id()] = subscriber;
-    return subscriber;
+    std::string get_websocket_url()
+    {
+        return impl->get_websocket_url();
+    }
+
+    Timer createTimer(roswasm::Duration duration, std::function<void(const ros::TimerEvent&)> cb)
+    {
+        return impl->createTimer(duration, cb);
+    }
+
+    template <typename MSG>
+    Subscriber subscribe(const std::string& topic, uint32_t queue_size, void(*callback)(const MSG&), int throttle_rate = -1, int queue_length = -1, int fragment_size = -1)
+    {
+        return impl->subscribe<MSG>(topic, std::function<void(const MSG&)>(callback), throttle_rate, queue_length, fragment_size);
+    }
+
+    template <typename MSG, typename T>
+    Subscriber subscribe(const std::string& topic, uint32_t queue_size, void(T::*callback)(const MSG&), T* obj, int throttle_rate = -1, int queue_length = -1, int fragment_size = -1)
+    {
+        return impl->subscribe<MSG>(topic, std::function<void(const MSG&)>(std::bind(callback, obj, std::placeholders::_1)), throttle_rate, queue_length, fragment_size);
+    }
+
+    void unsubscribe(const std::string& id)
+    {
+        impl->unsubscribe(id);
+    }
+
+    template <typename MSG>
+    Publisher advertise(const std::string& topic, uint32_t queue_size, const std::string& id="")
+    {
+        return impl->advertise<MSG>(topic, id);
+    }
+
+    template <typename SRV>
+    ServiceCallbackClient serviceCallbackClient(const std::string& service_name)
+    {
+        return impl->serviceCallbackClient<SRV>(service_name);
+    }
+    
+    //NodeHandle() = default; // : impl(nullptr) {}
+
+    NodeHandle(const std::string& rosbridge_ip="127.0.0.1", const std::string& rosbridge_port="9090") : impl(new NodeHandleImpl(rosbridge_ip, rosbridge_port))
+    {
+
+    }
+
+    /*
+    virtual ~NodeHandle()
+    {
+        //delete impl;
+    }
+    */
+
+    NodeHandle(NodeHandle&& other) noexcept : impl(std::move(other.impl))
+    {
+    }
+
+    NodeHandle& operator=(NodeHandle&& other)
+    {
+        impl = std::move(other.impl);
+        return *this;
+    }
+};
+
+template <typename SRV>
+ServiceCallbackClient createServiceCallbackClient(roswasm::NodeHandle& nh, const std::string& service_name)
+{
+    return nh.serviceCallbackClient<SRV>(service_name);
 }
 
 template <typename MSG>
-Publisher* NodeHandle::advertise(const std::string& topic, const std::string& id)
+Subscriber NodeHandleImpl::subscribe(const std::string& topic, std::function<void(const MSG&)> callback, int throttle_rate, int queue_length, int fragment_size)
 {
-    Publisher* publisher = new Publisher(new PublisherImpl<MSG>(this), topic);
+    SubscriberImplBase* impl = new SubscriberImpl<MSG>(callback, this, topic, throttle_rate, queue_length, fragment_size);
 
-    if (NodeHandle::socket_open) {
-        std::string message = publisher->json_advertise_message();
+    if (NodeHandleImpl::socket_open) {
+        std::string message = impl->json_subscribe_message();
         emscripten_websocket_send_utf8_text(socket, message.c_str());
     }
 
-    publishers[publisher->get_id()] = publisher;
-    return publisher;
+    subscribers[impl->get_id()] = impl;
+    return Subscriber(impl);
+}
+
+template <typename MSG>
+Publisher NodeHandleImpl::advertise(const std::string& topic, const std::string& id)
+{
+    PublisherImplBase* impl = new PublisherImpl<MSG>(this, topic);
+
+    if (NodeHandleImpl::socket_open) {
+        std::string message = impl->json_advertise_message();
+        emscripten_websocket_send_utf8_text(socket, message.c_str());
+    }
+
+    publishers[impl->get_id()] = impl;
+    return Publisher(impl);
 }
 
 template <typename SRV>
-ServiceClient* NodeHandle::serviceClient(const std::string& service_name, std::function<void(const typename SRV::Response&, bool result)> callback)
+ServiceCallbackClient NodeHandleImpl::serviceCallbackClient(const std::string& service_name) //, std::function<void(const typename SRV::Response&, bool result)> callback)
 {
-    ServiceClient* service_client = new ServiceClient(new ServiceClientImpl<SRV>(callback, this), service_name);
+    ServiceCallbackClientImplBase* impl = new ServiceCallbackClientImpl<SRV>(this, service_name);
 
-    service_clients[service_client->get_id()] = service_client;
-    return service_client;
+    service_clients[impl->get_id()] = impl;
+    return ServiceCallbackClient(impl);
 }
 
 } // namespace wasmros
@@ -135,5 +225,7 @@ ServiceClient* NodeHandle::serviceClient(const std::string& service_name, std::f
 #include "roswasm.hpp"
 #include "timer.hpp"
 #endif
+
+#endif // !ROSWASM_NATIVE
 
 #endif // ROSWASM_H

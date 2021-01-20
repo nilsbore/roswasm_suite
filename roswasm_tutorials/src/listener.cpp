@@ -25,12 +25,12 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include <emscripten.h>
 #include <roswasm/roswasm.h>
 #include <std_msgs/String.h>
 
+//roswasm::NodeHandleImpl* n;
 roswasm::NodeHandle* n;
-roswasm::Subscriber* sub;
+roswasm::Subscriber sub;
 
 /**
  * This tutorial demonstrates simple receipt of messages over the ROS system.
@@ -50,12 +50,14 @@ void loop()
  */
 extern "C" int main(int argc, char** argv)
 {
+    roswasm::init(argc, argv, "listener");
     /**
      * NodeHandle is the main access point to communications with the ROS system.
      * The first NodeHandle constructed will fully initialize this node, and the last
      * NodeHandle destructed will close down the node.
      */
     n = new roswasm::NodeHandle();
+    //n = new roswasm::NodeHandleImpl(); //"listener");
 
     /**
      * The subscribe() call is how you tell ROS that you want to receive messages
@@ -72,9 +74,12 @@ extern "C" int main(int argc, char** argv)
      * is the number of messages that will be buffered up before beginning to throw
      * away the oldest ones.
      */
-    sub = n->subscribe<std_msgs::String>("chatter", chatterCallback);
+    //sub = n.subscribe<std_msgs::String>("chatter", chatterCallback);
+    sub = n->subscribe("chatter", 1000, chatterCallback);
 
-    emscripten_set_main_loop(loop, 10, 1);
+    roswasm::Duration loop_rate(1./10.);
+    roswasm::spinLoop(loop, loop_rate);
+    //emscripten_set_main_loop(loop, 10, 1);
 
     return 0;
 }

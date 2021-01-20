@@ -1,7 +1,9 @@
 cmake_minimum_required(VERSION 2.8.3)
 project(roswasm_webgui)
 
-if (DEFINED ENV{EMSDK})
+option(ROSWASM_NATIVE "Compile with ROS Native version of ROSWASM" OFF)
+
+if (DEFINED ENV{EMSDK} OR ${ROSWASM_NATIVE})
 
 ## Compile as C++11, supported in ROS Kinetic and newer
 # add_compile_options(-std=c++11)
@@ -19,6 +21,7 @@ find_package(catkin REQUIRED COMPONENTS roscpp roswasm std_msgs sensor_msgs geom
 ## DEPENDS: system dependencies of this project that dependent projects also need
 
 #set(CMAKE_FIND_LIBRARY_SUFFIXES "${CMAKE_FIND_LIBRARY_SUFFIXES} .bc")
+if (NOT ${ROSWASM_NATIVE})
 catkin_package(
   INCLUDE_DIRS include
   LIBRARIES #roswasm_webgui
@@ -26,10 +29,29 @@ catkin_package(
   CATKIN_DEPENDS roswasm
 #  DEPENDS system_lib
 )
+else()
+catkin_package(
+  INCLUDE_DIRS include
+  LIBRARIES roswasm_webgui
+  CFG_EXTRAS roswasm_webgui-extras.cmake
+  CATKIN_DEPENDS roswasm
+#  DEPENDS system_lib
+)
+endif()
 
 ###########
 ## Build ##
 ###########
+
+if (${ROSWASM_NATIVE})
+set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake/")
+#set(OpenGL_GL_PREFERENCE "GLVND")
+find_package(GLEW REQUIRED)
+find_package(OpenGL REQUIRED)
+find_package(glfw3 REQUIRED)
+find_package(SDL2 REQUIRED) 
+find_package(SDL2_image REQUIRED)
+else()
 
 set(EMCC_FLAGS "")
 
@@ -44,6 +66,7 @@ set(EMCC_FLAGS "${EMCC_FLAGS} -s SDL2_IMAGE_FORMATS='[\"png\", \"jpg\"]'")
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${EMCC_FLAGS}")
 set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${EMCC_FLAGS}")
 
+endif() # NOT ${ROSWASM_NATIVE}
 
 ## Specify additional locations of header files
 ## Your package locations should be listed before other locations
@@ -51,6 +74,15 @@ include_directories(
   include
   ${catkin_INCLUDE_DIRS}
 )
+
+if (${ROSWASM_NATIVE})
+include_directories(
+  ${OPENGL_INCLUDE_DIR}
+  ${GLEW_INCLUDE_DIRS}
+  ${SDL2_INCLUDE_DIR}
+  ${SDL2_IMAGE_INCLUDE_DIRS}
+)
+endif()
 
 add_library(roswasm_webgui src/imgui/imgui_impl_glfw.cpp src/imgui/imgui_impl_opengl3.cpp src/imgui/imgui.cpp src/imgui/imgui_draw.cpp src/imgui/imgui_demo.cpp src/roswasm_webgui/roswasm_monlaunch.cpp src/roswasm_webgui/roswasm_image.cpp src/roswasm_webgui/roswasm_widget.cpp src/roswasm_webgui/roswasm_examples.cpp) # src/roswasm_sam.cpp)
 #add_library(roswasm_webgui STATIC src/imgui/imgui_impl_glfw.cpp src/imgui/imgui_impl_opengl3.cpp src/imgui/imgui.cpp src/imgui/imgui_draw.cpp src/imgui/imgui_demo.cpp src/roswasm_webgui/roswasm_monlaunch.cpp src/roswasm_webgui/roswasm_image.cpp src/roswasm_webgui/roswasm_widget.cpp src/roswasm_webgui/roswasm_examples.cpp) # src/roswasm_sam.cpp)
@@ -60,18 +92,30 @@ add_dependencies(roswasm_webgui ${catkin_EXPORTED_TARGETS})
 
 add_executable(roswasm_webgui_test src/main.cpp)
 add_dependencies(roswasm_webgui_test ${catkin_EXPORTED_TARGETS})
+if (NOT ${ROSWASM_NATIVE})
 set_target_properties(roswasm_webgui_test PROPERTIES OUTPUT_NAME "webgui.js")
+endif()
 
 add_executable(monlaunch_test src/monlaunch_test.cpp)
 add_dependencies(monlaunch_test ${catkin_EXPORTED_TARGETS})
+if (NOT ${ROSWASM_NATIVE})
 set_target_properties(monlaunch_test PROPERTIES OUTPUT_NAME "monlaunch.js")
+endif()
 
+if (NOT ${ROSWASM_NATIVE})
 target_link_libraries(roswasm_webgui ${roswasm_LIBRARIES} -lGL)
 target_link_libraries(roswasm_webgui_test roswasm_webgui ${roswasm_LIBRARIES} -lGL)
 target_link_libraries(monlaunch_test roswasm_webgui ${roswasm_LIBRARIES} -lGL)
+else()
+target_link_libraries(roswasm_webgui ${catkin_LIBRARIES} ${SDL2_LIBRARY} ${SDL2_IMAGE_LIBRARIES} ${OPENGL_gl_LIBRARY} ${GLEW_LIBRARIES} glfw) # -lGL)
+target_link_libraries(roswasm_webgui_test roswasm_webgui ${catkin_LIBRARIES} ${SDL2_LIBRARY} ${SDL2_IMAGE_LIBRARIES} ${OPENGL_gl_LIBRARY} ${GLEW_LIBRARIES} glfw) # -lGL)
+target_link_libraries(monlaunch_test roswasm_webgui ${catkin_LIBRARIES} ${SDL2_LIBRARY} ${SDL2_IMAGE_LIBRARIES} ${OPENGL_gl_LIBRARY} ${GLEW_LIBRARIES} glfw) #  -lGL)
+endif()
 
+if (NOT ${ROSWASM_NATIVE})
 configure_file(www/webgui.html ${CATKIN_DEVEL_PREFIX}/${CATKIN_PACKAGE_BIN_DESTINATION}/webgui.html COPYONLY)
 configure_file(www/monlaunch.html ${CATKIN_DEVEL_PREFIX}/${CATKIN_PACKAGE_BIN_DESTINATION}/monlaunch.html COPYONLY)
+endif()
 
 #############
 ## Install ##
@@ -82,9 +126,11 @@ configure_file(www/monlaunch.html ${CATKIN_DEVEL_PREFIX}/${CATKIN_PACKAGE_BIN_DE
 
 ## Mark executable scripts (Python etc.) for installation
 ## in contrast to setup.py, you can choose the destination
+if (NOT ${ROSWASM_NATIVE})
 install(PROGRAMS www/monlaunch.html ${CATKIN_DEVEL_PREFIX}/${CATKIN_PACKAGE_BIN_DESTINATION}/monlaunch.wasm www/webgui.html ${CATKIN_DEVEL_PREFIX}/${CATKIN_PACKAGE_BIN_DESTINATION}/webgui.wasm scripts/example.sh
   DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
 )
+endif()
 
 ## Mark executables for installation
 ## See http://docs.ros.org/melodic/api/catkin/html/howto/format1/building_executables.html

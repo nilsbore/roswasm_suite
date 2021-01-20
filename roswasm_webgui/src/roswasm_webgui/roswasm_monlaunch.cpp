@@ -71,7 +71,7 @@ void LaunchState::start_stop(uint8_t action, const std::string& name, const std:
     req.node = name;
     req.action = action;
     req.ns = ns;
-    client->call<rosmon_msgs::StartStop>(req);
+    client.call<rosmon_msgs::StartStop>(req, std::bind(&LaunchState::service_callback, this, std::placeholders::_1, std::placeholders::_2));
 }
 
 float LaunchState::get_progress()
@@ -88,19 +88,21 @@ float LaunchState::get_progress()
     }
 }
 
-LaunchState::LaunchState(roswasm::NodeHandle* node_handle, const std::string& topic, int max_launch_attempts) : selected(-1), start_stop_launch_node_idx(-1), max_launch_attempts(max_launch_attempts)
+LaunchState::LaunchState(roswasm::NodeHandle& node_handle, const std::string& topic, int max_launch_attempts) : selected(-1), start_stop_launch_node_idx(-1), max_launch_attempts(max_launch_attempts)
 {
-    sub = node_handle->subscribe<rosmon_msgs::State>(topic, std::bind(&LaunchState::callback, this, std::placeholders::_1));
+    //sub = node_handle.subscribe(topic, 1000, std::bind(&LaunchState::callback, this, std::placeholders::_1));
+    sub = node_handle.subscribe(topic, 1000, &LaunchState::callback, this);
     //topics_service = nh->serviceClient<rosapi::TopicsForType>("/rosapi/topics_for_type", service_callback);
     size_t ns_pos = topic.find('/', 1);
     name = topic.substr(1, ns_pos-1);
     std::string service_name = std::string("/") + name + "/start_stop";
     printf("Service name: %s\n", service_name.c_str());
-    client = node_handle->serviceClient<rosmon_msgs::StartStop>(service_name, std::bind(&LaunchState::service_callback, this, std::placeholders::_1, std::placeholders::_2));
+    //client = node_handle->serviceClient<rosmon_msgs::StartStop>(service_name, std::bind(&LaunchState::service_callback, this, std::placeholders::_1, std::placeholders::_2));
+    client = roswasm::createServiceCallbackClient<rosmon_msgs::StartStop>(node_handle, service_name); //, std::bind(&LaunchState::service_callback, this, std::placeholders::_1, std::placeholders::_2));
     //sub = node_handle->subscribe<rosmon_msgs::State>(topic, simple_callback);
 }
 
-LaunchState::LaunchState() : sub(nullptr) {}
+LaunchState::LaunchState() {} // : sub(nullptr) {}
 
 const char* LaunchState::status[] = { "IDLE", "RUNNING", "CRASHED", "WAITING" };
 
@@ -117,17 +119,18 @@ void MonlaunchWidget::timer_callback(const ros::TimerEvent& event)
 {
     rosapi::TopicsForType::Request req;
     req.type = "rosmon_msgs/State";
-    topics_service->call<rosapi::TopicsForType>(req);
+    topics_service.call<rosapi::TopicsForType>(req, std::bind(&MonlaunchWidget::service_callback, this, std::placeholders::_1, std::placeholders::_2));
 }
 
-MonlaunchWidget::MonlaunchWidget(roswasm::NodeHandle* n)
+MonlaunchWidget::MonlaunchWidget(roswasm::NodeHandle& n) : nh(n)
 {
-    nh = n;
-    topics_service = nh->serviceClient<rosapi::TopicsForType>("/rosapi/topics_for_type", std::bind(&MonlaunchWidget::service_callback, this, std::placeholders::_1, std::placeholders::_2));
+    //nh = n;
+    //topics_service = nh->serviceClient<rosapi::TopicsForType>("/rosapi/topics_for_type", std::bind(&MonlaunchWidget::service_callback, this, std::placeholders::_1, std::placeholders::_2));
+    topics_service = roswasm::createServiceCallbackClient<rosapi::TopicsForType>(nh, "/rosapi/topics_for_type"); //, std::bind(&MonlaunchWidget::service_callback, this, std::placeholders::_1, std::placeholders::_2));
     rosapi::TopicsForType::Request req;
     req.type = "rosmon_msgs/State";
-    topics_service->call<rosapi::TopicsForType>(req);
-    timer = nh->createTimer(5., std::bind(&MonlaunchWidget::timer_callback, this, std::placeholders::_1));
+    topics_service.call<rosapi::TopicsForType>(req, std::bind(&MonlaunchWidget::service_callback, this, std::placeholders::_1, std::placeholders::_2));
+    timer = nh.createTimer(roswasm::Duration(5.), std::bind(&MonlaunchWidget::timer_callback, this, std::placeholders::_1));
 }
 
 void MonlaunchWidget::show_window(bool& show_another_window)
