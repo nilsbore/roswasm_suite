@@ -22,6 +22,7 @@ find_package(catkin REQUIRED COMPONENTS roscpp roswasm std_msgs sensor_msgs geom
 
 #set(CMAKE_FIND_LIBRARY_SUFFIXES "${CMAKE_FIND_LIBRARY_SUFFIXES} .bc")
 if (NOT ${ROSWASM_NATIVE})
+set(ROSWASM_WEBGUI_LIB roswasm_webgui)
 catkin_package(
   INCLUDE_DIRS include
   LIBRARIES #roswasm_webgui
@@ -30,9 +31,10 @@ catkin_package(
 #  DEPENDS system_lib
 )
 else()
+set(ROSWASM_WEBGUI_LIB roswasm_webgui_native)
 catkin_package(
   INCLUDE_DIRS include
-  LIBRARIES roswasm_webgui
+  LIBRARIES ${ROSWASM_WEBGUI_LIB}
   CFG_EXTRAS roswasm_webgui-extras.cmake
   CATKIN_DEPENDS roswasm
 #  DEPENDS system_lib
@@ -84,9 +86,9 @@ include_directories(
 )
 endif()
 
-add_library(roswasm_webgui src/imgui/imgui_impl_glfw.cpp src/imgui/imgui_impl_opengl3.cpp src/imgui/imgui.cpp src/imgui/imgui_draw.cpp src/imgui/imgui_demo.cpp src/roswasm_webgui/roswasm_monlaunch.cpp src/roswasm_webgui/roswasm_image.cpp src/roswasm_webgui/roswasm_widget.cpp src/roswasm_webgui/roswasm_examples.cpp) # src/roswasm_sam.cpp)
+add_library(${ROSWASM_WEBGUI_LIB} src/imgui/imgui_impl_glfw.cpp src/imgui/imgui_impl_opengl3.cpp src/imgui/imgui.cpp src/imgui/imgui_draw.cpp src/imgui/imgui_demo.cpp src/roswasm_webgui/roswasm_monlaunch.cpp src/roswasm_webgui/roswasm_image.cpp src/roswasm_webgui/roswasm_widget.cpp src/roswasm_webgui/roswasm_examples.cpp) # src/roswasm_sam.cpp)
 #add_library(roswasm_webgui STATIC src/imgui/imgui_impl_glfw.cpp src/imgui/imgui_impl_opengl3.cpp src/imgui/imgui.cpp src/imgui/imgui_draw.cpp src/imgui/imgui_demo.cpp src/roswasm_webgui/roswasm_monlaunch.cpp src/roswasm_webgui/roswasm_image.cpp src/roswasm_webgui/roswasm_widget.cpp src/roswasm_webgui/roswasm_examples.cpp) # src/roswasm_sam.cpp)
-add_dependencies(roswasm_webgui ${catkin_EXPORTED_TARGETS})
+add_dependencies(${ROSWASM_WEBGUI_LIB} ${catkin_EXPORTED_TARGETS})
 #)
 #set_target_properties(roswasm PROPERTIES SUFFIX ".bc")
 
@@ -103,13 +105,13 @@ set_target_properties(monlaunch_test PROPERTIES OUTPUT_NAME "monlaunch.js")
 endif()
 
 if (NOT ${ROSWASM_NATIVE})
-target_link_libraries(roswasm_webgui ${roswasm_LIBRARIES} -lGL)
-target_link_libraries(roswasm_webgui_test roswasm_webgui ${roswasm_LIBRARIES} -lGL)
-target_link_libraries(monlaunch_test roswasm_webgui ${roswasm_LIBRARIES} -lGL)
+target_link_libraries(${ROSWASM_WEBGUI_LIB} ${roswasm_LIBRARIES} -lGL)
+target_link_libraries(roswasm_webgui_test ${ROSWASM_WEBGUI_LIB} ${roswasm_LIBRARIES} -lGL)
+target_link_libraries(monlaunch_test ${ROSWASM_WEBGUI_LIB} ${roswasm_LIBRARIES} -lGL)
 else()
-target_link_libraries(roswasm_webgui ${catkin_LIBRARIES} ${SDL2_LIBRARY} ${SDL2_IMAGE_LIBRARIES} ${OPENGL_gl_LIBRARY} ${GLEW_LIBRARIES} glfw) # -lGL)
-target_link_libraries(roswasm_webgui_test roswasm_webgui ${catkin_LIBRARIES} ${SDL2_LIBRARY} ${SDL2_IMAGE_LIBRARIES} ${OPENGL_gl_LIBRARY} ${GLEW_LIBRARIES} glfw) # -lGL)
-target_link_libraries(monlaunch_test roswasm_webgui ${catkin_LIBRARIES} ${SDL2_LIBRARY} ${SDL2_IMAGE_LIBRARIES} ${OPENGL_gl_LIBRARY} ${GLEW_LIBRARIES} glfw) #  -lGL)
+target_link_libraries(${ROSWASM_WEBGUI_LIB} ${catkin_LIBRARIES} ${SDL2_LIBRARY} ${SDL2_IMAGE_LIBRARIES} ${OPENGL_gl_LIBRARY} ${GLEW_LIBRARIES} glfw) # -lGL)
+target_link_libraries(roswasm_webgui_test ${ROSWASM_WEBGUI_LIB} ${catkin_LIBRARIES} ${SDL2_LIBRARY} ${SDL2_IMAGE_LIBRARIES} ${OPENGL_gl_LIBRARY} ${GLEW_LIBRARIES} glfw) # -lGL)
+target_link_libraries(monlaunch_test ${ROSWASM_WEBGUI_LIB} ${catkin_LIBRARIES} ${SDL2_LIBRARY} ${SDL2_IMAGE_LIBRARIES} ${OPENGL_gl_LIBRARY} ${GLEW_LIBRARIES} glfw) #  -lGL)
 endif()
 
 if (NOT ${ROSWASM_NATIVE})
@@ -140,7 +142,7 @@ install(TARGETS roswasm_webgui_test monlaunch_test
 
 ## Mark libraries for installation
 ## See http://docs.ros.org/melodic/api/catkin/html/howto/format1/building_libraries.html
-install(TARGETS roswasm_webgui
+install(TARGETS ${ROSWASM_WEBGUI_LIB}
   ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
   LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
   RUNTIME DESTINATION ${CATKIN_GLOBAL_BIN_DESTINATION}

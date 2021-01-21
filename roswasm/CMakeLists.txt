@@ -18,6 +18,7 @@ find_package(catkin REQUIRED COMPONENTS roscpp roscpp_json_serialize std_msgs se
 ## CATKIN_DEPENDS: catkin_packages dependent projects also need
 ## DEPENDS: system dependencies of this project that dependent projects also need
 if (NOT ${ROSWASM_NATIVE})
+set(ROSWASM_LIB roswasm)
 catkin_package(
   INCLUDE_DIRS include external/cbor-lite/include
   LIBRARIES #roswasm
@@ -26,9 +27,10 @@ catkin_package(
 #  DEPENDS system_lib
 )
 else()
+set(ROSWASM_LIB roswasm_native)
 catkin_package(
   INCLUDE_DIRS include
-  LIBRARIES roswasm
+  LIBRARIES ${ROSWASM_LIB}
   CFG_EXTRAS roswasm-extras.cmake
 #  CATKIN_DEPENDS roscpp_json_serialize
 #  DEPENDS system_lib
@@ -96,7 +98,7 @@ include_directories(
 )
 
 #add_library(roswasm STATIC src/roswasm.cpp)
-add_library(roswasm src/roswasm.cpp)
+add_library(${ROSWASM_LIB} src/roswasm.cpp)
 #set_target_properties(roswasm PROPERTIES OUTPUT_NAME "libroswasm")
 
 add_executable(roswasm_test src/test.cpp)
@@ -104,13 +106,13 @@ add_executable(roswasm_test src/test.cpp)
 if (NOT ${ROSWASM_NATIVE})
 set_target_properties(roswasm_test PROPERTIES OUTPUT_NAME "test.js")
 
-target_link_libraries(roswasm -lwebsocket.js)
-target_link_libraries(roswasm_test roswasm -lwebsocket.js)
+target_link_libraries(${ROSWASM_LIB} -lwebsocket.js)
+target_link_libraries(roswasm_test ${ROSWASM_LIB} -lwebsocket.js)
 
 configure_file(www/test.html ${CATKIN_DEVEL_PREFIX}/${CATKIN_PACKAGE_BIN_DESTINATION}/test.html COPYONLY)
 else()
-target_link_libraries(roswasm ${catkin_LIBRARIES})
-target_link_libraries(roswasm_test roswasm ${catkin_LIBRARIES})
+target_link_libraries(${ROSWASM_LIB} ${catkin_LIBRARIES})
+target_link_libraries(roswasm_test ${ROSWASM_LIB} ${catkin_LIBRARIES})
 endif()
 
 #set_target_properties(roswasm_test PROPERTIES LINK_FLAGS "-s DEMANGLE_SUPPORT=1 --preload-file ${CMAKE_SOURCE_DIR}/assets --bind")
@@ -139,7 +141,7 @@ install(TARGETS roswasm_test
 
 ## Mark libraries for installation
 ## See http://docs.ros.org/melodic/api/catkin/html/howto/format1/building_libraries.html
-install(TARGETS roswasm
+install(TARGETS ${ROSWASM_LIB}
   ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
   LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
   RUNTIME DESTINATION ${CATKIN_GLOBAL_BIN_DESTINATION}
