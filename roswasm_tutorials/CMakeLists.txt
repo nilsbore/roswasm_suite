@@ -98,9 +98,12 @@ install(DIRECTORY launch/
   PATTERN ".svn" EXCLUDE
 )
 
-if(NOT ${ROSWASM_NATIVE} AND CATKIN_ENABLE_TESTING)
-  find_package(rostest)
-  add_rostest(test/test-talker-listener.launch)
+## Testing only works for melodic right now
+if ($ENV{ROS_DISTRO} STREQUAL "melodic")
+  if(NOT ${ROSWASM_NATIVE} AND CATKIN_ENABLE_TESTING)
+    find_package(rostest)
+    add_rostest(test/test-talker-listener.launch)
+  endif()
 endif()
 
 else() # no emsdk
