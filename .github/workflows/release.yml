@@ -7,9 +7,18 @@ on:
 
 jobs:
   release_build:
+      strategy:
+        matrix:
+          include:
+            - distro: melodic
+              ubuntu: bionic
+              bloom: python-bloom
+            - distro: noetic
+              ubuntu: focal
+              bloom: python3-bloom
       runs-on: ubuntu-latest
       container:
-        image: rostooling/setup-ros-docker:ubuntu-bionic-ros-melodic-ros-base-latest
+        image: rostooling/setup-ros-docker:ubuntu-${{ matrix.ubuntu }}-ros-${{ matrix.distro }}-ros-base-latest
         #options: -u root  # setup-node requires root access
       steps:
       - uses: actions/checkout@v2
@@ -23,12 +32,12 @@ jobs:
           version: '2.0.7'
       - name: Setup environment
         run: |
-          sudo curl https://raw.githubusercontent.com/smarc-project/rosinstall/master/rosdep/50-smarc.list -o /etc/ros/rosdep/sources.list.d/50-smarc.list  
+          sudo curl https://raw.githubusercontent.com/smarc-project/rosinstall/master/rosdep/50-smarc-${{ matrix.distro }}.list -o /etc/ros/rosdep/sources.list.d/50-smarc.list  
           rosdep update
       - name: Install deps
         run: |
           ls
-          sudo apt install -y python-bloom fakeroot dpkg-dev debhelper
+          sudo apt install -y ${{ matrix.bloom }} fakeroot dpkg-dev debhelper
       - name: Build package
         run: |
           mkdir bloom-release-debs
@@ -37,21 +46,21 @@ jobs:
             echo "Doing ${pkg}"
             cd $pkg
             ls
-            rosdep install --from-path . --ignore-src --rosdistro melodic -y
-            bloom-generate rosdebian --os-name ubuntu --os-version bionic --ros-distro melodic
+            rosdep install --from-path . --ignore-src --rosdistro ${{ matrix.distro }} -y
+            bloom-generate rosdebian --os-name ubuntu --os-version ${{ matrix.ubuntu }} --ros-distro ${{ matrix.distro }}
             fakeroot debian/rules binary
             cd ..
-            sudo dpkg -i ros-melodic-*.deb
-            mv ros-melodic-*.deb bloom-release-debs
+            sudo dpkg -i ros-${{ matrix.distro }}-*.deb
+            mv ros-${{ matrix.distro }}-*.deb bloom-release-debs
           done < release_packages.yaml
-          zip -j bloom-release-deb.zip bloom-release-debs/*
+          zip -j bloom-${{ matrix.distro }}-release-deb.zip bloom-release-debs/*
           ls
       - name: Upload binaries to release
         uses: svenstaro/upload-release-action@v2
         with:
           repo_token: ${{ secrets.GITHUB_TOKEN }}
-          file: ./bloom-release-deb.zip
-          asset_name: bloom-release-deb.zip
+          file: ./bloom-${{ matrix.distro }}-release-deb.zip
+          asset_name: bloom-${{ matrix.distro }}-release-deb.zip
           tag: ${{ github.ref }}
           overwrite: true
           body: "Debian release generated using bloom"
