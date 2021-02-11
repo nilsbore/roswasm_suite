@@ -128,7 +128,11 @@ endif()
 ## Mark executable scripts (Python etc.) for installation
 ## in contrast to setup.py, you can choose the destination
 if (NOT ${ROSWASM_NATIVE})
-install(PROGRAMS www/test.html ${CATKIN_DEVEL_PREFIX}/${CATKIN_PACKAGE_BIN_DESTINATION}/test.wasm scripts/run.py
+install(PROGRAMS www/test.html ${CATKIN_DEVEL_PREFIX}/${CATKIN_PACKAGE_BIN_DESTINATION}/test.wasm
+  DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
+)
+
+catkin_install_python(PROGRAMS scripts/run.py
   DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
 )
 endif()
