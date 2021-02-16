@@ -77,17 +77,20 @@ bool draw_pose2d(std_msgs::Float64& msg1, std_msgs::Float64& msg2, roswasm::Publ
 
 bool DrawFloat32::operator()(std_msgs::Float32& msg, roswasm::Publisher& pub)
 {
+    ImGui::PushID("Float slider");
     ImGui::SliderFloat("", &msg.data, minv, maxv, "%.2f");
     if (ImGui::IsItemDeactivatedAfterChange()) {
         pub.publish(msg);
     }
+    bool lock = ImGui::IsItemActive();
+    ImGui::PopID();
     ImGui::SameLine();
     ImGui::InputFloat("Float value", &msg.data, 0.0f, 0.0f, "%.2f");
     if (ImGui::IsItemDeactivatedAfterChange()) {
         pub.publish(msg);
     }
 
-    return false;
+    return lock;
 }
 
 bool DrawFloat64::operator()(std_msgs::Float64& msg, roswasm::Publisher& pub)
@@ -97,6 +100,7 @@ bool DrawFloat64::operator()(std_msgs::Float64& msg, roswasm::Publisher& pub)
     if (ImGui::IsItemDeactivatedAfterChange()) {
         pub.publish(msg);
     }
+    bool lock = ImGui::IsItemActive();
     ImGui::PopID();
     ImGui::SameLine();
     ImGui::InputScalar("Cmd input",  ImGuiDataType_Double, &msg.data, NULL, NULL, "%.2f");
@@ -104,7 +108,7 @@ bool DrawFloat64::operator()(std_msgs::Float64& msg, roswasm::Publisher& pub)
         pub.publish(msg);
     }
 
-    return false;
+    return lock;
 }
 
 bool DrawFloatPair::operator()(std_msgs::Float64& msg1, std_msgs::Float64& msg2, roswasm::Publisher& pub)
