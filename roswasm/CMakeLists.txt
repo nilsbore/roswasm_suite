@@ -6,7 +6,7 @@ option(ROSWASM_NATIVE "Compile with ROS Native version of ROSWASM" OFF)
 if (DEFINED ENV{EMSDK} OR ${ROSWASM_NATIVE})
 
 #set(EMSDK_ROOT $ENV{EMSDK})
-find_package(catkin REQUIRED COMPONENTS roscpp roscpp_json_serialize std_msgs sensor_msgs geometry_msgs nav_msgs) # rosmon_msgs)
+find_package(catkin REQUIRED COMPONENTS roscpp roscpp_json_serialize std_msgs std_srvs sensor_msgs geometry_msgs nav_msgs) # rosmon_msgs)
 
 ###################################
 ## catkin specific configuration ##
@@ -166,7 +166,7 @@ install(DIRECTORY launch/
 
 else() # no emsdk
 
-find_package(catkin REQUIRED COMPONENTS roscpp roscpp_json_serialize std_msgs sensor_msgs geometry_msgs nav_msgs) # rosmon_msgs)
+find_package(catkin REQUIRED COMPONENTS roscpp roscpp_json_serialize std_msgs std_srvs sensor_msgs geometry_msgs nav_msgs) # rosmon_msgs)
 catkin_package()
 
 configure_file(www/test.html ${CATKIN_DEVEL_PREFIX}/${CATKIN_PACKAGE_BIN_DESTINATION}/test.html COPYONLY)

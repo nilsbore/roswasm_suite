@@ -1,0 +1,18 @@
+<launch>
+
+<arg name="rosbridge_ip" default="0.0.0.0" />
+<arg name="rosbridge_port" default="9090" />
+<arg name="display_port" default="8080" />
+
+<include file="$(find roswasm)/launch/run_server.launch">
+    <arg name="pkg" value="roswasm_tutorials"/>
+    <arg name="node" value="bool_client.html"/>
+    <arg name="server_name" value="bool_client"/>
+    <arg name="rosbridge_ip" value="$(arg rosbridge_ip)"/>
+    <arg name="rosbridge_port" value="$(arg rosbridge_port)"/>
+    <arg name="display_port" value="$(arg display_port)"/>
+</include>
+
+<node pkg="roswasm_tutorials" name="bool_service" type="bool_service.py" output="screen"/>
+
+</launch>
