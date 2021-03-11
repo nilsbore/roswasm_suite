@@ -42,6 +42,7 @@ include_directories(
 add_executable(talker src/talker.cpp)
 add_executable(listener src/listener.cpp)
 add_executable(timers src/timers.cpp)
+add_executable(bool_client src/bool_client.cpp)
 
 ## Rename C++ executable without prefix
 ## The above recommended prefix causes long target names, the following renames the
@@ -52,6 +53,7 @@ if (NOT ${ROSWASM_NATIVE})
 set_target_properties(talker PROPERTIES OUTPUT_NAME "talker.js")
 set_target_properties(listener PROPERTIES OUTPUT_NAME "listener.js")
 set_target_properties(timers PROPERTIES OUTPUT_NAME "timers.js")
+set_target_properties(bool_client PROPERTIES OUTPUT_NAME "bool_client.js")
 endif()
 
 ## Add cmake target dependencies of the executable
@@ -59,16 +61,19 @@ endif()
 add_dependencies(talker ${catkin_EXPORTED_TARGETS})
 add_dependencies(listener ${catkin_EXPORTED_TARGETS})
 add_dependencies(timers ${catkin_EXPORTED_TARGETS})
+add_dependencies(bool_client ${catkin_EXPORTED_TARGETS})
 
 ## Specify libraries to link a library or executable target against
 if (NOT ${ROSWASM_NATIVE})
 target_link_libraries(talker ${roswasm_LIBRARIES})
 target_link_libraries(listener ${roswasm_LIBRARIES})
 target_link_libraries(timers ${roswasm_LIBRARIES})
+target_link_libraries(bool_client ${roswasm_LIBRARIES})
 else()
 target_link_libraries(talker ${catkin_LIBRARIES})
 target_link_libraries(listener ${catkin_LIBRARIES})
 target_link_libraries(timers ${catkin_LIBRARIES})
+target_link_libraries(bool_client ${catkin_LIBRARIES})
 endif()
 
 #############
@@ -81,15 +86,19 @@ endif()
 ## Mark executable scripts (Python etc.) for installation
 ## in contrast to setup.py, you can choose the destination
 if (NOT ${ROSWASM_NATIVE})
-install(PROGRAMS www/timers.html ${CATKIN_DEVEL_PREFIX}/${CATKIN_PACKAGE_BIN_DESTINATION}/timers.wasm www/listener.html ${CATKIN_DEVEL_PREFIX}/${CATKIN_PACKAGE_BIN_DESTINATION}/listener.wasm www/talker.html ${CATKIN_DEVEL_PREFIX}/${CATKIN_PACKAGE_BIN_DESTINATION}/talker.wasm
+install(PROGRAMS www/timers.html ${CATKIN_DEVEL_PREFIX}/${CATKIN_PACKAGE_BIN_DESTINATION}/timers.wasm www/listener.html ${CATKIN_DEVEL_PREFIX}/${CATKIN_PACKAGE_BIN_DESTINATION}/listener.wasm www/talker.html ${CATKIN_DEVEL_PREFIX}/${CATKIN_PACKAGE_BIN_DESTINATION}/talker.wasm www/bool_client.html ${CATKIN_DEVEL_PREFIX}/${CATKIN_PACKAGE_BIN_DESTINATION}/bool_client.wasm
   DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
 )
 endif()
 
 ## Mark executables for installation
 ## See http://docs.ros.org/melodic/api/catkin/html/howto/format1/building_executables.html
-install(TARGETS talker listener timers
+install(TARGETS talker listener timers bool_client
   RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
+)
+
+catkin_install_python(PROGRAMS scripts/bool_service.py
+  DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
 )
 
 ## Mark other files for installation (e.g. launch and bag files, etc.)
@@ -114,5 +123,6 @@ catkin_package()
 configure_file(www/talker.html ${CATKIN_DEVEL_PREFIX}/${CATKIN_PACKAGE_BIN_DESTINATION}/talker.html COPYONLY)
 configure_file(www/listener.html ${CATKIN_DEVEL_PREFIX}/${CATKIN_PACKAGE_BIN_DESTINATION}/listener.html COPYONLY)
 configure_file(www/timers.html ${CATKIN_DEVEL_PREFIX}/${CATKIN_PACKAGE_BIN_DESTINATION}/timers.html COPYONLY)
+configure_file(www/bool_client.html ${CATKIN_DEVEL_PREFIX}/${CATKIN_PACKAGE_BIN_DESTINATION}/bool_client.html COPYONLY)
 
 endif()
