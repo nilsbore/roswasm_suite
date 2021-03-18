@@ -53,8 +53,8 @@ void LaunchState::callback(const rosmon_msgs::State& new_msg)
 {
     msg = new_msg;
     start_stop_launch_node();
-    printf("Got quite simple msg\n");
-    printf("Nodes len: %zu\n", new_msg.nodes.size());
+    // printf("Got quite simple msg\n");
+    // printf("Nodes len: %zu\n", new_msg.nodes.size());
 }
 
 void LaunchState::start_stop_launch(uint8_t action)
