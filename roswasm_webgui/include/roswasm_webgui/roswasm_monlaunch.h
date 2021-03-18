@@ -49,6 +49,7 @@ private:
     roswasm::NodeHandle& nh;
     roswasm::Timer timer;
 public:
+    void get_states(std::map<const char*, std::vector<int>>& states);
     void service_callback(const rosapi::TopicsForType::Response& res, bool result);
     void timer_callback(const ros::TimerEvent& event);
     void show_window(bool& show_another_window);
