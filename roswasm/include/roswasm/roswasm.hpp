@@ -183,7 +183,7 @@ void NodeHandleImpl::try_websocket_connect()
     int urlLength = 0;
     EMSCRIPTEN_RESULT res = emscripten_websocket_get_url_length(socket, &urlLength);
     assert(res == EMSCRIPTEN_RESULT_SUCCESS);
-    assert(urlLength == strlen(attr.url));
+    // assert(urlLength == strlen(attr.url));
 
     emscripten_websocket_set_onopen_callback(socket, (void*)(this), NodeHandleImpl::WebSocketOpen);
     emscripten_websocket_set_onclose_callback(socket, (void*)(this), NodeHandleImpl::WebSocketClose);
