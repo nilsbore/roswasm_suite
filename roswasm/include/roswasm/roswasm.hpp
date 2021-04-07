@@ -91,33 +91,52 @@ void normalizeSecNSecSigned(int32_t& sec, int32_t& nsec)
 
 namespace roswasm {
 
-bool NodeHandle::debug_print = false;
+void init(int argc, const char* const* argv, const std::string& arg)
+{
+}
 
-void NodeHandle::unsubscribe(const std::string& id)
+void spinLoop(void(*loop)())
+{
+    emscripten_set_main_loop(loop, -1, 1);
+}
+
+void spinLoop(void(*loop)(), roswasm::Duration loop_rate)
+{
+    emscripten_set_main_loop(loop, int(1./loop_rate.toSec()), 1);
+}
+
+void shutdown()
+{
+    emscripten_exit_with_live_runtime();
+}
+
+bool NodeHandleImpl::debug_print = false;
+
+void NodeHandleImpl::unsubscribe(const std::string& id)
 {
     if (subscribers.count(id) == 0) {
         return;
     }
-    if (NodeHandle::socket_open) {
+    if (NodeHandleImpl::socket_open) {
         std::string message = subscribers[id]->json_unsubscribe_message();
         emscripten_websocket_send_utf8_text(socket, message.c_str());
     }
     subscribers.erase(id);
 }
 
-void NodeHandle::websocket_open()
+void NodeHandleImpl::websocket_open()
 {
     socket_open = true;
 
     printf("Connection open, clearing message queue!\n");
 
-    for (std::pair<const std::string, Subscriber*>& sub : subscribers) {
+    for (std::pair<const std::string, SubscriberImplBase*>& sub : subscribers) {
         std::string message = sub.second->json_subscribe_message();
         printf("To rosbridge sending: %s\n", message.c_str());
         emscripten_websocket_send_utf8_text(socket, message.c_str());
     }
 
-    for (std::pair<const std::string, Publisher*>& pub : publishers) {
+    for (std::pair<const std::string, PublisherImplBase*>& pub : publishers) {
         std::string message = pub.second->json_advertise_message();
         printf("To rosbridge sending: %s\n", message.c_str());
         emscripten_websocket_send_utf8_text(socket, message.c_str());
@@ -130,25 +149,22 @@ void NodeHandle::websocket_open()
     message_queue.clear();
 }
 
-void NodeHandle::websocket_close()
+void NodeHandleImpl::websocket_close()
 {
     socket_open = false;
     emscripten_websocket_delete(socket);
     // try again in 5 seconds
-    timer = createTimer(5., std::bind(&NodeHandle::try_websocket_connect, this));
+    timer.start();
 }
 
-std::string NodeHandle::get_websocket_url()
+std::string NodeHandleImpl::get_websocket_url()
 {
     return std::string("ws://") + rosbridge_ip + ":" + rosbridge_port + "/";
 }
 
-void NodeHandle::try_websocket_connect()
+void NodeHandleImpl::try_websocket_connect()
 {
-    if (timer != nullptr) {
-        delete timer;
-        timer = nullptr;
-    }
+    timer.stop();
 
     EmscriptenWebSocketCreateAttributes attr;
     emscripten_websocket_init_create_attributes(&attr);
@@ -167,44 +183,44 @@ void NodeHandle::try_websocket_connect()
     int urlLength = 0;
     EMSCRIPTEN_RESULT res = emscripten_websocket_get_url_length(socket, &urlLength);
     assert(res == EMSCRIPTEN_RESULT_SUCCESS);
-    assert(urlLength == strlen(attr.url));
+    // assert(urlLength == strlen(attr.url));
 
-    emscripten_websocket_set_onopen_callback(socket, (void*)(this), NodeHandle::WebSocketOpen);
-    emscripten_websocket_set_onclose_callback(socket, (void*)(this), NodeHandle::WebSocketClose);
-    emscripten_websocket_set_onerror_callback(socket, (void*)44, NodeHandle::WebSocketError);
-    emscripten_websocket_set_onmessage_callback(socket, (void*)(this), NodeHandle::WebSocketMessage);
+    emscripten_websocket_set_onopen_callback(socket, (void*)(this), NodeHandleImpl::WebSocketOpen);
+    emscripten_websocket_set_onclose_callback(socket, (void*)(this), NodeHandleImpl::WebSocketClose);
+    emscripten_websocket_set_onerror_callback(socket, (void*)44, NodeHandleImpl::WebSocketError);
+    emscripten_websocket_set_onmessage_callback(socket, (void*)(this), NodeHandleImpl::WebSocketMessage);
 }
 
-EM_BOOL NodeHandle::WebSocketOpen(int eventType, const EmscriptenWebSocketOpenEvent *e, void *userData)
+EM_BOOL NodeHandleImpl::WebSocketOpen(int eventType, const EmscriptenWebSocketOpenEvent *e, void *userData)
 {
     printf("open(eventType=%d, userData=%d)\n", eventType, (int)userData);
 
-    NodeHandle* nh = (NodeHandle*)(userData);
+    NodeHandleImpl* nh = (NodeHandleImpl*)(userData);
     nh->websocket_open();
 
     return 0;
 }
 
-EM_BOOL NodeHandle::WebSocketClose(int eventType, const EmscriptenWebSocketCloseEvent *e, void *userData)
+EM_BOOL NodeHandleImpl::WebSocketClose(int eventType, const EmscriptenWebSocketCloseEvent *e, void *userData)
 {
     printf("close(eventType=%d, wasClean=%d, code=%d, reason=%s, userData=%d)\n", eventType, e->wasClean, e->code, e->reason, (int)userData);
 
-    NodeHandle* nh = (NodeHandle*)(userData);
+    NodeHandleImpl* nh = (NodeHandleImpl*)(userData);
     nh->websocket_close();
 
     return 0;
 }
 
-EM_BOOL NodeHandle::WebSocketError(int eventType, const EmscriptenWebSocketErrorEvent *e, void *userData)
+EM_BOOL NodeHandleImpl::WebSocketError(int eventType, const EmscriptenWebSocketErrorEvent *e, void *userData)
 {
     printf("error(eventType=%d, userData=%d)\n", eventType, (int)userData);
     return 0;
 }
 
-EM_BOOL NodeHandle::WebSocketMessage(int eventType, const EmscriptenWebSocketMessageEvent *e, void *userData)
+EM_BOOL NodeHandleImpl::WebSocketMessage(int eventType, const EmscriptenWebSocketMessageEvent *e, void *userData)
 {
     if (debug_print) printf("message(eventType=%d, userData=%d, data=%p, numBytes=%d, isText=%d)\n", eventType, (int)userData, e->data, e->numBytes, e->isText);
-    NodeHandle* nh = (NodeHandle*)(userData);
+    NodeHandleImpl* nh = (NodeHandleImpl*)(userData);
     if (e->isText) {
         if (debug_print) printf("text data: \"%s\"\n", e->data);
         nh->handle_string(e);
@@ -215,7 +231,7 @@ EM_BOOL NodeHandle::WebSocketMessage(int eventType, const EmscriptenWebSocketMes
     return 0;
 }
 
-void NodeHandle::handle_bytes(const EmscriptenWebSocketMessageEvent* e)
+void NodeHandleImpl::handle_bytes(const EmscriptenWebSocketMessageEvent* e)
 {
     // to be filled in
     std::vector<uint8_t> buffer;
@@ -296,14 +312,14 @@ void NodeHandle::handle_bytes(const EmscriptenWebSocketMessageEvent* e)
     if (debug_print) printf("Total len: %zu\n", len);
     if (debug_print) printf("Buffer size: %zu, calling subscriber callback\n", buffer.size());
     //subscribers[id]->callback(buffer);
-    for (std::pair<const std::string, Subscriber*>& sub : subscribers) {
-        if (sub.second->topic == topic) {
+    for (std::pair<const std::string, SubscriberImplBase*>& sub : subscribers) {
+        if (sub.second->get_topic() == topic) {
             sub.second->callback(buffer);
         }
     }
 }
 
-void NodeHandle::handle_string(const EmscriptenWebSocketMessageEvent* e)
+void NodeHandleImpl::handle_string(const EmscriptenWebSocketMessageEvent* e)
 {
     rapidjson::Document document;
     document.Parse((const char*)e->data);
@@ -340,9 +356,9 @@ void NodeHandle::handle_string(const EmscriptenWebSocketMessageEvent* e)
     }
 }
 
-void NodeHandle::send_message(const std::string& message)
+void NodeHandleImpl::send_message(const std::string& message)
 {
-    if (NodeHandle::socket_open) {
+    if (NodeHandleImpl::socket_open) {
         emscripten_websocket_send_utf8_text(socket, message.c_str());
     }
     else {
@@ -350,8 +366,8 @@ void NodeHandle::send_message(const std::string& message)
     }
 }
 
-NodeHandle::NodeHandle(const std::string& rosbridge_ip, const std::string& rosbridge_port)
-    : rosbridge_ip(rosbridge_ip), rosbridge_port(rosbridge_port), timer(nullptr)
+NodeHandleImpl::NodeHandleImpl(const std::string& rosbridge_ip, const std::string& rosbridge_port)
+    : rosbridge_ip(rosbridge_ip), rosbridge_port(rosbridge_port)
 {
     debug_print = false;
     socket_open = false;
@@ -361,6 +377,9 @@ NodeHandle::NodeHandle(const std::string& rosbridge_ip, const std::string& rosbr
         printf("WebSockets are not supported, cannot continue!\n");
         exit(1);
     }
+
+    timer = createTimer(roswasm::Duration(5.), std::bind(&NodeHandleImpl::try_websocket_connect, this));
+    timer.stop();
 
     /*
     EmscriptenWebSocketCreateAttributes attr;
@@ -381,10 +400,10 @@ NodeHandle::NodeHandle(const std::string& rosbridge_ip, const std::string& rosbr
     assert(res == EMSCRIPTEN_RESULT_SUCCESS);
     assert(urlLength == strlen(attr.url));
 
-    emscripten_websocket_set_onopen_callback(socket, (void*)(this), NodeHandle::WebSocketOpen);
-    emscripten_websocket_set_onclose_callback(socket, (void*)(this), NodeHandle::WebSocketClose);
-    emscripten_websocket_set_onerror_callback(socket, (void*)44, NodeHandle::WebSocketError);
-    emscripten_websocket_set_onmessage_callback(socket, (void*)(this), NodeHandle::WebSocketMessage);
+    emscripten_websocket_set_onopen_callback(socket, (void*)(this), NodeHandleImpl::WebSocketOpen);
+    emscripten_websocket_set_onclose_callback(socket, (void*)(this), NodeHandleImpl::WebSocketClose);
+    emscripten_websocket_set_onerror_callback(socket, (void*)44, NodeHandleImpl::WebSocketError);
+    emscripten_websocket_set_onmessage_callback(socket, (void*)(this), NodeHandleImpl::WebSocketMessage);
     */
     try_websocket_connect();
 }

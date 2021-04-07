@@ -5,7 +5,7 @@
 namespace roswasm {
 
 template <typename MSG>
-void SubscriberImpl<MSG>::shutdown(const std::string& id)
+void SubscriberImpl<MSG>::shutdown()
 {
     nh->unsubscribe(id);
 }

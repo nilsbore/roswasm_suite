@@ -69,21 +69,22 @@ void ImageWidget::timer_callback(const ros::TimerEvent& event)
 {
     rosapi::TopicsForType::Request req;
     req.type = "sensor_msgs/CompressedImage";
-    topics_service->call<rosapi::TopicsForType>(req);
+    topics_service.call<rosapi::TopicsForType>(req, std::bind(&ImageWidget::service_callback, this, std::placeholders::_1, std::placeholders::_2));
 }
 
-ImageWidget::ImageWidget(roswasm::NodeHandle* n)
+ImageWidget::ImageWidget(roswasm::NodeHandle& n) : nh(n)
 {
     image_width = 0;
     image_height = 0;
     image_texture = 0;
-    nh = n;
-    sub = nullptr;
-    topics_service = nh->serviceClient<rosapi::TopicsForType>("/rosapi/topics_for_type", std::bind(&ImageWidget::service_callback, this, std::placeholders::_1, std::placeholders::_2));
+    //nh = n;
+    //sub = nullptr;
+    //topics_service = nh->serviceClient<rosapi::TopicsForType>("/rosapi/topics_for_type", std::bind(&ImageWidget::service_callback, this, std::placeholders::_1, std::placeholders::_2));
+    topics_service = roswasm::createServiceCallbackClient<rosapi::TopicsForType>(nh, "/rosapi/topics_for_type"); // std::bind(&ImageWidget::service_callback, this, std::placeholders::_1, std::placeholders::_2)
     rosapi::TopicsForType::Request req;
     req.type = "sensor_msgs/CompressedImage";
-    topics_service->call<rosapi::TopicsForType>(req);
-    timer = nh->createTimer(5., std::bind(&ImageWidget::timer_callback, this, std::placeholders::_1));
+    topics_service.call<rosapi::TopicsForType>(req, std::bind(&ImageWidget::service_callback, this, std::placeholders::_1, std::placeholders::_2));
+    timer = nh.createTimer(roswasm::Duration(5.), std::bind(&ImageWidget::timer_callback, this, std::placeholders::_1));
 }
 
 void ImageWidget::callback(const sensor_msgs::CompressedImage& msg)
@@ -107,10 +108,13 @@ void ImageWidget::show_window(bool& show_another_window)
     if (ImGui::Combo("Published topics", &style_idx, choices.c_str()))
     {
         if (style_idx != -1 && !topics.empty()) {
-            if (sub != nullptr && sub->topic != topics[style_idx]) {
-                delete sub;
+
+            // TODO: this needs to get fixed
+            if (sub.getTopic() != topics[style_idx]) {
+                sub.shutdown();
+                sub = nh.subscribe(topics[style_idx], 1000, &ImageWidget::callback, this);
             }
-            sub = nh->subscribe<sensor_msgs::CompressedImage>(topics[style_idx], std::bind(&ImageWidget::callback, this, std::placeholders::_1), 1000);
+            //sub = nh.subscribe(topics[style_idx], 1000, std::bind(&ImageWidget::callback, this, std::placeholders::_1), 1000);
         }
     }
     if (image_width != 0 && image_height != 0) {

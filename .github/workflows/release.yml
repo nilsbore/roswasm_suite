@@ -1,0 +1,66 @@
+name: release-deb
+
+on:
+  push:
+    tags:
+    - '*'
+
+jobs:
+  release_build:
+      strategy:
+        matrix:
+          include:
+            - distro: melodic
+              ubuntu: bionic
+              bloom: python-bloom
+            - distro: noetic
+              ubuntu: focal
+              bloom: python3-bloom
+      runs-on: ubuntu-latest
+      container:
+        image: rostooling/setup-ros-docker:ubuntu-${{ matrix.ubuntu }}-ros-${{ matrix.distro }}-ros-base-latest
+        #options: -u root  # setup-node requires root access
+      steps:
+      - uses: actions/checkout@v2
+        with:
+          path: '.'
+      - name: Setups deps for EMSDK
+        run: |
+          sudo apt install zip unzip
+      - uses: mymindstorm/setup-emsdk@v7      
+        with:
+          version: '2.0.7'
+      - name: Setup environment
+        run: |
+          sudo curl https://raw.githubusercontent.com/smarc-project/rosinstall/master/rosdep/50-smarc-${{ matrix.distro }}.list -o /etc/ros/rosdep/sources.list.d/50-smarc.list  
+          rosdep update
+      - name: Install deps
+        run: |
+          ls
+          sudo apt install -y ${{ matrix.bloom }} fakeroot dpkg-dev debhelper
+      - name: Build package
+        run: |
+          mkdir bloom-release-debs
+          while read line; do
+            pkg=$(echo $line | cut -c3-)
+            echo "Doing ${pkg}"
+            cd $pkg
+            ls
+            rosdep install --from-path . --ignore-src --rosdistro ${{ matrix.distro }} -y
+            bloom-generate rosdebian --os-name ubuntu --os-version ${{ matrix.ubuntu }} --ros-distro ${{ matrix.distro }}
+            fakeroot debian/rules binary
+            cd ..
+            sudo dpkg -i ros-${{ matrix.distro }}-*.deb
+            mv ros-${{ matrix.distro }}-*.deb bloom-release-debs
+          done < release_packages.yaml
+          zip -j bloom-${{ matrix.distro }}-release-deb.zip bloom-release-debs/*
+          ls
+      - name: Upload binaries to release
+        uses: svenstaro/upload-release-action@v2
+        with:
+          repo_token: ${{ secrets.GITHUB_TOKEN }}
+          file: ./bloom-${{ matrix.distro }}-release-deb.zip
+          asset_name: bloom-${{ matrix.distro }}-release-deb.zip
+          tag: ${{ github.ref }}
+          overwrite: true
+          body: "Debian release generated using bloom"

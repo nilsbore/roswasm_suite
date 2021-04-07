@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
-<package format="2">
+<package format="3">
   <name>roswasm_tutorials</name>
-  <version>0.0.0</version>
+  <version>0.1.4</version>
   <description>The roswasm_tutorials package</description>
 
   <!-- One maintainer tag required, multiple allowed, one person per tag -->
@@ -59,9 +59,12 @@
   <exec_depend>roswasm</exec_depend>
   <exec_depend>std_msgs</exec_depend>
   <exec_depend>rosbridge_server</exec_depend>
-  <exec_depend>python-tornado</exec_depend>
-  <exec_depend>python-twisted-core</exec_depend>
-  <exec_depend>python-autobahn</exec_depend>
+  <exec_depend condition="$ROS_PYTHON_VERSION == 2">python-autobahn</exec_depend>
+  <exec_depend condition="$ROS_PYTHON_VERSION == 3">python3-autobahn</exec_depend>
+  <exec_depend condition="$ROS_PYTHON_VERSION == 2">python-tornado</exec_depend>
+  <exec_depend condition="$ROS_PYTHON_VERSION == 3">python3-tornado</exec_depend>
+  <exec_depend condition="$ROS_PYTHON_VERSION == 2">python-twisted-core</exec_depend>
+  <exec_depend condition="$ROS_PYTHON_VERSION == 3">python3-twisted</exec_depend>
 
   <test_depend>rostest</test_depend>
   <test_depend>chromium-browser</test_depend>

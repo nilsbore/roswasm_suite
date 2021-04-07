@@ -4,13 +4,16 @@
 
 namespace roswasm_webgui {
 
-ExampleActuatorWidget::ExampleActuatorWidget(roswasm::NodeHandle* nh) : rpm_pub_enabled(false), pub_timer(nullptr)
+ExampleActuatorWidget::ExampleActuatorWidget(roswasm::NodeHandle& nh) : rpm_pub_enabled(false) //, pub_timer(nullptr)
 {
+    pub_timer = nh.createTimer(roswasm::Duration(0.08), std::bind(&ExampleActuatorWidget::pub_callback, this, std::placeholders::_1));
+    pub_timer.stop();
+
     thruster_angles = new TopicPairWidget<geometry_msgs::Pose2D, std_msgs::Float64>(nh, DrawFloatPair("Hori (rad)", -0.1, 0.18, "Vert (rad)", -0.1, 0.15), "core/thrust_vector_cmd", "core/thrust_fb1", "core/thrust_fb2");
 //                                                      [{"name": "Hori.", "member": "thruster_horizontal_radians", "min": -0.1, "max": 0.18},
 //                                                       {"name": "Vert.", "member": "thruster_vertical_radians", "min": -0.1, "max": 0.15}])
     thruster_rpms = new TopicPairWidget<geometry_msgs::Pose2D, std_msgs::Float64>(nh, DrawFloatPair("Thruster 1", -1000., 1000., "Thruster 2", -1000., 1000.), "core/rpm_cmd", "core/rpm_fb1", "core/rpm_fb2");
-    rpm_pub = nh->advertise<geometry_msgs::Pose2D>("core/rpm_cmd");
+    rpm_pub = nh.advertise<geometry_msgs::Pose2D>("core/rpm_cmd", 1000);
 //                                                    [{"name": "Front", "member": "thruster_1_rpm", "min": -1000, "max": 1000, "type": "int"},
 //                                                     {"name": "Back", "member": "thruster_2_rpm", "min": -1000, "max": 1000, "type": "int"}])
 
@@ -36,7 +39,7 @@ void ExampleActuatorWidget::pub_callback(const ros::TimerEvent& e)
         geometry_msgs::Pose2D msg;
         msg.x = thruster_rpms->get_msg1().data;
         msg.y = thruster_rpms->get_msg2().data;
-        rpm_pub->publish(msg);
+        rpm_pub.publish(msg);
     }
 }
 
@@ -54,12 +57,14 @@ void ExampleActuatorWidget::show_window(bool& show_actuator_window)
         thruster_rpms->show_widget();
         ImGui::Checkbox("Publish RPMs at 10hz", &rpm_pub_enabled);
         ImGui::PopID();
-        if (rpm_pub_enabled && pub_timer == nullptr) {
-            pub_timer = new roswasm::Timer(0.08, std::bind(&ExampleActuatorWidget::pub_callback, this, std::placeholders::_1));
+        if (rpm_pub_enabled) { // && pub_timer == nullptr) {
+            //pub_timer = new roswasm::Timer(0.08, std::bind(&ExampleActuatorWidget::pub_callback, this, std::placeholders::_1));
+            pub_timer.start();
         }
-        else if (!rpm_pub_enabled && pub_timer != nullptr) {
-            delete pub_timer;
-            pub_timer = nullptr;
+        else { //if (!rpm_pub_enabled && pub_timer != nullptr) {
+            //delete pub_timer;
+            //pub_timer = nullptr;
+            pub_timer.stop();
         }
     }
 
@@ -112,14 +117,14 @@ void ExampleActuatorWidget::show_window(bool& show_actuator_window)
     ImGui::End();
 }
 
-ExampleDashboardWidget::ExampleDashboardWidget(roswasm::NodeHandle* nh) : was_leak(false)
+ExampleDashboardWidget::ExampleDashboardWidget(roswasm::NodeHandle& nh) : was_leak(false)
 {
     leak = new TopicBuffer<std_msgs::Bool>(nh, "core/leak_fb");
     gps = new TopicBuffer<sensor_msgs::NavSatFix>(nh, "core/gps");
     battery = new TopicBuffer<sensor_msgs::BatteryState>(nh, "core/battery_fb");
     odom = new TopicBuffer<nav_msgs::Odometry>(nh, "dr/odom", 1000);
-    vbs = new TopicBuffer<std_msgs::Float64>(nh, "core/vbs_fb", 1000);
-    lcg = new TopicBuffer<std_msgs::Float64>(nh, "core/lcg_fb", 1000);
+    vbs = new TopicBuffer<std_msgs::Float32>(nh, "core/vbs_fb", 1000);
+    lcg = new TopicBuffer<std_msgs::Float32>(nh, "core/lcg_fb", 1000);
     depth = new TopicBuffer<std_msgs::Float64>(nh, "ctrl/depth_feedback", 1000);
     pitch = new TopicBuffer<std_msgs::Float64>(nh, "ctrl/pitch_feedback", 1000);
     roll = new TopicBuffer<std_msgs::Float64>(nh, "ctrl/roll_feedback", 1000);
@@ -187,17 +192,19 @@ void ExampleDashboardWidget::show_window(bool& show_dashboard_window)
     ImGui::End();
 }
 
-ExampleTeleopWidget::ExampleTeleopWidget(roswasm::NodeHandle* nh) : enabled(false), pub_timer(nullptr)
+ExampleTeleopWidget::ExampleTeleopWidget(roswasm::NodeHandle& nh) : enabled(false) //, pub_timer(nullptr)
 {
-    angle_pub = nh->advertise<geometry_msgs::Pose2D>("core/thrust_vector_cmd");
-    rpm_pub = nh->advertise<geometry_msgs::Pose2D>("core/rpm_cmd");
+    pub_timer = nh.createTimer(roswasm::Duration(0.08), std::bind(&ExampleTeleopWidget::pub_callback, this, std::placeholders::_1));
+    pub_timer.stop();
+    angle_pub = nh.advertise<geometry_msgs::Pose2D>("core/thrust_vector_cmd", 1000);
+    rpm_pub = nh.advertise<geometry_msgs::Pose2D>("core/rpm_cmd", 1000);
 }
 
 void ExampleTeleopWidget::pub_callback(const ros::TimerEvent& e)
 {
     if (enabled) {
-        angle_pub->publish(angles_msg);
-        rpm_pub->publish(rpm_msg);
+        angle_pub.publish(angles_msg);
+        rpm_pub.publish(rpm_msg);
     }
 }
 
@@ -215,12 +222,14 @@ void ExampleTeleopWidget::show_window(bool& show_teleop_window)
     ImGui::BeginGroup();
     ImGui::Dummy(ImVec2(sz, 0.75f*sz));
     ImGui::Checkbox("Teleop enabled", &enabled);
-    if (enabled && pub_timer == nullptr) {
-        pub_timer = new roswasm::Timer(0.08, std::bind(&ExampleTeleopWidget::pub_callback, this, std::placeholders::_1));
+    if (enabled) { // && pub_timer == nullptr) {
+        //pub_timer = new roswasm::Timer(0.08, std::bind(&ExampleTeleopWidget::pub_callback, this, std::placeholders::_1));
+        pub_timer.start();
     }
-    else if (!enabled && pub_timer != nullptr) {
-        delete pub_timer;
-        pub_timer = nullptr;
+    else { //if (!enabled && pub_timer != nullptr) {
+        //delete pub_timer;
+        //pub_timer = nullptr;
+        pub_timer.stop();
     }
     ImGui::EndGroup();
 

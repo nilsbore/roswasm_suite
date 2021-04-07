@@ -12,8 +12,8 @@ struct LaunchState {
 
     static const char* status[];
 
-    roswasm::Subscriber* sub;
-    roswasm::ServiceClient* client;
+    roswasm::Subscriber sub;
+    roswasm::ServiceCallbackClient client;
     rosmon_msgs::State msg;
     std::string name;
     int selected;
@@ -36,7 +36,7 @@ struct LaunchState {
 
     float get_progress();
 
-    LaunchState(roswasm::NodeHandle* node_handle, const std::string& topic, int max_launch_attempts = 10);
+    LaunchState(roswasm::NodeHandle& node_handle, const std::string& topic, int max_launch_attempts = 10);
 
     LaunchState();
 
@@ -44,15 +44,16 @@ struct LaunchState {
 
 class MonlaunchWidget {
 private:
-    roswasm::ServiceClient* topics_service;
+    roswasm::ServiceCallbackClient topics_service;
     std::map<std::string, LaunchState*> launch_states;
-    roswasm::NodeHandle* nh;
-    roswasm::Timer* timer;
+    roswasm::NodeHandle& nh;
+    roswasm::Timer timer;
 public:
+    void get_states(std::map<const char*, std::vector<int>>& states);
     void service_callback(const rosapi::TopicsForType::Response& res, bool result);
     void timer_callback(const ros::TimerEvent& event);
     void show_window(bool& show_another_window);
-    MonlaunchWidget(roswasm::NodeHandle* n);
+    MonlaunchWidget(roswasm::NodeHandle& n);
 };
 
 } // namespace roswasm_webgui

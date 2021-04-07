@@ -3,24 +3,46 @@
 
 namespace roswasm {
 
-void Timer::stop()
+TimerImpl::TimerImpl(double seconds, std::function<void(const ros::TimerEvent&)> cb) : callback(cb)
+{
+    id = emscripten_set_interval(&TimerImpl::impl_callback, 1e3*seconds, (void*)(this));
+}
+
+TimerImpl::~TimerImpl()
 {
     if (id != 0) {
         emscripten_clear_interval(id);
     }
-    id = 0;
 }
 
-Timer::Timer(double seconds, std::function<void(const ros::TimerEvent&)> cb) : callback(cb)
+void Timer::stop()
 {
-    id = emscripten_set_interval(&Timer::impl_callback, 1e3*seconds, (void*)(this));
+    if (impl != nullptr) {
+        delete impl;
+        impl = nullptr;
+    }
+}
+
+void Timer::start()
+{
+    if (impl == nullptr) {
+        impl = new TimerImpl(sec, cb);
+    }
+}
+
+Timer::Timer(roswasm::Duration duration, std::function<void(const ros::TimerEvent&)> cb) : sec(duration.toSec()), cb(cb), impl(new TimerImpl(duration.toSec(), cb))
+{
+}
+
+Timer::Timer() : impl(nullptr)
+{
+
 }
 
 Timer::~Timer()
 {
-    if (id != 0) {
-        emscripten_clear_interval(id);
-    }
+    delete impl;
+    impl = nullptr;
 }
 
 } // namespace roswasm

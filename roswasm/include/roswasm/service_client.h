@@ -6,77 +6,78 @@
 
 namespace roswasm {
 
-class NodeHandle;
+class NodeHandleImpl;
 
-class ServiceClientImplBase {
+class ServiceCallbackClientImplBase {
     public:
     std::string id;
 
     virtual void callback(const std::string& buffer, bool result) = 0;
 
-    ServiceClientImplBase()
+    std::string get_id()
+    {
+        return id;
+    }
+
+    ServiceCallbackClientImplBase()
     {
         id = std::to_string(size_t(this));
     }
 
-    virtual ~ServiceClientImplBase() {}
+    virtual ~ServiceCallbackClientImplBase() {}
 
 };
 
 template <typename SRV>
-class ServiceClientImpl : public ServiceClientImplBase {
+class ServiceCallbackClientImpl : public ServiceCallbackClientImplBase {
 private:
 
-    NodeHandle* nh;
+    NodeHandleImpl* nh;
+    std::string service_name;
+    using CallbT = std::function<void(const typename SRV::Response&, bool)>;
+    CallbT impl_callback;
 
 public:
 
-    std::function<void(const typename SRV::Response&, bool)> impl_callback;
-
-    void call(const typename SRV::Request& req, const std::string& service_name);
+    void call(const typename SRV::Request& req, CallbT cb);
     
     void callback(const std::string& buffer, bool result);
 
-    ServiceClientImpl(std::function<void(const typename SRV::Response&, bool)> cb, NodeHandle* nh) : impl_callback(cb), nh(nh)
+    //ServiceCallbackClientImpl(std::function<void(const typename SRV::Response&, bool)> cb, NodeHandleImpl* nh, const std::string& service_name) : impl_callback(cb), nh(nh), service_name(service_name)
+    ServiceCallbackClientImpl(NodeHandleImpl* nh, const std::string& service_name) : nh(nh), service_name(service_name)
     {
     }
-    ~ServiceClientImpl() {}
+    ~ServiceCallbackClientImpl() {}
 
 };
 
-class ServiceClient {
+class ServiceCallbackClient {
     public:
 
-    ServiceClientImplBase* impl;
-    std::string service_name;
-
-    void callback(const std::string& buffer, bool result)
-    {
-        if (impl != nullptr) {
-            impl->callback(buffer, result);
-        }
-        else {
-            printf("ServiceClient callback not initialized!\n");
-        }
-    }
+    std::unique_ptr<ServiceCallbackClientImplBase> impl;
 
     template <typename SRV>
-    void call(const typename SRV::Request& req)
+    void call(const typename SRV::Request& req, std::function<void(const typename SRV::Response&, bool)> cb)
     {
-        ServiceClientImpl<SRV>* value = dynamic_cast<ServiceClientImpl<SRV>*>(impl);
-        value->call(req, service_name);
+        ServiceCallbackClientImpl<SRV>* value = dynamic_cast<ServiceCallbackClientImpl<SRV>*>(impl.get());
+        value->call(req, cb);
     }
 
-    std::string get_id()
-    {
-        return impl->id;
-    }
-
-    ServiceClient(ServiceClientImplBase* new_impl, const std::string& new_service_name) : impl(new_impl), service_name(new_service_name)
+    ServiceCallbackClient(ServiceCallbackClientImplBase* impl) : impl(impl)
     {
     }
 
-    ServiceClient() : impl(nullptr) {}
+    ServiceCallbackClient() = default; // : impl(nullptr) {}
+
+    ServiceCallbackClient(ServiceCallbackClient&& other) noexcept : impl(std::move(other.impl))
+    {
+    }
+
+    ServiceCallbackClient& operator=(ServiceCallbackClient&& other)
+    {
+        impl = std::move(other.impl);
+        return *this;
+    }
 
 };
 

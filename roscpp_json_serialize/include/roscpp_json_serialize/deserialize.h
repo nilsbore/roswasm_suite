@@ -6,8 +6,13 @@
 #include "rapidjson/document.h"
 #include <cassert>
 
+// debug
+//#include "rapidjson/stringbuffer.h"
+//#include "rapidjson/writer.h"
+
 namespace roscpp_json {
 
+template <bool reversed>
 class JSONIter {
 
 private:
@@ -16,7 +21,11 @@ private:
     using ContainerAllocator = std::allocator<void>;
     using Serializer = ros::serialization::Serializer<ContainerAllocator>;
 
-    rapidjson::Value::ConstMemberIterator itr;
+    using Iterator = typename std::conditional<reversed,
+                              std::reverse_iterator<rapidjson::Value::ConstMemberIterator>,
+                              rapidjson::Value::ConstMemberIterator>::type;
+    //using Iterator = rapidjson::Value::ConstMemberIterator;
+    Iterator itr;
 
     // this can only be valur or object, no array
     template <typename T>
@@ -34,10 +43,22 @@ private:
     typename std::enable_if<std::is_integral<T>::value>::type extract(T& value, const rapidjson::Value& itr_value)
     {
         //assert(itr_value.IsInt());
-        if (!itr_value.IsInt()) {
-            throw ExceptionT("Expected int value!");
+        if (itr_value.IsInt()) {
+            value = itr_value.GetInt();
         }
-        value = itr_value.GetInt();
+        else if (itr_value.IsBool()) {
+            value = itr_value.GetBool();
+        }
+        else {
+            /*
+            rapidjson::StringBuffer sb;
+            rapidjson::Writer<rapidjson::StringBuffer> writer(sb);
+            itr_value.Accept(writer);
+            std::string s = sb.GetString();
+            printf("1: %s!!\n", s.c_str());
+            */
+            throw ExceptionT("Expected int or bool value!");
+        }
     }
 
     template <typename T>
@@ -78,10 +99,19 @@ private:
     template <typename MSG>
     void parse_impl(MSG& msg, const rapidjson::Value& itr_value)
     {
-        itr = itr_value.MemberBegin();
+        Iterator itr_end;
+        if (reversed) {
+            itr = Iterator(itr_value.MemberEnd());
+            itr_end = Iterator(itr_value.MemberBegin());
+        }
+        else {
+            itr = Iterator(itr_value.MemberBegin());
+            itr_end = Iterator(itr_value.MemberEnd());
+        }
         ros::serialization::Serializer<MSG>::template allInOne<JSONIter, MSG&>(*this, msg);
         //assert(itr == itr_value.MemberEnd());
-        if (itr != itr_value.MemberEnd()) {
+        //if (itr != itr_value.MemberEnd()) {
+        if (itr != itr_end) {
             throw ExceptionT("Provided dict has more members than ROS object!");
         }
     }
@@ -168,15 +198,15 @@ public:
 
 };
 
-template <typename MSG>
+template <typename MSG, bool reversed=false>
 MSG deserialize(const std::string& json, bool input_service_list=false)
 {
-    roscpp_json::JSONIter iter;
+    roscpp_json::JSONIter<reversed> iter;
     if (input_service_list) {
-        return iter.parse_service_list<MSG>(json);
+        return iter.template parse_service_list<MSG>(json);
     }
     else {
-        return iter.parse<MSG>(json);
+        return iter.template parse<MSG>(json);
     }
 }
 
