@@ -41,6 +41,8 @@
   <build_depend>geometry_msgs</build_depend>
   <build_depend>sensor_msgs</build_depend>
   <build_depend>nav_msgs</build_depend>
+  <build_depend condition="$ROS_PYTHON_VERSION == 2">python-requests</build_depend>
+  <build_depend condition="$ROS_PYTHON_VERSION == 3">python3-requests</build_depend>
   <!-- <build_depend>rosmon_msgs</build_depend> -->
   <exec_depend>roscpp</exec_depend>
   <exec_depend>roscpp_json_serialize</exec_depend>
