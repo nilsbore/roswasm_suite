@@ -2,8 +2,8 @@
 Changelog for package roswasm_tutorials
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+0.1.5 (2022-04-05)
+------------------
 * Merge pull request `#2 <https://github.com/nilsbore/roswasm_suite/issues/2>`_ from nilsbore/master
   Update to new version
 * Update package.xml

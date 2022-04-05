@@ -2,8 +2,8 @@
 Changelog for package roswasm_webgui
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+0.1.5 (2022-04-05)
+------------------
 * Update roswasm_webgui-extras.cmake.in
 * Merge pull request `#25 <https://github.com/nilsbore/roswasm_suite/issues/25>`_ from nilsbore/nilsbore-patch-1
   Update package.xml

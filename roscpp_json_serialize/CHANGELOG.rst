@@ -2,8 +2,8 @@
 Changelog for package roscpp_json_serialize
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+0.1.5 (2022-04-05)
+------------------
 * Merge pull request `#2 <https://github.com/nilsbore/roswasm_suite/issues/2>`_ from nilsbore/master
   Update to new version
 * Merge pull request `#18 <https://github.com/nilsbore/roswasm_suite/issues/18>`_ from nilsbore/set_bool
